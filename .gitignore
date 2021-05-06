@@ -1,0 +1,10 @@
+cmake*
+.idea
+*.cmd
+*.symvers
+*.cmd
+*.mod
+*.mod.c
+*.ko
+*.order
+*.o
