@@ -65,6 +65,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    printf("SUCCESS!\n");
 
     done:
     printf("%x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);

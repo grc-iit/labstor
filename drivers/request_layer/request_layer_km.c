@@ -170,8 +170,6 @@ static int __init init_request_layer_km(void)
     return 0;
 }
 
-
-
 static void __exit exit_request_layer_km(void)
 {
 }
