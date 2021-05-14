@@ -43,10 +43,10 @@ int main(int argc, char **argv)
     size_t size = to_size(argv[3]);
     int val = atoi(argv[4]);
 
-    if((off % PAGE_SIZE) || (size % PAGE_SIZE)) {
+    /*if((off % PAGE_SIZE) || (size % PAGE_SIZE)) {
         printf("Offset or size is not a multiple of PAGE_SIZE");
         exit(1);
-    }
+    }*/
 
     int fd = open(path, O_RDWR | O_DIRECT);
     if(fd < 0) {

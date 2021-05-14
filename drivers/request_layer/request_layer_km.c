@@ -22,6 +22,20 @@ MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage de
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("request_layer_km");
 
+struct blk_mq_tags {
+    unsigned int nr_tags;
+    unsigned int nr_reserved_tags;
+
+    atomic_t active_queues;
+
+    struct sbitmap_queue bitmap_tags;
+    struct sbitmap_queue breserved_tags;
+
+    struct request **rqs;
+    struct request **static_rqs;
+    struct list_head page_list;
+};
+
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
 
@@ -48,8 +62,10 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
         return NULL;
     }
     bio_set_dev(bio, bdev);
-    bio_set_op_attrs(bio, op, 0);
-    bio_set_flag(bio, BIO_USER_MAPPED);
+    //bio_set_op_attrs(bio, op, 0);
+    bio->bi_opf = op;
+    //bio_set_flag(bio, BIO_USER_MAPPED);
+    bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     bio->bi_end_io = &io_complete;
     for(i = 0; i < num_pages; ++i) {
@@ -62,8 +78,15 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
 }
 
 //Convert bio to request
-void bio_to_rq(struct request *rq, struct bio *bio, unsigned int nr_segs)
+struct request *bio_to_rq(struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned int nr_segs)
 {
+    int tag = 0;
+    struct request *rq = hctx->tags->static_rqs[tag];
+
+    rq->mq_hctx = hctx;
+    rq->q = hctx->queue;
+    rq->rq_flags = 0;
+    rq->cmd_flags = bio->bi_opf;
     rq->__sector = bio->bi_iter.bi_sector;
     rq->write_hint = bio->bi_write_hint;
     rq->nr_phys_segments = nr_segs;
@@ -71,6 +94,14 @@ void bio_to_rq(struct request *rq, struct bio *bio, unsigned int nr_segs)
     rq->bio = rq->biotail = bio;
     rq->ioprio = bio_prio(bio);
     rq->rq_disk = bio->bi_disk;
+    rq->end_io = NULL;
+    rq->end_io_data = NULL;
+
+    rq->tag = tag;
+    rq->internal_tag = -1;
+    //hctx->tags->rqs[rq->tag] = rq;
+
+    return rq;
 }
 
 //Dispatch request
@@ -82,7 +113,6 @@ bool dispatch_rq(struct blk_mq_hw_ctx *hctx, struct request *rq)
 
     bd.rq = rq;
     bd.last = true;
-    printk("request_layer_km: %p", q->mq_ops->queue_rq);
     ret = q->mq_ops->queue_rq(hctx, &bd);
     switch (ret) {
         case BLK_STS_OK:
@@ -131,21 +161,12 @@ static int __init init_request_layer_km(void)
     hctx = hctxs[0];
     printk("request_layer_km: hctx %p\n", hctx);
     //Create request to hctx
-    rq = kmalloc(sizeof(struct request), GFP_KERNEL);
-    printk("request_layer_km: request %p\n", rq);
-    bio_to_rq(rq, bio, 1);
+    rq = bio_to_rq(hctx, bio, 1);
     printk("request_layer_km: bio_to_rq\n");
     //Execute request
+    //return 0;
     ret = dispatch_rq(hctx, rq);
     printk("request_layer_km: ret %d\n", ret);
-    /*
-    //Insert a request into a HW queue dispatch list
-    spin_lock(&hctx->lock);
-    list_add(&rq->queuelist, &hctx->dispatch);
-    spin_unlock(&hctx->lock);
-    //Run the HW queue
-    blk_mq_run_hw_queue(hctx, false);*/
-    //Free kmem, bio, request
     return 0;
 }
 
