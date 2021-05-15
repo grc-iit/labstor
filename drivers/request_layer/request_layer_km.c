@@ -2,6 +2,12 @@
 // Created by lukemartinlogan on 5/6/21.
 //
 
+/*
+ * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
+ * The request gets submitted, but can't read from device afterwards...
+ * But the I/O completes?
+ * */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -16,6 +22,7 @@
 #include <linux/list.h>
 #include <linux/cpumask.h>
 #include <linux/timer.h>
+#include <linux/delay.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");
@@ -46,9 +53,13 @@ static int __init init_request_layer_km(void);
 static void __exit exit_request_layer_km(void);
 
 //Helpers
-static void io_complete(struct bio *bio)
+static void req_complete(struct request *rq, blk_status_t error)
 {
-    printk("request_layer_km: Request complete!");
+    struct request_queue *q = rq->q;
+    printk("request_layer_km: REQ Request complete (%d)!\n", error);
+
+    q->mq_ops->cleanup_rq(rq);
+    q->mq_ops->exit_request(rq->q->tag_set, rq, rq->mq_hctx->queue_num);
 }
 
 static inline struct bio *create_bio(struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op)
@@ -67,7 +78,7 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     //bio_set_flag(bio, BIO_USER_MAPPED);
     bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
-    bio->bi_end_io = &io_complete;
+    bio->bi_end_io = NULL;
     for(i = 0; i < num_pages; ++i) {
         bio_add_page(bio, pages[i], PAGE_SIZE, 0);
     }
@@ -82,6 +93,7 @@ struct request *bio_to_rq(struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned 
 {
     int tag = 0;
     struct request *rq = hctx->tags->static_rqs[tag];
+    struct request_queue *q = hctx->queue;
 
     rq->mq_hctx = hctx;
     rq->q = hctx->queue;
@@ -94,12 +106,13 @@ struct request *bio_to_rq(struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned 
     rq->bio = rq->biotail = bio;
     rq->ioprio = bio_prio(bio);
     rq->rq_disk = bio->bi_disk;
-    rq->end_io = NULL;
+    rq->end_io = req_complete;
     rq->end_io_data = NULL;
-
     rq->tag = tag;
     rq->internal_tag = -1;
     //hctx->tags->rqs[rq->tag] = rq;
+    q->mq_ops->initialize_rq_fn(rq);
+    q->mq_ops->init_request(q->tag_set, rq, hctx->queue_num, hctx->numa_node);
 
     return rq;
 }
@@ -137,9 +150,11 @@ static int __init init_request_layer_km(void)
     struct page *page;
     bool ret;
 
+    ssleep(5);
+
     //Allocate some kmem
     virt_mem = kmalloc(4096, GFP_KERNEL | GFP_DMA);
-    memset(virt_mem, 0x8, 4096);
+    memset(virt_mem, 4, 4096);
     printk("request_layer_km: Created VA %p\n", virt_mem);
     //Convert to pages
     page = vmalloc_to_page(virt_mem);
@@ -164,7 +179,6 @@ static int __init init_request_layer_km(void)
     rq = bio_to_rq(hctx, bio, 1);
     printk("request_layer_km: bio_to_rq\n");
     //Execute request
-    //return 0;
     ret = dispatch_rq(hctx, rq);
     printk("request_layer_km: ret %d\n", ret);
     return 0;

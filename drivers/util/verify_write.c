@@ -48,6 +48,9 @@ int main(int argc, char **argv)
         exit(1);
     }*/
 
+    sleep(8);
+    printf("STARTING!\n");
+
     int fd = open(path, O_RDWR | O_DIRECT);
     if(fd < 0) {
         printf("Could not open: %s\n", argv[1]);
@@ -57,6 +60,7 @@ int main(int argc, char **argv)
     char *buf = aligned_alloc(4096, CHUNK_SIZE);
     for(size_t i = 0; i < size; i += CHUNK_SIZE) {
         int chunk_size = (i+1)*CHUNK_SIZE <= size ? CHUNK_SIZE : size%CHUNK_SIZE;
+        printf("PREADING!\n");
         pread(fd, buf, chunk_size, i+off);
         for(int j = 0; j < chunk_size; ++j) {
             if(buf[j] != val) {
