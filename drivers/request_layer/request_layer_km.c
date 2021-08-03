@@ -29,7 +29,7 @@ MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage de
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("request_layer_km");
 
-struct blk_mq_tags {
+/*struct blk_mq_tags {
     unsigned int nr_tags;
     unsigned int nr_reserved_tags;
 
@@ -41,25 +41,25 @@ struct blk_mq_tags {
     struct request **rqs;
     struct request **static_rqs;
     struct list_head page_list;
-};
+};*/
 
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
 
 void *virt_mem;
+struct request_queue *queue;
 
 //Prototypes
 static int __init init_request_layer_km(void);
 static void __exit exit_request_layer_km(void);
 
-//Helpers
+/**
+ * I/O REQUEST FUNCTIONS
+ * */
+
 static void req_complete(struct request *rq, blk_status_t error)
 {
-    struct request_queue *q = rq->q;
     printk("request_layer_km: REQ Request complete (%d)!\n", error);
-
-    q->mq_ops->cleanup_rq(rq);
-    q->mq_ops->exit_request(rq->q->tag_set, rq, rq->mq_hctx->queue_num);
 }
 
 static inline struct bio *create_bio(struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op)
@@ -76,7 +76,7 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     //bio_set_op_attrs(bio, op, 0);
     bio->bi_opf = op;
     //bio_set_flag(bio, BIO_USER_MAPPED);
-    bio->bi_flags |= (1U << BIO_USER_MAPPED);
+    //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     bio->bi_end_io = NULL;
     for(i = 0; i < num_pages; ++i) {
@@ -84,73 +84,61 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     }
     bio->bi_private = NULL;
     bio->bi_status = BLK_STS_OK;
+    bio->bi_ioprio = 0;
+
+    //bio_integrity_prep(bio);
 
     return bio;
 }
 
-//Convert bio to request
-struct request *bio_to_rq(struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned int nr_segs)
+struct request *bio_to_rq(struct request_queue *q, struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned int nr_segs)
 {
-    int tag = 0;
-    struct request *rq = hctx->tags->static_rqs[tag];
-    struct request_queue *q = hctx->queue;
+    struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, 0);
 
-    rq->mq_hctx = hctx;
-    rq->q = hctx->queue;
-    rq->rq_flags = 0;
-    rq->cmd_flags = bio->bi_opf;
-    rq->__sector = bio->bi_iter.bi_sector;
-    rq->write_hint = bio->bi_write_hint;
+    rq->end_io = req_complete;
     rq->nr_phys_segments = nr_segs;
     rq->__data_len = bio->bi_iter.bi_size;
     rq->bio = rq->biotail = bio;
-    rq->ioprio = bio_prio(bio);
+    rq->ioprio = bio->bi_ioprio;
     rq->rq_disk = bio->bi_disk;
+
+    rq->rq_flags = 0;
+    rq->cmd_flags = bio->bi_opf;
+    rq->part = NULL;
+    rq->io_start_time_ns = 0;
+    rq->stats_sectors = 0;
     rq->end_io = req_complete;
     rq->end_io_data = NULL;
-    rq->tag = tag;
-    rq->internal_tag = -1;
-    //hctx->tags->rqs[rq->tag] = rq;
-    q->mq_ops->initialize_rq_fn(rq);
-    q->mq_ops->init_request(q->tag_set, rq, hctx->queue_num, hctx->numa_node);
+
+    rq->__sector = bio->bi_iter.bi_sector;
+    rq->write_hint = bio->bi_write_hint;
+
+    rq->__data_len = bio->bi_iter.bi_size;
+    rq->bio = rq->biotail = bio;
+    rq->ioprio = bio->bi_ioprio;
+    rq->rq_disk = bio->bi_disk;
+
+    printk("request_layer_km: bio_to_rq: %d\n", bio->bi_iter.bi_size);
 
     return rq;
 }
 
-//Dispatch request
-bool dispatch_rq(struct blk_mq_hw_ctx *hctx, struct request *rq)
-{
-    struct request_queue *q = hctx->queue;
-    blk_status_t ret = BLK_STS_OK;
-    struct blk_mq_queue_data bd;
+/**
+ * MY FUNCTIONS
+ * */
 
-    bd.rq = rq;
-    bd.last = true;
-    ret = q->mq_ops->queue_rq(hctx, &bd);
-    switch (ret) {
-        case BLK_STS_OK:
-            printk("request_layer_km: Request dispatched!\n");
-            return true;
-        default:
-            printk("request_layer_km: Request failed!\n");
-            return false;
-    }
-    return false;
-}
 
 static int __init init_request_layer_km(void)
 {
     char *dev = "/dev/sdb";
     struct block_device *bdev;
-    struct request_queue *queue;
+
     struct blk_mq_hw_ctx **hctxs, *hctx;
     int nr_hw_queues;
     struct bio *bio;
     struct request *rq;
     struct page *page;
     bool ret;
-
-    ssleep(5);
 
     //Allocate some kmem
     virt_mem = kmalloc(4096, GFP_KERNEL | GFP_DMA);
@@ -166,7 +154,7 @@ static int __init init_request_layer_km(void)
     queue = bdev->bd_disk->queue;
     printk("request_layer_km: Queue %p\n", queue);
     //Create bio
-    bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE);
+    bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE | REQ_OP_DRV_IN);
     printk("request_layer_km: Create bio %p\n", bio);
     //Get HW queues associated with bdev
     hctxs = queue->queue_hw_ctx;
@@ -176,10 +164,10 @@ static int __init init_request_layer_km(void)
     hctx = hctxs[0];
     printk("request_layer_km: hctx %p\n", hctx);
     //Create request to hctx
-    rq = bio_to_rq(hctx, bio, 1);
+    rq = bio_to_rq(queue, hctx, bio, 1);
     printk("request_layer_km: bio_to_rq\n");
     //Execute request
-    ret = dispatch_rq(hctx, rq);
+    blk_execute_rq_nowait(rq->q, bdev->bd_disk, rq, false, rq->end_io);
     printk("request_layer_km: ret %d\n", ret);
     return 0;
 }

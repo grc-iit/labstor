@@ -48,7 +48,7 @@ int main(int argc, char **argv)
         exit(1);
     }*/
 
-    sleep(8);
+    //sleep(8);
     printf("STARTING!\n");
 
     int fd = open(path, O_RDWR | O_DIRECT);
