@@ -1,0 +1,314 @@
+# Setup
+
+## Storage Nodes
+```{bash}
+10.52.0.169
+10.52.1.76
+```
+
+## Client nodes
+```{bash}
+10.52.2.181
+10.52.3.164
+```
+
+## SSH into head node
+```{bash}
+scp ~/.ssh/id_rsa cc@129.114.108.56:~/.ssh/ | ssh cc@129.114.108.56 "chmod 600 ~/.ssh/id_rsa"
+ssh cc@129.114.108.56
+```
+
+## Copy SSH keys to all other nodes
+```{bash}
+scp ~/.ssh/id_rsa cc@10.52.1.76:~/.ssh/
+scp ~/.ssh/id_rsa cc@10.52.2.181:~/.ssh/
+scp ~/.ssh/id_rsa cc@10.52.3.164:~/.ssh/
+ssh cc@10.52.1.76 "chmod 600 ~/.ssh/id_rsa"
+ssh cc@10.52.2.181 "chmod 600 ~/.ssh/id_rsa"
+ssh cc@10.52.3.164 "chmod 600 ~/.ssh/id_rsa"
+```
+
+## Install PMEM on storage nodes
+```{bash}
+ssh cc@10.52.1.76
+sudo nano /etc/default/grub
+GRUB_CMDLINE_LINUX="memmap=60G!10G" #60G PMEM, starting at offset 10GB in RAM
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo reboot
+```
+
+## Install scspkg
+```{bash}
+sudo yum install -y pssh tcl-devel
+git clone git@github.com:lukemartinlogan/scspkg.git
+cd scspkg
+bash install.sh
+source ~/.bashrc
+```
+
+## Install modulefiles
+```{bash}
+source ~/.bashrc
+scspkg create modules
+cd `scspkg pkg-src modules`
+curl -LJO https://github.com/cea-hpc/modules/releases/download/v4.7.1/modules-4.7.1.tar.gz
+tar xfz modules-4.7.1.tar.gz
+cd modules-4.7.1
+./configure --prefix=`scspkg pkg-root modules`
+make
+make install
+echo "source \`scspkg pkg-root modules\`/init/bash" >> ~/.bashrc
+echo "module use \`scspkg modules-path\`" >> ~/.bashrc
+source ~/.bashrc
+```
+
+## Install OrangeFS
+```{bash}
+scspkg create orangefs
+cd `scspkg pkg-src orangefs`
+wget http://download.orangefs.org/current/source/orangefs-2.9.8.tar.gz
+tar -xvzf orangefs-2.9.8.tar.gz
+cd orangefs-v.2.9.8
+./configure --prefix=`scspkg pkg-root orangefs` --with-kernel=/lib/modules/`uname -r`/build --enable-shared --enable-fuse
+make -j8
+make install
+module load orangefs
+```
+
+## Install mpich
+```{bash}
+scspkg create orangefs-mpich
+cd `scspkg pkg-src orangefs-mpich`
+wget http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz
+tar -xzf mpich-3.2.tar.gz
+cd mpich-3.2
+./configure --prefix=`scspkg pkg-root orangefs-mpich` --enable-fast=O3 --enable-romio --enable-shared --with-pvfs2=`scspkg pkg-root orangefs` --with-file-system=pvfs2
+make -j16
+make install
+```
+
+## Install mpich 3.4
+```
+scspkg create orangefs-mpich-3.4
+cd `scspkg pkg-src orangefs-mpich-3.4`
+wget http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
+tar -xzf mpich-3.4.2.tar.gz
+cd mpich-3.4.2
+./configure --prefix=`scspkg pkg-root orangefs-mpich-3.4` --enable-fast=O3 --enable-romio --enable-shared --with-device=ch3 --with-pvfs2=`scspkg pkg-root orangefs` --with-file-system=pvfs2
+make -j16
+make install
+```
+
+## Install openmpi
+```{bash}
+scspkg create openmpi
+cd `scspkg pkg-src openmpi`
+wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.1.tar.gz
+tar -xzf openmpi-4.1.1.tar.gz
+cd openmpi-4.1.1
+./configure --prefix=`scspkg pkg-root openmpi` --with-pvfs2=`scspkg pkg-root orangefs` --with-file-system=pvfs2
+make -j16
+make install
+```
+
+## Install IOR
+```{bash}
+module load orangefs orangefs-mpich
+scspkg create ior
+cd `scspkg pkg-src ior`
+git clone https://github.com/hpc/ior.git
+cd ior
+./bootstrap
+./configure --prefix=`scspkg pkg-root ior`
+make -j8
+make install
+```
+
+## Load relevant modules at start
+```{bash}
+echo "module load orangefs orangefs-mpich ior" >> ~/.bashrc
+prsync --hosts /home/cc/hosts.txt ~/.bashrc ~/.bashrc
+pssh -i -h /home/cc/hosts.txt ln -s ~/.basrc ~/.tcshrc
+```
+
+## Copy scspkg to all machines
+```{bash}
+cd /home/cc
+pssh -i -h hosts.txt sudo yum install lz4 -y
+tar -cf scspkg.tar scspkg
+prsync --hosts hosts.txt ~/scspkg.tar  ~/scspkg.tar
+pssh -t 0 -h hosts.txt echo STARTED; tar -xvf scspkg.tar; echo DONE
+```
+
+## Install BeeGFS on all machines
+```{bash}
+pssh -i -h hosts.txt\
+  sudo wget -O /etc/yum.repos.d/beegfs_rhel8.repo https://www.beegfs.io/release/beegfs_7.2.2/dists/beegfs-rhel8.repo;\
+  sudo yum install -y beegfs-mgmtd beegfs-meta libbeegfs-ib beegfs-storage beegfs-client beegfs-helperd beegfs-utils
+```
+
+## Copy utility scripts to head node
+```{bash}
+scp -r /home/lukemartinlogan/Documents/Projects/PhD/labstor/chameleon cc@129.114.108.56:~/
+```
+
+# OrangeFS
+
+## Initialize OrangeFS server
+```{bash}
+cd /home/cc/chameleon
+bash orangefs/init.sh
+```
+
+## Configure OrangeFS server
+```{bash}
+pvfs2-genconfig
+/home/cc/pmem/orangefs.conf
+/home/cc/pmem/dev_mount/data
+/home/cc/pmem/dev_mount/metadata
+/home/cc/pmem/server.log
+10.52.0.169,10.52.1.76
+```
+```{bash}
+nano ~/pmem/orangefs.conf
+#TroveMethod directio
+```
+```{bash}
+scp /home/cc/pmem/orangefs.conf cc@10.52.1.76:~/pmem/orangefs.conf
+```
+
+## Format Devices
+```{bash}
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4-dax
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem xfs
+```
+```{bash}
+bash /home/cc/chameleon/format.sh /dev/sda1 hdd ext4
+bash /home/cc/chameleon/format.sh /dev/sda1 hdd xfs
+```
+
+## Start OrangeFS Server
+```{bash}
+bash /home/cc/chameleon/orangefs/start_servers.sh pmem
+bash /home/cc/chameleon/orangefs/start_servers.sh hdd
+pssh -i -h /home/cc/server_hosts.txt cat /home/cc/pmem/server.log
+pssh -i -h /home/cc/server_hosts.txt rm /home/cc/pmem/server.log
+```
+
+## Stop OrangeFS Server
+```{bash}
+bash /home/cc/chameleon/orangefs/stop_servers.sh
+```
+
+## Start OrangeFS Client
+```{bash}
+bash /home/cc/chameleon/orangefs/start_clients.sh pmem
+bash /home/cc/chameleon/orangefs/start_clients.sh hdd
+```
+
+## Stop OrangeFS Clients
+```{bash}
+bash /home/cc/chameleon/orangefs/stop_clients.sh pmem
+bash /home/cc/chameleon/orangefs/stop_clients.sh hdd
+```
+
+# Benchmarking OrangeFS
+
+## Compile benchmark
+```{bash}
+scp /home/lukemartinlogan/Documents/Projects/PhD/labstor/chameleon/bench.cpp cc@129.114.108.56:~/chameleon/bench.cpp
+mpicxx ~/chameleon/bench.cpp -o ~/chameleon/bench
+pssh -t 0 -h hosts.txt mkdir ~/chameleon
+prsync --hosts hosts.txt ~/chameleon/bench ~/chameleon/bench
+pssh -t 0 -h hosts.txt sudo yum install iperf3 -y
+```
+
+## Run Tests (Storage -> Storage, None)
+```{bash}
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4-dax
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem xfs
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem xfs-dax
+```
+```{bash}
+pssh -i -h /home/cc/server_hosts.txt sudo sync; sudo sysctl -w vm.drop_caches=3
+pssh -i -h /home/cc/server_hosts.txt rm /home/cc/pmem/dev_mount/new*
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/dev_mount/new 4K 10000 0 xfs pmem none 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/dev_mount/new 64K 1000 0 xfs pmem none 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/dev_mount/new 1M 500 0 xfs pmem none 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/dev_mount/new 16M 100 0 xfs pmem none 1
+
+trace-cmd record --max-graph-depth 0 -p function_graph -g __x64_sys_write -F /home/cc/chameleon/bench /home/cc/pmem/dev_mount/new 4K 1 0 xfs pmem none 1
+trace-cmd report
+```
+
+## Run Tests (Storage -> Storage, OrangeFS)
+```{bash}
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4-dax
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem ext4
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem xfs
+bash /home/cc/chameleon/format.sh /dev/pmem0 pmem xfs-dax
+```
+```{bash}
+pssh -i -h /home/cc/server_hosts.txt sudo sync; sudo sysctl -w vm.drop_caches=3
+pssh -i -h /home/cc/server_hosts.txt rm /home/cc/pmem/dev_mount/new*
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 4K 1000 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 64K 100 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 1M 100 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/server_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 16M 40 0 xfs pmem orangefs 1
+```
+
+## Run Tests (Clients -> Storage)
+```{bash}
+scp /home/cc/client_hosts.txt cc@10.52.2.181:~/
+ssh cc@10.52.2.181
+DEVICE=pmem
+MOUNT_PATH=/home/cc/${DEVICE}/mount-client
+pssh -i -h /home/cc/client_hosts.txt sudo sync; sudo sysctl -w vm.drop_caches=3
+pssh -i -h /home/cc/client_hosts.txt rm ${MOUNT_PATH}/new*
+
+prsync --hosts hosts.txt ~/.bashrc ~/.bashrc
+mpirun -n 48 --hostfile /home/cc/client_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 4K 1000 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/client_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 64K 100 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/client_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 1M 1 0 xfs pmem orangefs 1
+mpirun -n 48 --hostfile /home/cc/client_hosts.txt /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 16M 20 0 xfs pmem orangefs 1
+```
+
+## Trace Client->Storage
+```{bash}
+pssh -i -h /home/cc/server_hosts.txt rm /home/cc/pmem/server.log
+bash /home/cc/chameleon/orangefs/start_servers.sh pmem
+bash /home/cc/chameleon/orangefs/start_clients.sh pmem
+bash /home/cc/chameleon/orangefs/stop_clients.sh pmem
+bash /home/cc/chameleon/orangefs/stop_servers.sh
+```
+```{bash}
+MAIN_SERVER=10.52.0.169
+DEVICE=pmem
+MOUNT_PATH=/home/cc/${DEVICE}/mount-client
+PVFS2TAB_FILE=/home/cc/${DEVICE}/pvfs2tab
+rm -rf /home/cc/${DEVICE}/dev_mount/data
+rm -rf /home/cc/${DEVICE}/dev_mount/metadata
+pvfs2-server -f -a localhost /home/cc/${DEVICE}/orangefs.conf
+pvfs2-server -a localhost /home/cc/${DEVICE}/orangefs.conf
+pvfs2fuse ${MOUNT_PATH} -o fs_spec=tcp://localhost:3334/orangefs
+bash /home/cc/chameleon/orangefs/stop_clients.sh pmem
+bash /home/cc/chameleon/orangefs/stop_servers.sh
+
+ps aux | grep pvfs2
+sudo trace-cmd record -p function_graph --max-graph-depth 2 -P 44728 &
+sudo trace-cmd record --max-graph-depth 2 -p function_graph -c -P 45424 &
+
+mpirun -n 24 /home/cc/chameleon/bench /home/cc/pmem/mount-client/new 16M 20 0 xfs pmem orangefs 1 &
+sar -n DEV 1
+```
+
+## Analyze quickly
+```{bash}
+import pandas as pd
+df = pd.read_csv("/home/lukemartinlogan/Documents/iodc.csv")
+cols = ["block_size", "fs", "dss", "network"]
+df = df.groupby(cols).mean().reset_index()
+df.to_csv("averages.csv")
+```

@@ -1,0 +1,49 @@
+//
+// Created by lukemartinlogan on 8/4/21.
+//
+
+#ifndef LABSTOR_POSIX_H
+#define LABSTOR_POSIX_H
+
+#include <unistd.h>
+
+struct posix_request {
+    int d[6];
+    void *buf;
+};
+
+struct posix_io_ops {
+    int (*open)(const char *pathname, int flags, mode_t mode);
+    off_t (*lseek)(int fd, off_t offset, int whence);
+    int (*close)(int fd);
+
+    ssize_t (*read)(int fd, void *buf, ssize_t count);
+    ssize_t (*readv)(int fd, const struct iovec *iov, int iovcnt);
+    ssize_t (*pread)(int fd, void *buf, size_t count, off_t offset);
+    ssize_t (*pread64)(int fd, void *buf, size_t count, off64_t offset);
+    ssize_t (*preadv)(int fd, const struct iovec *iov, int iovcnt, off_t offset);
+    ssize_t (*preadv64)(int fd, const struct iovec *iov, int iovcnt, off64_t offset);
+    ssize_t (*preadv2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags);
+    ssize_t (*preadv64v2)(int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags);
+
+    ssize_t (*write)(int fd, void *buf, ssize_t count);
+    ssize_t (*pwrite)(int fd, void *buf, size_t count, off_t offset);
+    ssize_t (*pwrite64)(int fd, void *buf, size_t count, off64_t offset);
+    ssize_t (*writev)(int fd, const struct iovec *iov, int iovcnt);
+    ssize_t (*pwritev)(int fd, const struct iovec *iov, int iovcnt, off_t offset);
+    ssize_t (*pwritev64)(int fd, const struct iovec *iov, int iovcnt, off64_t offset);
+    ssize_t (*pwritev2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags);
+    ssize_t (*pwritev64v2)(int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags);
+
+    int (*aio_read)(struct aiocb *aiocbp);
+    int (*aio_read64)(struct aiocb64 *aiocbp);
+    int (*aio_write)(struct aiocb *aiocbp);
+    int (*aio_write64)(struct aiocb64 *aiocbp);
+    ssize_t (*aio_return)(struct aiocb *aiocbp);
+    ssize_t (*aio_return64)(struct aiocb64 *aiocbp);
+
+    int lio_listio(int mode, struct aiocb *const aiocb_list[], int nitems, struct sigevent *sevp);
+    int lio_listio64(int mode, struct aiocb64 *const aiocb_list[], int nitems, struct sigevent *sevp);
+};
+
+#endif //LABSTOR_POSIX_H
