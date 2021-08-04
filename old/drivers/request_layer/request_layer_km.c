@@ -91,9 +91,11 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     return bio;
 }
 
-struct request *bio_to_rq(struct request_queue *q, struct blk_mq_hw_ctx *hctx, struct bio *bio, unsigned int nr_segs)
+struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs)
 {
-    struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, 0);
+    struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, hctx_idx);
+    if (!IS_ERR(rq) && q->mq_ops->initialize_rq_fn)
+        q->mq_ops->initialize_rq_fn(rq);
 
     rq->end_io = req_complete;
     rq->nr_phys_segments = nr_segs;
@@ -102,7 +104,7 @@ struct request *bio_to_rq(struct request_queue *q, struct blk_mq_hw_ctx *hctx, s
     rq->ioprio = bio->bi_ioprio;
     rq->rq_disk = bio->bi_disk;
 
-    rq->rq_flags = 0;
+    rq->rq_flags = RQF_NOMERGE_FLAGS;
     rq->cmd_flags = bio->bi_opf;
     rq->part = NULL;
     rq->io_start_time_ns = 0;
@@ -118,7 +120,7 @@ struct request *bio_to_rq(struct request_queue *q, struct blk_mq_hw_ctx *hctx, s
     rq->ioprio = bio->bi_ioprio;
     rq->rq_disk = bio->bi_disk;
 
-    printk("request_layer_km: bio_to_rq: %d\n", bio->bi_iter.bi_size);
+    printk("request_layer_km: bio_to_rq: size=%d, is_pass=%d\n", bio->bi_iter.bi_size, blk_rq_is_passthrough(rq));
 
     return rq;
 }
@@ -133,12 +135,10 @@ static int __init init_request_layer_km(void)
     char *dev = "/dev/sdb";
     struct block_device *bdev;
 
-    struct blk_mq_hw_ctx **hctxs, *hctx;
     int nr_hw_queues;
     struct bio *bio;
     struct request *rq;
     struct page *page;
-    bool ret;
 
     //Allocate some kmem
     virt_mem = kmalloc(4096, GFP_KERNEL | GFP_DMA);
@@ -153,22 +153,19 @@ static int __init init_request_layer_km(void)
     //Get request queue associated with device
     queue = bdev->bd_disk->queue;
     printk("request_layer_km: Queue %p\n", queue);
+    //Disable stats
+    queue->queue_flags &= ~QUEUE_FLAG_STATS;
     //Create bio
-    bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE | REQ_OP_DRV_IN);
+    //bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE | REQ_OP_DRV_IN | REQ_FUA | REQ_PREFLUSH);
+    bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE);
     printk("request_layer_km: Create bio %p\n", bio);
-    //Get HW queues associated with bdev
-    hctxs = queue->queue_hw_ctx;
-    printk("request_layer_km: Get hctxs %p\n", hctxs);
     nr_hw_queues = queue->nr_hw_queues;
     printk("request_layer_km: nr_hw_queues %d\n", nr_hw_queues);
-    hctx = hctxs[0];
-    printk("request_layer_km: hctx %p\n", hctx);
     //Create request to hctx
-    rq = bio_to_rq(queue, hctx, bio, 1);
+    rq = bio_to_rq(queue, 0, bio, 1);
     printk("request_layer_km: bio_to_rq\n");
     //Execute request
     blk_execute_rq_nowait(rq->q, bdev->bd_disk, rq, false, rq->end_io);
-    printk("request_layer_km: ret %d\n", ret);
     return 0;
 }
 
