@@ -11,7 +11,7 @@ struct request_queue {
     int req_size;
 };
 
-void (*poll_requests_fn)(request_queue *submission_queues);
+
 void (*process_request_fn)(void *request);
 
 void submit_request(struct request_queue *proc, void *req);
