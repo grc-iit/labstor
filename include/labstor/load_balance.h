@@ -5,6 +5,8 @@
 #ifndef LABSTOR_LOAD_BALANCE_H
 #define LABSTOR_LOAD_BALANCE_H
 
+#include <labstor/interface.h>
+
 void (*poll_requests_fn)(request_queue *submission_queues);
 
 #endif //LABSTOR_LOAD_BALANCE_H

@@ -5,14 +5,7 @@
 #ifndef LABSTOR_SERVER_H
 #define LABSTOR_SERVER_H
 
-struct request_queue {
-    pid_t pid;
-    void *requests;
-    int req_size;
-};
 
-
-void (*process_request_fn)(void *request);
 
 void submit_request(struct request_queue *proc, void *req);
 void submit_request(struct request_queue *proc, void *req);
