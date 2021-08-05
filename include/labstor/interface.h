@@ -8,7 +8,8 @@
 struct request_queue {
     pid_t pid;
     void *requests;
-    int req_size;
+    int req_size, queue_size;
+    int head, tail;
 };
 
 void (*process_request_fn)(void *request);

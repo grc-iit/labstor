@@ -5,11 +5,30 @@
 #ifndef LABSTOR_POSIX_H
 #define LABSTOR_POSIX_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <unistd.h>
 
 struct posix_request {
-    int d[6];
+    int op;
+    union {
+        struct posix_open_request open;
+        struct posix_io_request io;
+    };
+};
+
+struct posix_open_request {
+    char *path;
+    int flags;
+    mode_t mode;
+};
+
+struct posix_io_request {
+    int fd;
     void *buf;
+    ssize_t count;
 };
 
 struct posix_io_ops {

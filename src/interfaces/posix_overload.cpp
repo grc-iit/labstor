@@ -2,10 +2,7 @@
 // Created by lukemartinlogan on 6/7/21.
 //
 
-#define _XOPEN_SOURCE 500
-#define _GNU_SOURCE
-
-#include <mpi.h>
+#include <labstor/interfaces/posix.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -26,7 +23,6 @@
 #include <limits.h>
 
 #include <dlfcn.h>
-#include <pmemcpy/util/trace.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
