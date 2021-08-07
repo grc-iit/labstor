@@ -16,7 +16,7 @@ struct posix_request {
     union {
         struct posix_open_request open;
         struct posix_io_request io;
-    };
+    } rq;
 };
 
 struct posix_open_request {
