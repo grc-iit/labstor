@@ -5,16 +5,28 @@ A high-performance, lightweight, hierarchical, modular storage stack for Linux-b
 
 # 2. Dependencies
 
-Linux 4.15+  
-linux-headers-4.15+  
+Linux 5.4.0-77-generic  
+linux-headers-5.4+  
 cmake 3.10 or higher  
 C++17 compiler  
 C11 compiler  
+yaml-cpp
+
+```
+scspkg create yaml-cpp
+cd `scspkg pkg-src yaml-cpp` 
+git clone https://github.com/jbeder/yaml-cpp.git
+cd yaml-cpp
+git checkout db6deedcd301754723065e0bbb1b75927c5b49c7
+mkdir build
+cd build
+cmake ../  -DYAML_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root yaml-cpp`
+```
 
 # 3. Building
 
 ```
-cd /path/to/linux-bio-km   
+cd /path/to/labstor
 mkdir build  
 cd build
 cmake ../
@@ -22,9 +34,6 @@ make -j4
 ```
 
 ```
-MODIFY blk_mq_end_request in block/blk-mq.c
-ADD RQF_CUSTOM_IO_PATH to include/linux/blkdev.h (1<<24)
-
 IP=192.168.56.1
 ssh llogan@$IP -p 4632
 

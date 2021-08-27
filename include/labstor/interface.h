@@ -5,11 +5,10 @@
 #ifndef LABSTOR_INTERFACE_H
 #define LABSTOR_INTERFACE_H
 
-struct request_queue {
-    pid_t pid;
-    void *requests;
-    int req_size, queue_size;
-    int head, tail;
+#include <boost/interprocess/shared_memory_object.hpp>
+
+struct request {
+    char *token;
 };
 
 void (*process_request_fn)(void *request);

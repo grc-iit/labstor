@@ -1,0 +1,16 @@
+devices:
+  - dev1:
+      type: block
+      dev_file: /dev/sdb
+      mount: /dev/sdb
+
+io_system_types:
+  - filesystem:
+      server: /home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/generic_posix_client.so
+      client: /home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/generic_posix_server.so
+
+io_systems:
+  - labstor_fs:
+      type: filesystem
+      server: /home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/labstor_fs_trusted.so
+      client: /home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/labstor_fs_untrusted.so

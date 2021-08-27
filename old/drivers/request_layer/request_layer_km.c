@@ -525,7 +525,6 @@ static int __init init_request_layer_km(void)
 
     //Execute request
     blk_mq_try_issue_directly(rq, &cookie);
-    //dispatch_rq(rq);
     //submit_bio(bio);
     //q->make_request_fn(q, bio);
     return 0;

@@ -9,14 +9,14 @@
 #define _GNU_SOURCE
 #endif
 
+#include <labstor/interface.h>
 #include <unistd.h>
 
-struct posix_request {
-    int op;
-    union {
-        struct posix_open_request open;
-        struct posix_io_request io;
-    } rq;
+enum op {
+    POSIX_OPEN_RQ,
+    POSIX_READ_RQ,
+    POSIX_WRITE_RQ,
+    POSIX_CLOSE_RQ
 };
 
 struct posix_open_request {
@@ -31,7 +31,15 @@ struct posix_io_request {
     ssize_t count;
 };
 
-struct posix_io_ops {
+struct posix_request : public struct request {
+    int op;
+    union {
+        struct posix_open_request open;
+        struct posix_io_request io;
+    };
+};
+
+struct posix_ops {
     int (*open)(const char *pathname, int flags, mode_t mode);
     off_t (*lseek)(int fd, off_t offset, int whence);
     int (*close)(int fd);

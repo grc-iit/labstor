@@ -7,6 +7,10 @@
 
 #include <labstor/interface.h>
 
+struct IOWorker {
+
+};
+
 void (*poll_requests_fn)(request_queue *submission_queues);
 
 #endif //LABSTOR_LOAD_BALANCE_H

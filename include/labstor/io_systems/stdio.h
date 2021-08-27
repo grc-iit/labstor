@@ -27,7 +27,7 @@ struct stdio_io_request {
     ssize_t count;
 };
 
-struct stdio_io_ops {
+struct stdio_ops {
     int (*fopen)(const char *pathname, int flags, mode_t mode);
     ssize_t (*fread)(int fd, void *buf, ssize_t count);
     ssize_t (*fwrite)(int fd, void *buf, ssize_t count);
