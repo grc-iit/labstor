@@ -10,6 +10,41 @@
 
 namespace labstor::ipc {
 
+typedef size_t phys_ptr;
+
+template<typename T>
+struct shmem_ptr {
+    char *region_;
+    phys_ptr off_;
+
+    shmem_ptr() : region_(nullptr), off_(-1) {}
+    shmem_ptr(void *region, T *data) { init(region, data); }
+    shmem_ptr(void *region, phys_ptr  off) { init(region, off); }
+
+    void init(void *region, T *data) {
+        region_ = static_cast<char*>(region);
+        off_ = (char*)(data) - (char*)region;
+    }
+    void init(void *region, phys_ptr off) {
+        region_ = (char*)(region);
+        off_ = off;
+    }
+
+    T* operator->() { return get(); }
+    T& operator[](int idx) { return get()[idx]; }
+    T* get() {
+        if(IsNull()) { return nullptr; }
+        return (T*)(region_ + off_);
+    }
+    inline bool IsNull() {
+        return off_ == -1;
+    }
+
+    phys_ptr get_off() {
+        return off_;
+    }
+};
+
 struct SharedMemoryMutex {
     pthread_mutex_t mutex_;
     time_t timestamp_;

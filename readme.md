@@ -34,9 +34,19 @@ make -j4
 ```
 
 ```
+kthread affinity:
+https://stackoverflow.com/questions/18064292/set-thread-affinity-in-a-linux-kernel-module
+kthread_create_on_cpu
+wake_up_process
+ 
+```
+
+```
 IP=192.168.56.1
 ssh llogan@$IP -p 4632
 
+IP=192.168.56.1
 rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/PhD/labstor llogan@${IP}:~/
 rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/PhD/custom-ubuntu/linux-stable llogan@${IP}:~/
 ```
+

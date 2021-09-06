@@ -9,21 +9,23 @@
 #include <cstdio>
 #include <cstring>
 
-#include <omp.h>
+#include <mpi.h>
 #include <labstor/util/timer.h>
 #include <labstor/shared_memory/boost.h>
 #include <labstor/ipc/obj_allocator_lockless.h>
 
-void test() {
+int main(int argc, char **argv) {
     size_t id;
     int nprocs, rank;
     void *region;
     size_t obj_size = 4*(1<<10);
-    size_t num_objs = 10;
-    size_t num_buckets = 2;
+    size_t num_objs = 1;
+    size_t num_buckets = 1;
     size_t region_size = 1024 + num_buckets*num_objs*obj_size;
 
-    rank = omp_get_thread_num();
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     id = rank;
 
     if(rank == 0) {
@@ -34,34 +36,26 @@ void test() {
         alloc.init(id, region, region_size, num_buckets, obj_size);
     }
 
-#pragma omp barrier
+    MPI_Barrier(MPI_COMM_WORLD);
     labstor::ipc::boost_shmem shmem;
     shmem.open_rw("hi");
     region = shmem.get_address();
-    printf("REGION: %p\n", region);
     labstor::ipc::alloc::hashed_obj_allocator_lockless<void*> alloc;
     alloc.open(id, region);
 
-#pragma omp barrier
-    for(int i = 0; i < num_objs; ++i) {
+    MPI_Barrier(MPI_COMM_WORLD);
+    size_t non_nil = 0;
+    for(int i = 0; i < 2*num_objs; ++i) {
         void *ptr = alloc.alloc(obj_size);
-        printf("PTR: %p\n", ptr);
+        printf("PHYS_PTR: %lu\n", (char*)ptr - (char*)region);
+        non_nil += ptr != nullptr;
     }
 
-    /*void *ptr = alloc.alloc(obj_size);
-    printf("PTR: %p\n", ptr);*/
-
-#pragma omp barrier
+    MPI_Barrier(MPI_COMM_WORLD);
+    printf("rank=%d, successes=%lu\n", rank, non_nil);
     if(rank == 0) {
         shmem.remove();
     }
-}
 
-int main(int argc, char **argv) {
-    int nprocs = 16;
-    omp_set_dynamic(0);
-    #pragma omp parallel num_threads(nprocs)
-    {
-        test();
-    }
+    MPI_Finalize();
 }

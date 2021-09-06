@@ -109,6 +109,16 @@ struct blk_mq_ctx {
     struct kobject		kobj;
 } ____cacheline_aligned_in_smp;
 
+static inline void blk_rq_bio_prep(struct request *rq, struct bio *bio, unsigned int nr_segs)
+{
+    rq->nr_phys_segments = nr_segs;
+    rq->__data_len = bio->bi_iter.bi_size;
+    rq->bio = rq->biotail = bio;
+    rq->ioprio = bio_prio(bio);
+    if (bio->bi_disk)
+        rq->rq_disk = bio->bi_disk;
+}
+
 static void hctx_unlock(struct blk_mq_hw_ctx *hctx, int srcu_idx) __releases(hctx->srcu)
 {
 if (!(hctx->flags & BLK_MQ_F_BLOCKING))
@@ -447,17 +457,6 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     return bio;
 }
 
-static inline void blk_rq_bio_prep(struct request *rq, struct bio *bio,
-                                   unsigned int nr_segs)
-{
-    rq->nr_phys_segments = nr_segs;
-    rq->__data_len = bio->bi_iter.bi_size;
-    rq->bio = rq->biotail = bio;
-    rq->ioprio = bio_prio(bio);
-    if (bio->bi_disk)
-        rq->rq_disk = bio->bi_disk;
-}
-
 struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs)
 {
     struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, hctx_idx);
@@ -468,13 +467,42 @@ struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio
     rq->write_hint = bio->bi_write_hint;
     blk_rq_bio_prep(rq, bio, nr_segs);
     blk_mq_get_driver_tag(rq);
-
-    printk("request_layer_km: do_io_stat=%d\n", rq->rq_disk && (rq->rq_flags & RQF_IO_STAT));
-    printk("request_layer_km: data_len=%d nr_segs=%d\n", rq->__data_len, rq->nr_phys_segments);
-    printk("request_layer_km: disk=%p part=%p\n", rq->rq_disk, rq->part);
-    printk("request_layer_km: ELV: %p\n", q->elevator);
-    printk("request_layer_km: TAG: %d %d %p\n", rq->tag, rq->internal_tag, rq->end_io);
     return rq;
+}
+
+static inline struct page **convert_usr_buf(void *usr_buf, size_t length, int *num_pagesp)
+{
+    struct page **pages;
+    int num_pages;
+
+    num_pages = length/PAGE_SIZE;
+    pages = kmalloc(num_pages*sizeof(struct page *), GFP_KERNEL);
+    if(pages == NULL) {
+        printk(KERN_INFO "time_linux_driver_io_km: Could not allocate space for %d pages\n", num_pages);
+        return NULL;
+    }
+    get_user_pages_fast((long unsigned)usr_buf, num_pages, 0, pages);
+
+    *num_pagesp = num_pages;
+    return pages;
+}
+
+void submit_io_rq_layer(char *dev, int op, void *user_buf) {
+    struct block_device *bdev;
+    int nr_hw_queues;
+    struct bio *bio;
+    struct request *rq;
+    struct page *page;
+    blk_qc_t cookie;
+
+    blk_mq_try_issue_directly(rq, &cookie);
+}
+
+void submit_io_blk_layer() {
+    q->make_request_fn(q, bio);
+}
+
+void poll_io_completion(void) {
 }
 
 /**
@@ -520,9 +548,9 @@ static int __init init_request_layer_km(void)
     //printk("request_layer_km: tid: %d\n", tid);
 
     //Execute request
-    blk_mq_try_issue_directly(rq, &cookie);
+
     //submit_bio(bio);
-    //q->make_request_fn(q, bio);
+    //
     return 0;
 }
 

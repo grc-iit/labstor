@@ -12,17 +12,14 @@
 #include <mpi.h>
 #include <labstor/util/timer.h>
 #include <labstor/shared_memory/boost.h>
-#include <labstor/ipc/obj_allocator_lock.h>
+#include <labstor/ipc/unordered_map.h>
 
 int main(int argc, char **argv) {
     size_t id;
     int nprocs, rank;
     void *region;
-    size_t obj_size = 4*(1<<10);
-    size_t num_objs = 10;
-    size_t niter = num_objs*2;
-    size_t num_buckets = 2;
-    size_t region_size = 1024 + num_buckets*num_objs*obj_size;
+    size_t num_buckets = 8;
+    size_t region_size = labstor::ipc::unordered_map<size_t, size_t>::size(num_buckets);
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -33,25 +30,27 @@ int main(int argc, char **argv) {
         labstor::ipc::boost_shmem shmem;
         shmem.init("hi", region_size);
         region = shmem.get_address();
-        labstor::ipc::alloc::hashed_obj_allocator_lock<void*> alloc;
-        alloc.init(id, region, region_size, num_buckets, obj_size);
+        labstor::ipc::unordered_map<size_t, size_t> map;
+        map.init(region, region_size);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     labstor::ipc::boost_shmem shmem;
     shmem.open_rw("hi");
     region = shmem.get_address();
-    labstor::ipc::alloc::hashed_obj_allocator_lock<void*> alloc;
-    alloc.open(id, region);
+    labstor::ipc::unordered_map<size_t, size_t> map;
+    map.open(region);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    for(int i = 0; i < num_objs; ++i) {
-        void *ptr = alloc.alloc(obj_size);
-        printf("PTR: %p\n", ptr);
+    for(int i = 0; i < 4; ++i) {
+        map.create(rank*4 + i, i);
     }
 
-    void *ptr = alloc.alloc(obj_size);
-    printf("PTR: %p\n", ptr);
+    MPI_Barrier(MPI_COMM_WORLD);
+    for(int i = 0; i < 4; ++i) {
+        size_t *val = map.find(rank*4 + i);
+        printf("id=%d, val=%lu\n", rank*4 + i, *val);
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank == 0) {

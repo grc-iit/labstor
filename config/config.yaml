@@ -1,8 +1,9 @@
 devices:
-  - dev1:
+  - dev_sdb:
       type: block
-      dev_file: /dev/sdb
-      mount: /dev/sdb
+      dev_file: "/dev/sdb"
+      mount: "dev:sdb"
+
 
 io_system_types:
   - filesystem:
