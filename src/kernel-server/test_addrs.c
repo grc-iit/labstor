@@ -94,6 +94,9 @@ static void send_msg_to_usr(int code, void *data, void *fun, int pid)
 void send_kaddr(int pid) {
 }
 
+void register_package() {
+}
+
 static int __init init_labstor_kernel_server(void)
 {
     start_server();

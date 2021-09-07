@@ -31,6 +31,7 @@ struct connection_data {
 struct LabStorContext {
     labstor::ipc::unordered_map<std::string, struct pkg> namespace_;
     std::unordered_map<pid_t, connection_data> sockets_;
+    std::unordered_map<labstor_id, labstor::pkg *
     std::vector<int> workers_;
 };
 
