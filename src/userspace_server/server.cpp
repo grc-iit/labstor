@@ -58,6 +58,7 @@ void* accept_initial_connections(void *nothing) {
             perror("ERROR on accept");
             exit(1);
         }
+        printf("New client was accepted!\n");
         //Get the client's credentials
         len = sizeof(struct ucred);
         ret = getsockopt(client_fd_, SOL_SOCKET, SO_PEERCRED, &ucred, &len);
@@ -66,10 +67,13 @@ void* accept_initial_connections(void *nothing) {
             exit(1);
         }
         memcpy(&creds, &ucred, sizeof(ucred));
+        printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
         //Receive message containing thread and queue size hints
         recv(client_fd_, (void*)&client_hints_, sizeof(client_hints_), 0);
         //Create new SHMEM queues
         labstor_context->ipc_manager_.CreateIPC(client_fd_, &creds, client_hints_.num_queues, client_hints_.queue_size);
+        //Resend the same message to the server
+        send(client_fd_, (void*)&client_hints_, sizeof(client_hints_), 0);
     }
 }
 
@@ -111,6 +115,7 @@ void server_init(void) {
     }
 
     //pthread_create(&labstor_context->accept_thread_, NULL, accept_initial_connections, NULL);
+    accept_initial_connections(nullptr);
 }
 
 int main(int argc, char **argv) {
@@ -126,12 +131,15 @@ int main(int argc, char **argv) {
     //Get this process' info
     labstor_context->pid_ = getpid();
 
-    //Connect to the kernel server
+    //Connect to the kernel server and establish IPCs
+
+    //Load all packages
 
     //Load the workers
     create_thread_pool(get_nprocs_conf(), 1);
 
     //Create initialization server
+    printf("LabStor Trusted Server running!\n");
     server_init();
 }
 
