@@ -36,6 +36,8 @@
 #include <sys/mman.h>
 #include <aio.h>
 
+#include <generic_posix/client/client.h>
+
 /**
  * PROTOTYPES
  * */
@@ -79,6 +81,11 @@ size_t write_size = 0;
  * POSIX FUNCTIONS
  * */
 
+ssize_t WRAPPER_FUN(open)(int fd, void *buf, size_t count)
+{
+    GenericFS_Client::
+    return REAL_FUN(read)(fd, buf, count);
+}
 
 ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t count)
 {

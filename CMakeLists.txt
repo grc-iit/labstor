@@ -32,8 +32,20 @@ add_custom_target(clean-kaddr-klog COMMAND sudo dmesg --clear)
 add_executable(trace_posix_io_exec ${TRACE_DIR}/trace-posix-io.c)
 add_custom_target(trace-posix COMMAND bash ${TRACE_DIR}/trace-posix-io.sh ${CMAKE_BINARY_DIR}/trace_posix_io_exec $ENV{HOME})
 
+#Build the labstor server
+add_executable(labstor_trusted_server src/userspace_server/server.cpp src/userspace_server/worker.cpp src/userspace_server/ipc_manager.cpp)
+target_link_libraries(labstor_trusted_server pthread rt)
+
+#Build the labstor client
+add_library(labstor_client_library src/userspace_client/client.cpp)
+
 #Unit tests
 find_package(OpenMP)
+
+#
+add_executable(client_to_trusted_server test/unit/client_to_trusted_server/test_client.cpp)
+add_dependencies(client_to_trusted_server labstor_client_library)
+target_link_libraries(client_to_trusted_server labstor_client_library)
 
 #NDCTRL
 #ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M

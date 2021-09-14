@@ -19,7 +19,7 @@
 
 #include <linux/netlink.h>
 #include <linux/connector.h>
-#include "test_addrs.h"
+#include "kernel_server.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");

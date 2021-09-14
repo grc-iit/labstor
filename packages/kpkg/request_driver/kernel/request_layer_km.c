@@ -4,9 +4,9 @@
 
 /*
  * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
- * The request gets submitted, but can't read from device afterwards...
- * But the I/O completes?
  * */
+
+#include "../request_layer.h"
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -33,8 +33,6 @@ MODULE_ALIAS_FS("request_layer_km");
 
 
 //Macros
-#define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
-
 void *virt_mem;
 struct request_queue *q;
 
@@ -476,7 +474,7 @@ static inline struct page **convert_usr_buf(void *usr_buf, size_t length, int *n
     int num_pages;
 
     num_pages = length/PAGE_SIZE;
-    pages = kmalloc(num_pages*sizeof(struct page *), GFP_KERNEL);
+    pages = vmalloc(num_pages*sizeof(struct page *), GFP_KERNEL);
     if(pages == NULL) {
         printk(KERN_INFO "time_linux_driver_io_km: Could not allocate space for %d pages\n", num_pages);
         return NULL;
@@ -487,7 +485,7 @@ static inline struct page **convert_usr_buf(void *usr_buf, size_t length, int *n
     return pages;
 }
 
-void submit_io_rq_layer(char *dev, int op, void *user_buf) {
+blk_qc_t submit_io_rq_layer(char *dev, int op, void *user_buf) {
     struct block_device *bdev;
     int nr_hw_queues;
     struct bio *bio;
@@ -496,38 +494,14 @@ void submit_io_rq_layer(char *dev, int op, void *user_buf) {
     blk_qc_t cookie;
 
     blk_mq_try_issue_directly(rq, &cookie);
+
+    return cookie;
 }
 
-void submit_io_blk_layer() {
-    q->make_request_fn(q, bio);
-}
+inline void submit_req_layer_io(struct queue_pair *qp, struct request_layer_request *req) {
+    struct page *pages;
 
-void poll_io_completion(void) {
-}
-
-/**
- * MY FUNCTIONS
- * */
-
-
-static int __init init_request_layer_km(void)
-{
-    char *dev = "/dev/sdb";
-    struct block_device *bdev;
-
-    int nr_hw_queues;
-    struct bio *bio;
-    struct request *rq;
-    struct page *page;
-    blk_qc_t cookie;
-
-    //Allocate some kmem
-    virt_mem = kmalloc(4096, GFP_KERNEL | GFP_DMA);
-    memset(virt_mem, 4, 4096);
-    printk("request_layer_km: Created VA %p\n", virt_mem);
-    //Convert to pages
-    page = vmalloc_to_page(virt_mem);
-    printk("request_layer_km: Created page %p\n", page);
+    //Convert user's buffer to pages
     //Get block device associated with semantic label
     bdev = blkdev_get_by_path(dev, BDEV_ACCESS_FLAGS, NULL);
     printk("request_layer_km: Acquried bdev %p %s\n", bdev, bdev->bd_disk->disk_name);
@@ -544,18 +518,46 @@ static int __init init_request_layer_km(void)
     //Create request to hctx
     rq = bio_to_rq(q, 0, bio, 1);
     printk("request_layer_km: bio_to_rq\n");
-    //pid_t tid = current->pid;
-    //printk("request_layer_km: tid: %d\n", tid);
+    //Add monitor request
+}
 
-    //Execute request
+inline void check_req_layer_io_complete(struct queue_pair *qp, struct request_layer_request *req) {
 
-    //submit_bio(bio);
-    //
-    return 0;
+}
+
+void process_request_fn(struct queue_pair *qp, struct request_layer_request *req) {
+    switch(req->op) {
+        case RQ_PKG_SUBMIT_REQUEST: {
+            submit_req_layer_io(qp, req);
+            break;
+        }
+        case RQ_PKG_POLL_REQUEST: {
+            check_req_layer_io_complete(qp, req);
+            break;
+        }
+    }
+}
+
+struct package {
+    .pkg_id = REQEUST_LAYER_PKG_ID,
+    .process_request_fn = process_request_fn,
+    .request_size = sizeof(struct request_layer_request),
+    .get_ops = NULL
+} request_layer_pkg;
+
+/**
+ * MY FUNCTIONS
+ * */
+
+
+static int __init init_request_layer_km(void)
+{
+    register_package(&reqest_layer_pkg);
 }
 
 static void __exit exit_request_layer_km(void)
 {
+    unregister_package(&request_layer_pkg);
 }
 
 module_init(init_request_layer_km)

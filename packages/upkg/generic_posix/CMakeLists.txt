@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.10)
+project(labstor)
+
+set(CMAKE_CXX_STANDARD 17)
+
+include_directories(include)
+
+add_library(generic_fs_server server/generic_posix_server.cpp)
+add_library(generic_fs_client client/generic_posix_client.cpp)
+add_library(generic_fs_client_override client/generic_posix_client_override.cpp)
+add_dependencies(generic_fs_client_override generic_fs_client)
+target_link_libraries(generic_fs_client_override generic_fs_client)

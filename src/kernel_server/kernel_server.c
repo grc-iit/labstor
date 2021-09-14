@@ -2,12 +2,6 @@
 // Created by lukemartinlogan on 5/6/21.
 //
 
-/*
- * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
- * The request gets submitted, but can't read from device afterwards...
- * But the I/O completes?
- * */
-
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -20,18 +14,22 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
+#include "types.h"
+#include "unordered_map.h"
+
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages kernel packages for LabStor");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("labstor_kernel_server");
 
 struct sock *nl_sk = NULL;
+struct unordered_map packages;
 
 //Prototypes
 static int __init init_labstor_kernel_server(void);
 static void __exit exit_labstor_kernel_server(void);
 static void server_loop(struct sk_buff *skb);
-void send_kaddr(int pid);
+int worker(void *worker_data);
 
 static int start_server(void)
 {
@@ -39,6 +37,7 @@ static int start_server(void)
             .input = server_loop,
     };
 
+    //Create netlink socket
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
     if(!nl_sk)
     {
@@ -46,6 +45,13 @@ static int start_server(void)
         return -10;
     }
     printk(KERN_INFO "labstor_kernel_server: Netlink socket initialized");
+
+    //Create kthreads
+    for(int i = 0; i < nr_cpu_ids; ++i) {
+        workers[i] = kthread_run(worker_data, &i, );
+        kthread_bind(workers[i], i);
+    }
+
     return 0;
 }
 
@@ -56,15 +62,10 @@ static void server_loop(struct sk_buff *skb)
     int pid;
 
     nlh=(struct nlmsghdr*)skb->data;
-    rq = (struct km_request*)nlmsg_data(nlh);
-    pid = nlh->nlmsg_pid; /*pid of sending process? */
+    rq = (struct km_startup_request*)nlmsg_data(nlh);
+    pid = nlh->nlmsg_pid;
 
-    switch(rq->code) {
-        case 1: {
-            send_kaddr(pid);
-            break;
-        }
-    }
+    //Create the shared memory between kernel and process using SHMEM module
 }
 
 static void send_msg_to_usr(int code, void *data, void *fun, int pid)
@@ -91,20 +92,29 @@ static void send_msg_to_usr(int code, void *data, void *fun, int pid)
     }
 }
 
-void send_kaddr(int pid) {
+void register_package(struct package *pkg) {
+    unordered_map_add(packages, pkg->pkg_id, pkg);
 }
+EXPORT_SYMBOL(register_package)
 
-void register_package() {
+void unregister_package(struct package *pkg) {
 }
+EXPORT_SYMBOL(unregister_package)
 
-static int __init init_labstor_kernel_server(void)
-{
+struct package *get_package(struct labstor_id pkg_id) {
+    return unordered_map_get(packages, pkg_id);
+}
+EXPORT_SYMBOL(get_package)
+
+static int __init init_labstor_kernel_server(void) {
+    unorder_map_init(&packages, 256);
     start_server();
     return 0;
 }
 
 static void __exit exit_labstor_kernel_server(void)
 {
+    unordered_map_free(&packages);
 }
 
 module_init(init_labstor_kernel_server)

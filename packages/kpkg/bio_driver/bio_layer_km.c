@@ -449,6 +449,10 @@ static void io_bypass(char *dev, size_t sector, void *usr_buf, size_t length, in
     free_bios(bios, num_bios);
 }
 
+void submit_io_blk_layer() {
+    q->make_request_fn(q, bio);
+}
+
 static void __exit exit_linux_driver_io(void)
 {
     release_all_block_devices();

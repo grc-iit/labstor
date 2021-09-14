@@ -12,16 +12,17 @@ namespace scs {
 template<typename T>
 class Singleton {
 private:
-    static std::shared_ptr <T> obj_;
+    static std::shared_ptr<T> obj_;
 public:
     Singleton() = default;
-    static std::shared_ptr <T> GetInstance() {
+    static std::shared_ptr<T> GetInstance() {
+        if(!obj_) { obj_ = std::shared_ptr<T>(new T); }
         return obj_;
     }
 };
 
 template<typename T>
-std::shared_ptr <T> Singleton<T>::obj_ = nullptr;
+std::shared_ptr<T> Singleton<T>::obj_ = nullptr;
 
 }
 
