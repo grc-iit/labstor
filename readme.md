@@ -50,3 +50,10 @@ rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/Ph
 rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/PhD/custom-ubuntu/linux-stable llogan@${IP}:~/
 ```
 
+```
+Increase debugging level:
+echo "7" > /proc/sys/kernel/printk
+
+Decrease debugging level:
+echo "4" > /proc/sys/kernel/printk
+```

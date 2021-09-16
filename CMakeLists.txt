@@ -5,47 +5,29 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
-#LabStor Request Layer KM tests
-set(DRIVER_DIR ${CMAKE_SOURCE_DIR}/old/drivers)
-set(TRACE_DIR ${CMAKE_SOURCE_DIR}/trace)
-add_executable(verify_write ${DRIVER_DIR}/util/verify_write.c)
-add_custom_target(build-km COMMAND cd ${DRIVER_DIR}/request_layer/ && make)
-add_custom_target(insert-km COMMAND sudo insmod ${DRIVER_DIR}/request_layer/request_layer_km.ko)
-add_custom_target(remove-km COMMAND sudo rmmod request_layer_km)
-add_custom_target(check-km COMMAND lsmod | grep request_layer_km)
-add_custom_target(check-klog COMMAND dmesg | grep request_layer_km)
-add_custom_target(clean-klog COMMAND sudo dmesg --clear)
-add_custom_target(verify-km COMMAND sudo ${CMAKE_BINARY_DIR}/verify_write /dev/sdb 0 4096 4)
-add_custom_target(reset-km COMMAND sudo dd if=/dev/zero of=/dev/sdb bs=4096 count=1)
+#Build labstor kernel server
+add_custom_target(labstor_kernel_server ALL COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make)
 
-#LabStor address KM tests
-add_executable(kaddr-usr ${CMAKE_SOURCE_DIR}/test/unit/kernel_addr/userspace.cpp)
-add_custom_target(build-kaddr-km COMMAND cd ${CMAKE_SOURCE_DIR}/test/unit/kernel_addr && make)
-add_custom_target(clean-kaddr-km COMMAND cd ${CMAKE_SOURCE_DIR}/test/unit/kernel_addr && make clean)
-add_custom_target(insert-kaddr-km COMMAND sudo insmod ${CMAKE_SOURCE_DIR}/test/unit/kernel_addr/test_addrs.ko)
-add_custom_target(remove-kaddr-km COMMAND sudo rmmod test_addrs)
-add_custom_target(check-kaddr-km COMMAND lsmod | grep test_addrs)
-add_custom_target(check-kaddr-klog COMMAND dmesg | grep test_addrs)
-add_custom_target(clean-kaddr-klog COMMAND sudo dmesg --clear)
+#Build labstor kernel server client
+add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
 
-#Trace POSIX syscalls
-add_executable(trace_posix_io_exec ${TRACE_DIR}/trace-posix-io.c)
-add_custom_target(trace-posix COMMAND bash ${TRACE_DIR}/trace-posix-io.sh ${CMAKE_BINARY_DIR}/trace_posix_io_exec $ENV{HOME})
-
-#Build the labstor server
+#Build labstor trusted server
 add_executable(labstor_trusted_server src/userspace_server/server.cpp src/userspace_server/worker.cpp src/userspace_server/ipc_manager.cpp)
-target_link_libraries(labstor_trusted_server pthread rt)
+target_link_libraries(labstor_trusted_server pthread rt labstor_kernel_client)
 
-#Build the labstor client
+#Build labstor trusted server client
 add_library(labstor_client_library src/userspace_client/client.cpp)
 
-#Unit tests
-find_package(OpenMP)
-
-#
+#######Unit tests
+#Client to trusted server tests
 add_executable(client_to_trusted_server test/unit/client_to_trusted_server/test_client.cpp)
 add_dependencies(client_to_trusted_server labstor_client_library)
 target_link_libraries(client_to_trusted_server labstor_client_library)
+
+#Client to kernel server tests
+add_executable(client_to_kernel test/unit/client_to_kernel/test_kernel_client.cpp)
+add_dependencies(client_to_kernel labstor_kernel_client)
+target_link_libraries(client_to_kernel labstor_kernel_client)
 
 #NDCTRL
 #ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M

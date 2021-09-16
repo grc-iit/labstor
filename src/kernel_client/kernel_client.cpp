@@ -15,7 +15,7 @@ static int sockfd;
 static struct sockaddr_nl my_addr = {0};
 static struct sockaddr_nl kern_addr = {0};
 
-void LabstorKernelClientContext::Connect(int num_queues, size_t queue_size)
+bool labstor::LabStorKernelClientContext::Connect(int num_queues, size_t queue_size)
 {
     sockfd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_USER);
 
@@ -29,58 +29,55 @@ void LabstorKernelClientContext::Connect(int num_queues, size_t queue_size)
 
     bind(sockfd, (struct sockaddr *)&my_addr, sizeof(my_addr));
 
-    CreateIPC(num_queues, queue_size);
+    return CreateIPC(num_queues, queue_size);
 }
 
-void LabstorKernelClientContext::CreateIPC(int num_queues, size_t queue_size)
+bool labstor::LabStorKernelClientContext::CreateIPC(int num_queues, size_t queue_size)
 {
     struct nlmsghdr *nlh;
-    struct labstor::km_starting_request *rq;
+    struct labstor::km_startup_request *rq;
     int code;
 
     //Send startup message to labstor kernel server and get response
-    nlh = send_msg_to_kernel(num_queues, queue_size);
+    nlh = SendStartupMSG(num_queues, queue_size);
     if(nlh == NULL) {
-        return -1;
+        return false;
     }
-    rq = (struct labstor::km_starting_request*)NLMSG_DATA(nlh);
-
-    /*code = rq->code;
-    if(code < 0) {
-        free(nlh);
-        return code;
-    }
-    int *data = (int*)rq->data;
-    printf("DATA: %d\n", *data);*/
+    rq = (struct labstor::km_startup_request*)NLMSG_DATA(nlh);
+    code = rq->code;
+    printf("IPC CODE: %d\n", code);
 
     free(nlh);
+    return true;
 }
 
-static inline struct nlmsghdr *LabstorKernelClientContext::SendStartupMSG(int num_queues, size_t queue_size)
+inline struct nlmsghdr *labstor::LabStorKernelClientContext::SendStartupMSG(int num_queues, size_t queue_size)
 {
     int num_io_rqs = 0;
     struct nlmsghdr *nlh;
-    struct km_request *rq;
+    struct km_startup_request *rq;
     socklen_t addrlen = sizeof(struct sockaddr_nl);
     int ret;
 
-    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(sizeof(struct km_request)));
-    memset(nlh, 0, NLMSG_SPACE(sizeof(struct km_request)));
-    nlh->nlmsg_len = NLMSG_SPACE(sizeof(struct km_request));
+    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(sizeof(struct km_startup_request)));
+    memset(nlh, 0, NLMSG_SPACE(sizeof(struct km_startup_request)));
+    nlh->nlmsg_len = NLMSG_SPACE(sizeof(struct km_startup_request));
     nlh->nlmsg_pid = getpid();
     nlh->nlmsg_flags = 0;
-    rq = (struct km_request*)NLMSG_DATA(nlh);
 
-    rq->code = code;
+    rq = (struct km_startup_request*)NLMSG_DATA(nlh);
+    rq->code = 1;
+    rq->num_queues = num_queues;
+    rq->queue_size = queue_size;
 
-    ret = sendto(sockfd, (void*)nlh, NLMSG_SPACE(sizeof(struct km_request)), 0, (struct sockaddr *)&kern_addr, addrlen);
+    ret = sendto(sockfd, (void*)nlh, NLMSG_SPACE(sizeof(struct km_startup_request)), 0, (struct sockaddr *)&kern_addr, addrlen);
     if(ret < 0) {
         perror("Unable to send message to kernel module\n");
         free(nlh);
         return NULL;
     }
 
-    ret = recvfrom(sockfd, (void*)nlh, NLMSG_SPACE(sizeof(struct km_request)), 0, (struct sockaddr *)&kern_addr, &addrlen);
+    ret = recvfrom(sockfd, (void*)nlh, NLMSG_SPACE(sizeof(struct km_startup_request)), 0, (struct sockaddr *)&kern_addr, &addrlen);
     if(ret < 0) {
         perror("Unable to recv count from kernel module\n");
         free(nlh);

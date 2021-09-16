@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
 
     //Connect to the kernel server and establish IPCs
 
-    //Load all packages
+    //Load all modules
 
     //Load the workers
     create_thread_pool(get_nprocs_conf(), 1);

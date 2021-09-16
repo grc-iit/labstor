@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-#include <labstor/types/package.h>
+#include <labstor/types/module.h>
 #include <labstor/types/ipc_pool.h>
 
 #define NETLINK_USER 31
@@ -17,6 +17,7 @@
 namespace labstor {
 
 struct km_startup_request {
+    int code;
     int num_queues;
     size_t queue_size;
     void *starting_address;
@@ -29,7 +30,7 @@ public:
     inline bool IsConnected() { return sockfd_ >= 0; }
     bool Connect(int num_queues, size_t queue_size);
 private:
-    void CreateIPC(int num_queues, size_t queue_size);
+    bool CreateIPC(int num_queues, size_t queue_size);
     static inline struct nlmsghdr *SendStartupMSG(int num_queues, size_t queue_size);
 };
 

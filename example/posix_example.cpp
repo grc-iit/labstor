@@ -1,23 +1,8 @@
 
-struct pkg {
-  char pkg_id[256];
+struct labstor_module {
+  char module_id[256];
   void (*process_rq_fn)(void *request, struct credentials *cred);
   void* (*get_ops)(void);
-  int req_size;
-};
-
-struct req_drv_ops {
-    void (*regsiter_dev)(const char *dev_path, const char *path);
-    void (*unregsiter_dev)(const char *path);
-    void (*read)(int pid, void *usr_buf, size_t lba, size_t size, int hctx);
-    void (*write)(int pid, void *usr_buf, size_t lba, size_t size, int hctx);
-};
-
-struct blk_ops {
-    void (*wrap_dev)(const char *dev_path, const char *path);
-    void (*unwrap_dev)(const char *path);
-    void (*read)(int pid, void *usr_buf, size_t lba, size_t size);
-    void (*write)(int pid, void *usr_buf, size_t lba, size_t size);
 };
 
 struct posix_ops {

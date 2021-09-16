@@ -6,7 +6,7 @@
 #define LABSTOR_SERVER_H
 
 #include <labstor/types/ipc_pool.h>
-#include <labstor/types/package.h>
+#include <labstor/types/module.h>
 #include <labstor/ipc/unordered_map.h>
 #include <labstor/userspace_server/ipc_manager.h>
 
@@ -19,9 +19,9 @@ namespace labstor {
 
 struct LabStorServerContext {
     int pid_;
-    labstor::ipc::unordered_map<std::string, labstor::package> namespace_;
+    labstor::ipc::unordered_map<std::string, labstor::module> namespace_;
     std::unordered_map <pid_t, std::shared_ptr<labstor::PerProcessIPC>> ipc_pool_;
-    labstor::PackagePool pkg_pool_;
+    labstor::ModulePool pkg_pool_;
     labstor::IPCManager ipc_manager_;
     pthread_t work_orchestrator_;
     std::vector<pthread_t> worker_pool_;
