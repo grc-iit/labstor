@@ -8,4 +8,6 @@ cmake*
 *.ko
 *.order
 *.o
+*.o.cmd
+*.o.d
 build

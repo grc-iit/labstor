@@ -22,7 +22,9 @@
 #include <linux/types.h>
 #include <linux/list.h>
 
-//#include <kpkg_devkit/request_queue.h>
+#include <kpkg_devkit/types.h>
+#include <kpkg_devkit/module_registrar.h>
+#include "secure_shmem.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that provides secure memory mapping");
@@ -89,41 +91,41 @@ void* reserve_shmem(size_t size, bool user_owned, int *new_region_id) {
     region_info->user_owned = user_owned;
     list_add(&region_info->node, &region_map);
 
-    *new_region_id = region_info->region_id;
+    if(new_region_id) {
+        *new_region_id = region_info->region_id;
+    }
     return region_info->vmalloc_ptr;
 }
-EXPORT_SYMBOL(reserve_shmem);
 
-void grant_pid_shmem(int region_id, int pid) {
+bool grant_pid_shmem(int region_id, int pid) {
     struct shmem_pid_region *pid_region;
     pid_region = vmalloc(sizeof(struct shmem_pid_region));
     if(pid_region == NULL) {
         pr_err("Could not allocate a permissions element");
-        return;
+        return false;
     }
     pid_region->pid = pid;
     pid_region->region = find_region(region_id);
     if(pid_region->region == NULL) {
         pr_err("Could not find region %d\n", region_id);
         vfree(pid_region);
-        return;
+        return false;
     }
     pid_region->is_mapped = false;
     list_add(&pid_region->node, &pid_regions);
+    return true;
 }
-EXPORT_SYMBOL(grant_pid_shmem);
 
 void free_shmem_region_by_id(int region_id) {
     struct shmem_region_info *region = find_region(region_id);
     if(region == NULL) {
-        pr_err("Could not locate region %d to be freed\n", region_id);
+        pr_warn("Could not locate region %d to be freed\n", region_id);
         return;
     }
     list_del(&region->node);
     vfree(region->vmalloc_ptr);
     vfree(region);
 }
-EXPORT_SYMBOL(free_shmem_region_by_id);
 
 int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
     struct shmem_pid_region *pid_region;
@@ -152,11 +154,37 @@ int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
     return 0;
 }
 
-/*struct labstor_module {
+void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
+    int code = 0;
+    switch(rq->op) {
+        case RESERVE_SHMEM: {
+            if(reserve_shmem(rq->reserve.size, rq->reserve.user_owned, &code)) {}
+            else { code = -1; }
+            labstor_msg_trusted_server(&code, sizeof(code), pid);
+            break;
+        }
+
+        case GRANT_PID_SHMEM: {
+            if(grant_pid_shmem(rq->grant.region_id, rq->grant.pid)) { code = 0; }
+            else { code = -1; }
+            labstor_msg_trusted_server(&code, sizeof(code), pid);
+            break;
+        }
+
+        case FREE_SHMEM: {
+            free_shmem_region_by_id(rq->free.region_id);
+            labstor_msg_trusted_server(&code, sizeof(code), pid);
+            break;
+        }
+    }
+}
+
+struct labstor_module shmem_module = {
     .module_id = SHMEM_ID,
     .process_request_fn = NULL,
+    .process_request_fn_netlink = (process_request_fn_netlink_type)shmem_process_request_fn_netlink,
     .get_ops = NULL
-} request_layer_pkg;*/
+};
 
 struct file_operations shmem_fs = {
     .owner  = THIS_MODULE,
@@ -168,11 +196,13 @@ struct file_operations shmem_fs = {
 static int __init init_secure_shmem(void) {
     atomic_set(&cur_region_id, 0);
     register_chrdev(100, "labstor_shmem", &shmem_fs);
+    register_labstor_module(&shmem_module);
     return 0;
 }
 
 static void __exit exit_secure_shmem(void) {
     unregister_chrdev(100, "labstor_shmem");
+    unregister_labstor_module(&shmem_module);
 }
 
 module_init(init_secure_shmem)

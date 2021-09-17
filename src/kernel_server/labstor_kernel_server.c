@@ -2,6 +2,11 @@
 // Created by lukemartinlogan on 5/6/21.
 //
 
+#ifdef pr_fmt
+#undef pr_fmt
+#endif
+#define pr_fmt(fmt) KBUILD_MODNAME ":" fmt
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -14,6 +19,7 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
+#include "kpkg_devkit/module_registrar.h"
 #include "kpkg_devkit/types.h"
 #include "kpkg_devkit/unordered_map.h"
 
@@ -31,11 +37,8 @@ struct unordered_map modules;
 static int __init init_labstor_kernel_server(void);
 static void __exit exit_labstor_kernel_server(void);
 static void server_loop(struct sk_buff *skb);
-static void send_msg_to_usr(int code, int pid);
-int worker(void *worker_data);
 
-static int start_server(void)
-{
+static int start_server(void) {
     struct netlink_kernel_cfg cfg = {
             .input = server_loop,
     };
@@ -52,50 +55,57 @@ static int start_server(void)
     return 0;
 }
 
-static void server_loop(struct sk_buff *skb)
-{
+static void server_loop(struct sk_buff *skb) {
     struct nlmsghdr *nlh;
-    struct km_startup_request *rq;
+    struct km_request *km_rq;
+    struct labstor_module *pkg;
+    void *rq;
     int pid;
 
     nlh=(struct nlmsghdr*)skb->data;
-    rq = (struct km_startup_request*)nlmsg_data(nlh);
+    km_rq = (struct km_request*)nlmsg_data(nlh);
     pid = nlh->nlmsg_pid;
 
-    //Create worker threads
-    /*for(int i = 0; i < nr_cpu_ids; ++i) {
-        workers[i] = kthread_run(worker_data, &i, );
-        kthread_bind(workers[i], i);
-    }*/
+    //Load labstor module
+    pkg = get_labstor_module(km_rq->module_id);
+    if(pkg == NULL) {
+        pr_err("Could not find module %s\n", km_rq->module_id.key);
+        labstor_msg_trusted_server(-1, NULL, 0, pid);
+        return;
+    }
+    rq = (void*)(km_rq + 1);
 
-    //Create SHMEM queues
-
-    //Send the final message to the user
-    send_msg_to_usr(0, pid);
-
+    //Process command
+    if(pkg->process_request_fn_netlink == NULL) {
+        pr_err("Module %s does not support access over the netlink socket\n", pkg->module_id.key);
+        labstor_msg_trusted_server(-1, NULL, 0, pid);
+        return;
+    }
+    pkg->process_request_fn_netlink(pid, rq);
 }
 
-static void send_msg_to_usr(int code, int pid)
-{
+void labstor_msg_trusted_server(void *serialized_buf, size_t buf_size, int pid) {
     struct nlmsghdr *nlh;
     struct sk_buff *skb_out;
     int res = 0;
-    struct km_startup_request *rq;
+    void *rq;
 
-    skb_out = nlmsg_new(sizeof(struct km_startup_request), 0);
+    skb_out = nlmsg_new(buf_size, 0);
     if(!skb_out) {
-        printk(KERN_ERR "time_linux_driver_io_km: Failed to allocate new skb\n");
+        pr_err("Failed to allocate new skb\n");
         return;
     }
-    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, sizeof(struct km_startup_request), 0);
+    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, buf_size, 0);
     NETLINK_CB(skb_out).dst_group = 0; /* not in mcast group */
     rq = nlmsg_data(nlh);
-    rq->code = code;
+    memcpy(rq, serialized_buf, buf_size);
+
     res=nlmsg_unicast(nl_sk, skb_out, pid);
     if(res<0) {
-        printk(KERN_ERR "time_linux_driver_io_km: Error while sending back to user\n");
+        pr_err("Error while sending back to user\n");
     }
 }
+EXPORT_SYMBOL(labstor_msg_trusted_server);
 
 void register_labstor_module(struct labstor_module *pkg) {
     unordered_map_add(&modules, pkg->module_id, pkg);
@@ -103,19 +113,25 @@ void register_labstor_module(struct labstor_module *pkg) {
 EXPORT_SYMBOL(register_labstor_module);
 
 void unregister_labstor_module(struct labstor_module *pkg) {
+    //unordered_map_remove(&modules, pkg->module_id);
 }
 EXPORT_SYMBOL(unregister_labstor_module);
 
 struct labstor_module *get_labstor_module(struct labstor_id module_id) {
-    //return unordered_map_get(&modules, module_id);
-    return NULL;
+    int id;
+    return unordered_map_get(&modules, module_id, &id);
 }
 EXPORT_SYMBOL(get_labstor_module);
+
+struct labstor_module *get_labstor_module_by_runtime_id(int runtime_id) {
+    return unordered_map_get_idx(&modules, runtime_id);
+}
+EXPORT_SYMBOL(get_labstor_module_by_runtime_id);
 
 static int __init init_labstor_kernel_server(void) {
     unordered_map_init(&modules, 256);
     start_server();
-    printk(KERN_INFO "labstor_kernel_server: SERVER IS RUNNING!\n");
+    pr_info("ERVER IS RUNNING!\n");
     return 0;
 }
 

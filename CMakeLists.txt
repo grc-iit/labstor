@@ -5,18 +5,19 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
+######MAIN REPO
 #Build labstor kernel server
 add_custom_target(labstor_kernel_server ALL COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make)
-
 #Build labstor kernel server client
 add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
-
 #Build labstor trusted server
 add_executable(labstor_trusted_server src/userspace_server/server.cpp src/userspace_server/worker.cpp src/userspace_server/ipc_manager.cpp)
 target_link_libraries(labstor_trusted_server pthread rt labstor_kernel_client)
-
 #Build labstor trusted server client
 add_library(labstor_client_library src/userspace_client/client.cpp)
+
+######MODULES
+add_subdirectory(modules/kernel/secure_shmem)
 
 #######Unit tests
 #Client to trusted server tests
@@ -28,6 +29,11 @@ target_link_libraries(client_to_trusted_server labstor_client_library)
 add_executable(client_to_kernel test/unit/client_to_kernel/test_kernel_client.cpp)
 add_dependencies(client_to_kernel labstor_kernel_client)
 target_link_libraries(client_to_kernel labstor_kernel_client)
+
+#Shared memory creation
+add_executable(test_shmem test/unit/test_shmem/test_shmem.cpp)
+add_dependencies(test_shmem labstor_kernel_client)
+target_link_libraries(test_shmem labstor_kernel_client)
 
 #NDCTRL
 #ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M

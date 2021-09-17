@@ -333,6 +333,8 @@ labstor_kernel_server.o: \
  include/uapi/linux/net_tstamp.h include/net/smc.h include/net/l3mdev.h \
  include/net/fib_rules.h include/uapi/linux/fib_rules.h \
  include/net/fib_notifier.h include/uapi/linux/connector.h \
+ /home/lukemartinlogan/Documents/Projects/PhD/labstor/src/kernel_server/kpkg_devkit/module_registrar.h \
  /home/lukemartinlogan/Documents/Projects/PhD/labstor/src/kernel_server/kpkg_devkit/types.h \
  /home/lukemartinlogan/Documents/Projects/PhD/labstor/src/kernel_server/kpkg_devkit/request_queue.h \
+ /home/lukemartinlogan/Documents/Projects/PhD/labstor/src/kernel_server/kpkg_devkit/types.h \
  /home/lukemartinlogan/Documents/Projects/PhD/labstor/src/kernel_server/kpkg_devkit/unordered_map.h
