@@ -32,7 +32,7 @@ bool labstor::LabStorKernelClientContext::Connect()
     return true;
 }
 
-inline bool labstor::LabStorKernelClientContext::SendMSG(void *serialized_buf, size_t buf_size) {
+bool labstor::LabStorKernelClientContext::SendMSG(void *serialized_buf, size_t buf_size) {
     int num_io_rqs = 0;
     struct nlmsghdr *nlh;
     socklen_t addrlen = sizeof(struct sockaddr_nl);
@@ -58,7 +58,7 @@ inline bool labstor::LabStorKernelClientContext::SendMSG(void *serialized_buf, s
     return true;
 }
 
-inline std::shared_ptr<labstor::LabStorNetlinkMSG> labstor::LabStorKernelClientContext::RecvMSG(size_t buf_size) {
+bool labstor::LabStorKernelClientContext::RecvMSG(void *buf, size_t buf_size) {
     int num_io_rqs = 0;
     struct nlmsghdr *nlh;
     socklen_t addrlen = sizeof(struct sockaddr_nl);
@@ -75,9 +75,9 @@ inline std::shared_ptr<labstor::LabStorNetlinkMSG> labstor::LabStorKernelClientC
     if(ret < 0) {
         perror("Unable to recv count from kernel module\n");
         free(nlh);
-        return NULL;
+        return false;
     }
     rq = NLMSG_DATA(nlh);
-
-    return std::shared_ptr<LabStorNetlinkMSG>(new LabStorNetlinkMSG(nlh));
+    memcpy(buf, rq, buf_size);
+    return true;
 }

@@ -20,25 +20,14 @@
 
 namespace labstor {
 
-class LabStorNetlinkMSG {
-private:
-    struct nlmsghdr *nlh_;
-public:
-    LabStorNetlinkMSG() : nlh_(nullptr) {}
-    LabStorNetlinkMSG(struct nlmsghdr *nlh) : nlh_(nlh) {}
-    ~LabStorNetlinkMSG() { free(nlh_); }
-    void *SetNLH(struct nlmsghdr *nlh) { nlh_ = nlh; }
-    void *GetData() { NLMSG_DATA(nlh_); }
-};
-
 class LabStorKernelClientContext {
 private:
     int sockfd_;
 public:
     inline bool IsConnected() { return sockfd_ >= 0; }
     bool Connect();
-    static inline bool SendMSG(void *serialized_buf, size_t buf_size);
-    static inline std::shared_ptr<LabStorNetlinkMSG> RecvMSG(size_t buf_size);
+    static bool SendMSG(void *serialized_buf, size_t buf_size);
+    static bool RecvMSG(void *buf, size_t buf_size);
 };
 
 }

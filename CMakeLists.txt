@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include)
+include_directories(include modules/kernel)
 
 ######MAIN REPO
 #Build labstor kernel server
@@ -32,8 +32,8 @@ target_link_libraries(client_to_kernel labstor_kernel_client)
 
 #Shared memory creation
 add_executable(test_shmem test/unit/test_shmem/test_shmem.cpp)
-add_dependencies(test_shmem labstor_kernel_client)
-target_link_libraries(test_shmem labstor_kernel_client)
+add_dependencies(test_shmem labstor_kernel_client shmem_client)
+target_link_libraries(test_shmem labstor_kernel_client shmem_client)
 
 #NDCTRL
 #ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M

@@ -59,6 +59,7 @@ static void server_loop(struct sk_buff *skb) {
     struct nlmsghdr *nlh;
     struct km_request *km_rq;
     struct labstor_module *pkg;
+    int code;
     void *rq;
     int pid;
 
@@ -70,7 +71,8 @@ static void server_loop(struct sk_buff *skb) {
     pkg = get_labstor_module(km_rq->module_id);
     if(pkg == NULL) {
         pr_err("Could not find module %s\n", km_rq->module_id.key);
-        labstor_msg_trusted_server(-1, NULL, 0, pid);
+        code = -1;
+        labstor_msg_trusted_server(&code, sizeof(code), pid);
         return;
     }
     rq = (void*)(km_rq + 1);
@@ -78,7 +80,8 @@ static void server_loop(struct sk_buff *skb) {
     //Process command
     if(pkg->process_request_fn_netlink == NULL) {
         pr_err("Module %s does not support access over the netlink socket\n", pkg->module_id.key);
-        labstor_msg_trusted_server(-1, NULL, 0, pid);
+        code = -2;
+        labstor_msg_trusted_server(&code, sizeof(code), pid);
         return;
     }
     pkg->process_request_fn_netlink(pid, rq);
