@@ -18,6 +18,7 @@
 #include <labstor/types/basics.h>
 #include <labstor/util/singleton.h>
 #include <labstor/userspace_server/worker.h>
+#include <labstor/kernel_client/kernel_client.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
 
@@ -124,6 +125,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
+    auto labstor_kernel_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
 
     //Load a configuration file
     //YAML::Node config = YAML::LoadFile(argv[1]);
@@ -132,6 +134,7 @@ int main(int argc, char **argv) {
     labstor_context->pid_ = getpid();
 
     //Connect to the kernel server and establish IPCs
+    labstor_kernel_context->Connect();
 
     //Load all modules
 
@@ -142,6 +145,3 @@ int main(int argc, char **argv) {
     printf("LabStor Trusted Server running!\n");
     server_init();
 }
-
-//https://davejingtian.org/2015/02/17/retrieve-pid-from-the-packet-in-unix-domain-socket-a-complete-use-case-for-recvmsgsendmsg/
-//https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/configuring-persistent-memory-for-use-in-device-dax-mode

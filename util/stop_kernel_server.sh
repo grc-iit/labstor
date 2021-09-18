@@ -2,3 +2,4 @@
 
 NAME=labstor_kernel_server
 sudo rmmod ${NAME}
+sudo dmesg

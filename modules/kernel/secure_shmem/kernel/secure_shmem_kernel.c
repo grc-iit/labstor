@@ -15,6 +15,8 @@
 #include <linux/kobject.h>
 #include <linux/fs.h>
 #include <linux/mm.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
 
 #include <linux/types.h>
 #include <linux/list.h>
@@ -29,8 +31,16 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("secure_shmem");
 
 atomic_t cur_region_id;
+DEFINE_MUTEX(region_map_mutex);
 LIST_HEAD(region_map);
+DEFINE_MUTEX(pid_regions_mutex);
 LIST_HEAD(pid_regions);
+
+#define N_MINORS 1
+struct class *shmem_class;
+struct cdev shmem_cdev[N_MINORS];
+struct device *shmem_dev_struct;
+dev_t shmem_dev;
 
 struct shmem_region_info {
     struct list_head node;
@@ -49,7 +59,7 @@ struct shmem_pid_region {
 
 struct shmem_region_info *find_region(int region_id) {
     struct shmem_region_info *pos;
-    list_for_each_entry(pos, &pid_regions, node) {
+    list_for_each_entry(pos, &region_map, node) {
         if(pos->region_id == region_id) {
             return pos;
         }
@@ -57,10 +67,10 @@ struct shmem_region_info *find_region(int region_id) {
     return NULL;
 }
 
-struct shmem_pid_region *find_unmapped_pid_region(int pid, size_t size) {
+struct shmem_pid_region *find_pid_region(int pid, int region_id) {
     struct shmem_pid_region *pos;
     list_for_each_entry(pos, &pid_regions, node) {
-        if(pos->pid == pid && pos->region->size == size) {
+        if(pos->pid == pid && pos->region->region_id == region_id) {
             return pos;
         }
     }
@@ -84,7 +94,10 @@ void* reserve_shmem(size_t size, bool user_owned, int *new_region_id) {
         return NULL;
     }
     region_info->user_owned = user_owned;
+
+    mutex_lock_interruptible(&region_map_mutex);
     list_add(&region_info->node, &region_map);
+    mutex_unlock(&region_map_mutex);
 
     if(new_region_id) {
         *new_region_id = region_info->region_id;
@@ -107,19 +120,65 @@ bool grant_pid_shmem(int region_id, int pid) {
         return false;
     }
     pid_region->is_mapped = false;
+
+    mutex_lock_interruptible(&pid_regions_mutex);
     list_add(&pid_region->node, &pid_regions);
+    mutex_unlock(&pid_regions_mutex);
     return true;
 }
 
 void free_shmem_region_by_id(int region_id) {
     struct shmem_region_info *region = find_region(region_id);
+    struct shmem_pid_region *pid_pos, *pid_pos_temp;
+
     if(region == NULL) {
         pr_warn("Could not locate region %d to be freed\n", region_id);
         return;
     }
+
+    mutex_lock_interruptible(&region_map_mutex);
+    mutex_lock_interruptible(&pid_regions_mutex);
+
     list_del(&region->node);
     vfree(region->vmalloc_ptr);
     vfree(region);
+
+    list_for_each_entry_safe(pid_pos, pid_pos_temp, &pid_regions, node) {
+        if(pid_pos->region->region_id == region_id) {
+            list_del(&pid_pos->node);
+            vfree(pid_pos);
+        }
+    }
+    mutex_unlock(&pid_regions_mutex);
+    mutex_unlock(&region_map_mutex);
+}
+
+void free_all_regions(void) {
+    struct shmem_region_info *region_pos, *region_pos_temp;
+    struct shmem_pid_region *pid_pos, *pid_pos_temp;
+    mutex_lock_interruptible(&region_map_mutex);
+    mutex_lock_interruptible(&pid_regions_mutex);
+    list_for_each_entry_safe(region_pos, region_pos_temp, &region_map, node) {
+        list_del(&region_pos->node);
+        vfree(region_pos->vmalloc_ptr);
+        vfree(region_pos);
+    }
+    list_for_each_entry_safe(pid_pos, pid_pos_temp, &pid_regions, node) {
+        list_del(&pid_pos->node);
+        vfree(pid_pos);
+    }
+    mutex_unlock(&pid_regions_mutex);
+    mutex_unlock(&region_map_mutex);
+}
+
+static int labstor_open(struct inode *inode, struct file *filp) {
+    pr_info("labstor_open\n");
+    return 0;
+}
+
+static loff_t labstor_lseek(struct file *file, loff_t offset, int orig) {
+    file->private_data = (void*)offset;
+    return offset;
 }
 
 int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
@@ -127,20 +186,21 @@ int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
     struct shmem_region_info *region;
     size_t size, i;
     pid_t pid;
+    int region_id = (int)filp->private_data;//(int)(filp->f_pos / PAGE_SIZE);
 
     //Acquire shared memory region
     pid = current->pid;
     size = vma->vm_end - vma->vm_start;
-    pid_region = find_unmapped_pid_region(pid, size);
+    pid_region = find_pid_region(pid, region_id);
     if(pid_region == NULL) {
-        pr_err("Process %d tried reserving secure shmem of size %lu without permission\n", pid, size);
+        pr_err("Process %d tried accessing region %d without permission\n", pid, region_id);
         return -1;
     }
     region = pid_region->region;
 
     //Map region into userspace
     for(i = 0; i < size; i += PAGE_SIZE) {
-        if(remap_pfn_range(vma, vma->vm_start + i, vmalloc_to_pfn(region->vmalloc_ptr), size, vma->vm_page_prot)) {
+        if(remap_pfn_range(vma, vma->vm_start + i, vmalloc_to_pfn(region->vmalloc_ptr + i), size, vma->vm_page_prot)) {
             pr_err("Could not map region %d into pid %d's address space", region->region_id, pid);
             return 0;
         }
@@ -153,6 +213,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
     int code = 0;
     switch(rq->op) {
         case RESERVE_SHMEM: {
+            pr_info("Reserving shared memory of size %lu\n", rq->reserve.size);
             if(reserve_shmem(rq->reserve.size, rq->reserve.user_owned, &code)) {}
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -160,6 +221,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
         }
 
         case GRANT_PID_SHMEM: {
+            pr_info("Granting %d permission for region %d\n", rq->grant.pid, rq->grant.region_id);
             if(grant_pid_shmem(rq->grant.region_id, rq->grant.pid)) { code = 0; }
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -167,6 +229,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
         }
 
         case FREE_SHMEM: {
+            pr_info("Freeing region %d\n", rq->free.region_id);
             free_shmem_region_by_id(rq->free.region_id);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
@@ -183,20 +246,64 @@ struct labstor_module shmem_module = {
 
 struct file_operations shmem_fs = {
     .owner  = THIS_MODULE,
-    //.open   = nonseekable_open,
+    .open   = labstor_open,
     .mmap   = labstor_mmap,
-    //.llseek = no_llseek,
+    .llseek   = labstor_lseek
 };
 
 static int __init init_secure_shmem(void) {
+    int ret;
+    dev_t cur_dev;
+    pr_info("Starting the SHMEM module");
     atomic_set(&cur_region_id, 0);
-    register_chrdev(0, "labstor_shmem", &shmem_fs);
+
+    pr_info("Creating chrdev class");
+    shmem_class = class_create(THIS_MODULE, "labstor_shmem_class");
+    if(IS_ERR(shmem_class)) {
+        pr_err("Could not create shmem class");
+        cdev_del(shmem_cdev);
+        unregister_chrdev_region(shmem_dev, N_MINORS);
+        return -1;
+    }
+
+    pr_info("Allocating chrdev region");
+    ret = alloc_chrdev_region(&shmem_dev, 0, N_MINORS, "labstor_shmem_driver");
+    if(ret < 0) {
+        pr_err("Could not open chardev");
+        return -1;
+    }
+
+    pr_info("Creating chrdev");
+    cdev_init(shmem_cdev, &shmem_fs);
+    cur_dev = MKDEV(MAJOR(shmem_dev), MINOR(shmem_dev));
+
+    pr_info("Creating device in proc");
+    shmem_dev_struct = device_create(shmem_class, NULL, cur_dev, NULL, "labstor_shared_shmem%d", 0);
+    if(IS_ERR(shmem_dev_struct)) {
+        pr_err("Could not creat device node");
+        class_destroy(shmem_class);
+        cdev_del(shmem_cdev);
+        unregister_chrdev_region(shmem_dev, N_MINORS);
+        return -1;
+    }
+
+    ret = cdev_add(shmem_cdev, cur_dev, 1);
+    if(ret < 0) {
+        pr_err("Could not add chardev");
+        return -1;
+    }
+
+    pr_info("Device is registered!");
     register_labstor_module(&shmem_module);
     return 0;
 }
 
 static void __exit exit_secure_shmem(void) {
-    unregister_chrdev(0, "labstor_shmem");
+    device_destroy(shmem_class, shmem_dev);
+    class_destroy(shmem_class);
+    cdev_del(shmem_cdev);
+    free_all_regions();
+    unregister_chrdev_region(shmem_dev, N_MINORS);
     unregister_labstor_module(&shmem_module);
 }
 

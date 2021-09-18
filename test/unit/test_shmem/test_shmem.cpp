@@ -9,14 +9,34 @@
 
 int main() {
     int region_id;
+    size_t region_size = 128;
     char *region;
     auto labstor_kernel_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
     labstor_kernel_context->Connect();
 
     ShmemNetlinkClient shmem;
-    region_id = shmem.CreateShmem(128, true);
+
+    //Create a shared memory region
+    region_id = shmem.CreateShmem(region_size, true);
     printf("REGION ID: %d\n", region_id);
-    if(region_id >= 0) {
-        shmem.FreeShmem(region_id);
+    if(region_id < 0) {
+        printf("Failed to allocate region");
+        return -1;
     }
+
+    //Grant access to the shared memory region
+    printf("PID: %d\n", getpid());
+    shmem.GrantPidShmem(getpid(), region_id);
+
+    //Map the shared memory region
+    region = (char*)shmem.MapShmem(region_id, region_size);
+    printf("REGION: %p\n", region);
+    if(!region) {
+        perror("Can't open shmem");
+        return -1;
+    }
+    region[0] = 'h';
+
+    //Free the shared memory region
+    shmem.FreeShmem(region_id);
 }

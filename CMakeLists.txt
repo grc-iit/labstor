@@ -19,22 +19,24 @@ add_library(labstor_client_library src/userspace_client/client.cpp)
 
 ######MODULES
 add_subdirectory(modules/kernel/secure_shmem)
+add_custom_target(clean_all COMMAND make clean && make clean_labstor_kernel_server && make clean_secure_shmem)
 
 #######Unit tests
 #Client to trusted server tests
-add_executable(client_to_trusted_server test/unit/client_to_trusted_server/test_client.cpp)
-add_dependencies(client_to_trusted_server labstor_client_library)
-target_link_libraries(client_to_trusted_server labstor_client_library)
+add_executable(client_to_trusted_server_exec test/unit/client_to_trusted_server/test_client.cpp)
+add_dependencies(client_to_trusted_server_exec labstor_client_library)
+target_link_libraries(client_to_trusted_server_exec labstor_client_library)
 
 #Client to kernel server tests
-add_executable(client_to_kernel test/unit/client_to_kernel/test_kernel_client.cpp)
-add_dependencies(client_to_kernel labstor_kernel_client)
-target_link_libraries(client_to_kernel labstor_kernel_client)
+add_executable(client_to_kernel_exec test/unit/client_to_kernel/test_kernel_client.cpp)
+add_dependencies(client_to_kernel_exec labstor_kernel_client)
+target_link_libraries(client_to_kernel_exec labstor_kernel_client)
 
 #Shared memory creation
-add_executable(test_shmem test/unit/test_shmem/test_shmem.cpp)
-add_dependencies(test_shmem labstor_kernel_client secure_shmem_client_netlink)
-target_link_libraries(test_shmem labstor_kernel_client secure_shmem_client_netlink)
+add_executable(test_shmem_exec test/unit/test_shmem/test_shmem.cpp)
+add_dependencies(test_shmem_exec labstor_kernel_client secure_shmem_client_netlink)
+target_link_libraries(test_shmem_exec labstor_kernel_client secure_shmem_client_netlink)
+add_custom_target(test_shmem ${CMAKE_BINARY_DIR}/test_shmem_exec)
 
 ########UTIL
 add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)

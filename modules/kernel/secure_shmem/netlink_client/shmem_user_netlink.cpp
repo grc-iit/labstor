@@ -34,6 +34,7 @@ int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
     strcpy(rq.header.module_id.key, SHMEM_ID);
     rq.rq.op = GRANT_PID_SHMEM;
     rq.rq.grant.region_id = region_id;
+    rq.rq.grant.pid = pid;
     kernel_context_->SendMSG(&rq, sizeof(rq));
     kernel_context_->RecvMSG(&code, sizeof(code));
     return code;
@@ -50,13 +51,18 @@ int ShmemNetlinkClient::FreeShmem(int region_id) {
     return code;
 }
 
-void* ShmemNetlinkClient::MapShmem(size_t region_size) {
-    int fd = open(shmem_chrdev_.c_str(), 0);
+void* ShmemNetlinkClient::MapShmem(int region_id, size_t region_size) {
+    int fd = open(shmem_chrdev_.c_str(), O_RDWR);
     if(fd < 0) {
         return nullptr;
     }
-    return mmap(nullptr, region_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    lseek(fd, region_id, SEEK_SET);
+    void *data = mmap(nullptr, region_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     close(fd);
+    if(data == MAP_FAILED) {
+        return nullptr;
+    }
+    return data;
 }
 
 void ShmemNetlinkClient::UnmapShmem(void *region, size_t region_size) {

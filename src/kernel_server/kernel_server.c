@@ -44,7 +44,7 @@ static int start_server(void) {
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
     if(!nl_sk)     {
         pr_alert("Error creating socket.\n");
-        return -10;
+        return -1;
     }
     pr_info("Netlink socket initialized");
 
@@ -129,13 +129,17 @@ EXPORT_SYMBOL(get_labstor_module_by_runtime_id);
 
 static int __init init_labstor_kernel_server(void) {
     unordered_map_init(&modules, 256);
-    start_server();
+    if(start_server() < 0) {
+        unordered_map_free(&modules);
+        return -1;
+    }
     pr_info("SERVER IS RUNNING!\n");
     return 0;
 }
 
 static void __exit exit_labstor_kernel_server(void)
 {
+    sock_release(nl_sk->sk_socket);
     unordered_map_free(&modules);
 }
 

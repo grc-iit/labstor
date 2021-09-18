@@ -61,6 +61,20 @@ void* unordered_map_get_idx(struct unordered_map *map, int idx) {
     return map->buckets_[idx].data;
 }
 
+void unordered_map_remove(struct unordered_map *map, struct labstor_id id) {
+    int i;
+    int idx;
+    int cur_idx;
+    idx = hash(id) % map->nbuckets_;
+    for(i = 0; i < map->nbuckets_; ++i) {
+        cur_idx = (idx + i)%map->nbuckets_;
+        if(strcmp(map->buckets_[cur_idx].id.key, id.key) == 0) {
+            memset(&map->buckets_[idx].id, 0, sizeof(struct labstor_id));
+            return;
+        }
+    }
+}
+
 void unordered_map_remove_idx(struct unordered_map *map, int idx) {
     memset(&map->buckets_[idx].id, 0, sizeof(struct labstor_id));
 }
