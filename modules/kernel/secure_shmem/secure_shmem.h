@@ -5,6 +5,10 @@
 #ifndef LABSTOR_SECURE_SHMEM_H
 #define LABSTOR_SECURE_SHMEM_H
 
+#include <labstor/types/basics.h>
+
+#define SHMEM_ID "SHMEM_ID"
+
 enum {
     RESERVE_SHMEM,
     GRANT_PID_SHMEM,
@@ -32,6 +36,11 @@ struct shmem_request {
         struct shmem_grant_pid_shmem_request grant;
         struct shmem_grant_pid_shmem_request free;
     };
+};
+
+struct shmem_request_netlink {
+    struct labstor_netlink_header header;
+    struct shmem_request rq;
 };
 
 struct shmem_ops {

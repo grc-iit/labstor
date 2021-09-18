@@ -11,9 +11,11 @@
 class ShmemNetlinkClient {
 private:
     std::shared_ptr<labstor::LabStorKernelClientContext> kernel_context_;
+    std::string shmem_chrdev_;
 public:
     ShmemNetlinkClient() {
         kernel_context_ = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
+        shmem_chrdev_ = "/proc/devices/labstor_shmem";
     }
     int CreateShmem(size_t region_size, bool user_owned);
     int GrantPidShmem(int pid, int region_id);

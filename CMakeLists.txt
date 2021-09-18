@@ -7,7 +7,8 @@ include_directories(include modules/kernel)
 
 ######MAIN REPO
 #Build labstor kernel server
-add_custom_target(labstor_kernel_server ALL COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make)
+add_custom_target(build_labstor_kernel_server ALL COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make LABSTOR_INCLUDE=${CMAKE_SOURCE_DIR}/include)
+add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make clean)
 #Build labstor kernel server client
 add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
 #Build labstor trusted server
@@ -32,9 +33,8 @@ target_link_libraries(client_to_kernel labstor_kernel_client)
 
 #Shared memory creation
 add_executable(test_shmem test/unit/test_shmem/test_shmem.cpp)
-add_dependencies(test_shmem labstor_kernel_client shmem_client)
-target_link_libraries(test_shmem labstor_kernel_client shmem_client)
-
+add_dependencies(test_shmem labstor_kernel_client secure_shmem_client_netlink)
+target_link_libraries(test_shmem labstor_kernel_client secure_shmem_client_netlink)
 
 ########UTIL
 add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)

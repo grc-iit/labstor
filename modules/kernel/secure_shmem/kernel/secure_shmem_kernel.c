@@ -28,8 +28,6 @@ MODULE_DESCRIPTION("A kernel module that provides secure memory mapping");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("secure_shmem");
 
-#define SHMEM_ID "SHMEM"
-
 atomic_t cur_region_id;
 LIST_HEAD(region_map);
 LIST_HEAD(pid_regions);
@@ -185,20 +183,20 @@ struct labstor_module shmem_module = {
 
 struct file_operations shmem_fs = {
     .owner  = THIS_MODULE,
-    .open   = nonseekable_open,
+    //.open   = nonseekable_open,
     .mmap   = labstor_mmap,
-    .llseek = no_llseek,
+    //.llseek = no_llseek,
 };
 
 static int __init init_secure_shmem(void) {
     atomic_set(&cur_region_id, 0);
-    register_chrdev(100, "labstor_shmem", &shmem_fs);
+    register_chrdev(0, "labstor_shmem", &shmem_fs);
     register_labstor_module(&shmem_module);
     return 0;
 }
 
 static void __exit exit_secure_shmem(void) {
-    unregister_chrdev(100, "labstor_shmem");
+    unregister_chrdev(0, "labstor_shmem");
     unregister_labstor_module(&shmem_module);
 }
 

@@ -1,5 +1,5 @@
 #!/bin/bash
 
 sudo dmesg --clear
-sudo rmmod shmem_kernel
+sudo rmmod secure_shmem
 sudo dmesg | grep labstor_kernel_server

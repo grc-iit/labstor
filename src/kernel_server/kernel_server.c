@@ -42,8 +42,7 @@ static int start_server(void) {
 
     //Create netlink socket
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
-    if(!nl_sk)
-    {
+    if(!nl_sk)     {
         pr_alert("Error creating socket.\n");
         return -10;
     }

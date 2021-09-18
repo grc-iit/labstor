@@ -14,7 +14,7 @@
 namespace labstor {
 
 struct module {
-    labstor::labstor_id module_id;
+    labstor::id module_id;
     uint32_t runtime_id;
     void (*process_request_fn)(struct queue_pair *qp, void *request, struct credentials *creds);
     void* (*get_ops)(void);
@@ -22,7 +22,7 @@ struct module {
 
 class ModulePool {
 private:
-    std::unordered_map<labstor::labstor_id, uint32_t> runtime_ids_;
+    std::unordered_map<labstor::id, uint32_t> runtime_ids_;
     std::unordered_map<uint32_t, labstor::module *> pkg_pool_;
     std::atomic_uint32_t cur_runtime_id;
 public:
@@ -49,7 +49,7 @@ public:
         }
     }
 
-    labstor::module *GetModule(labstor::labstor_id module_id) {
+    labstor::module *GetModule(labstor::id module_id) {
         try {
             int runtime_id = runtime_ids_[module_id];
             return pkg_pool_[runtime_id];

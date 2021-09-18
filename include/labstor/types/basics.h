@@ -5,15 +5,25 @@
 #ifndef LABSTOR_BASICS_H
 #define LABSTOR_BASICS_H
 
+struct labstor_id {
+    char key[256];
+};
+
+struct labstor_netlink_header {
+    struct labstor_id module_id;
+};
+
+#ifdef __cplusplus
+
 #include <cstring>
 #include <unordered_map>
 
 namespace labstor {
 
-struct labstor_id {
-    char id[256];
-    bool operator==(const labstor_id &other) const {
-        return strncmp(id, other.id, 256);
+struct id {
+    char key[256];
+    bool operator==(const id &other) const {
+        return strncmp(key, other.key, 256);
     }
 };
 
@@ -26,17 +36,18 @@ struct credentials {
 
 struct setup_request {
     int num_queues;
-    int queue_size;
-    void *starting_address;
+    size_t queue_size;
 };
 
 }
 
 template <>
-struct std::hash<labstor::labstor_id> {
-    std::size_t operator()(const labstor::labstor_id& key) const {
-        return std::hash<char*>{}((char*)key.id);
+struct std::hash<labstor::id> {
+    std::size_t operator()(const labstor::id& id) const {
+        return std::hash<char*>{}((char*)id.key);
     }
 };
+
+#endif
 
 #endif //LABSTOR_BASICS_H

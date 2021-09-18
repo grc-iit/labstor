@@ -5,12 +5,9 @@
 #ifndef LABSTOR_KERNEL_SERVER_TYPES_H
 #define LABSTOR_KERNEL_SERVER_TYPES_H
 
+#include <labstor/types/basics.h>
 #include <linux/types.h>
 #include "request_queue.h"
-
-struct labstor_id {
-    char key[256];
-};
 
 typedef void (*process_request_fn_type)(struct labstor_queue_pair *qp, void *request);
 typedef void (*process_request_fn_netlink_type)(int pid, void *request);

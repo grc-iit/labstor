@@ -79,5 +79,6 @@ bool labstor::LabStorKernelClientContext::RecvMSG(void *buf, size_t buf_size) {
     }
     rq = NLMSG_DATA(nlh);
     memcpy(buf, rq, buf_size);
+    free(nlh);
     return true;
 }

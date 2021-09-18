@@ -56,7 +56,6 @@ bool labstor::LabStorClientContext::Connect(int num_queues, size_t queue_size) {
     labstor::setup_request request;
     request.num_queues = num_queues;
     request.queue_size = queue_size;
-    request.starting_address = malloc(num_queues * queue_size);
 
     //Send an IPC request to the server
     ret = send(server_fd, (void*)&request, sizeof(labstor::setup_request), 0);

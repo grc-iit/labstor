@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <linux/netlink.h>
 
+#include <labstor/types/basics.h>
 #include <labstor/types/module.h>
 #include <labstor/types/ipc_pool.h>
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-NAME=kernel_server
+NAME=labstor_kernel_server
 sudo rmmod ${NAME}

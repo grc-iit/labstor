@@ -23,7 +23,7 @@ public:
     inline bool IsConnected() { return ipc_.IsConnected(); }
     bool Connect(int num_queues, size_t queue_size);
     void UpdateModule(std::string path) { pkg_pool_.UpdateModule(path); }
-    labstor::module *GetModule(labstor::labstor_id module_id) { return pkg_pool_.GetModule(module_id); }
+    labstor::module *GetModule(labstor::id module_id) { return pkg_pool_.GetModule(module_id); }
     labstor::ipc::queue_pair& GetQueuePair(int i) { return ipc_.GetQueuePair(i); }
     int GetNumQueuePairs() { return ipc_.GetNumQueues(); }
     int GetSocket() { return ipc_.GetSocket(); }
