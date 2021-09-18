@@ -6,10 +6,7 @@
  * Provides shared memory between the kernel and a process.
  * */
 
-#ifdef pr_fmt
-#undef pr_fmt
-#endif
-#define pr_fmt(fmt) KBUILD_MODNAME ":" fmt
+#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
 
 #include <linux/init.h>
 #include <linux/module.h>

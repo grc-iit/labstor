@@ -35,6 +35,17 @@ add_executable(test_shmem test/unit/test_shmem/test_shmem.cpp)
 add_dependencies(test_shmem labstor_kernel_client shmem_client)
 target_link_libraries(test_shmem labstor_kernel_client shmem_client)
 
+
+########UTIL
+add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)
+add_custom_target(insert_kernel_modules COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/insert_kernel_modules.sh)
+add_custom_target(remove_kernel_modules COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/remove_kernel_modules.sh)
+add_custom_target(stop_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/stop_kernel_server.sh)
+add_custom_target(start_trusted_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_server.sh)
+
+
+##########NOTES
+
 #NDCTRL
 #ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M
 

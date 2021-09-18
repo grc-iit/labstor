@@ -2,10 +2,7 @@
 // Created by lukemartinlogan on 5/6/21.
 //
 
-#ifdef pr_fmt
-#undef pr_fmt
-#endif
-#define pr_fmt(fmt) KBUILD_MODNAME ":" fmt
+#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -26,7 +23,7 @@
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages kernel modules for LabStor");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("labstor_kserver");
+MODULE_ALIAS("labstor_kernel_server");
 
 struct sock *nl_sk = NULL;
 struct unordered_map modules;
@@ -47,10 +44,10 @@ static int start_server(void) {
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
     if(!nl_sk)
     {
-        printk(KERN_ALERT "labstor_kernel_server: Error creating socket.\n");
+        pr_alert("Error creating socket.\n");
         return -10;
     }
-    printk(KERN_INFO "labstor_kernel_server: Netlink socket initialized");
+    pr_info("Netlink socket initialized");
 
     return 0;
 }
@@ -134,7 +131,7 @@ EXPORT_SYMBOL(get_labstor_module_by_runtime_id);
 static int __init init_labstor_kernel_server(void) {
     unordered_map_init(&modules, 256);
     start_server();
-    pr_info("ERVER IS RUNNING!\n");
+    pr_info("SERVER IS RUNNING!\n");
     return 0;
 }
 
