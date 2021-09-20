@@ -9,6 +9,8 @@
 
 namespace labstor {
 
+struct LabStorServerContext;
+
 class IPCManager {
 private:
     pthread_t thread_;

@@ -21,6 +21,8 @@ git checkout db6deedcd301754723065e0bbb1b75927c5b49c7
 mkdir build
 cd build
 cmake ../  -DYAML_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root yaml-cpp`
+make -j8
+make install
 ```
 
 # 3. Building

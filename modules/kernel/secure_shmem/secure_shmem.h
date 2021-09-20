@@ -49,4 +49,6 @@ struct shmem_ops {
     void (*free_shmem_region_by_id)(int region_id);
 };
 
+struct shmem_region_info *find_shmem_region(int region_id);
+
 #endif //LABSTOR_SECURE_SHMEM_H

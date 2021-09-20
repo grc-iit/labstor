@@ -22,8 +22,11 @@ namespace labstor {
 
 struct id {
     char key[256];
+    id(std::string key_str) {
+        strcpy(key, key_str.c_str());
+    }
     bool operator==(const id &other) const {
-        return strncmp(key, other.key, 256);
+        return strcmp(key, other.key);
     }
 };
 

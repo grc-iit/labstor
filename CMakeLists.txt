@@ -12,14 +12,28 @@ add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src
 #Build labstor kernel server client
 add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
 #Build labstor trusted server
-add_executable(labstor_trusted_server src/userspace_server/server.cpp src/userspace_server/worker.cpp src/userspace_server/ipc_manager.cpp)
-target_link_libraries(labstor_trusted_server pthread rt labstor_kernel_client)
+add_executable(labstor_trusted_server
+        src/userspace_server/server.cpp
+        src/userspace_server/worker.cpp
+        src/userspace_server/ipc_manager.cpp
+        src/userspace_server/work_orchestrator.cpp)
+add_dependencies(labstor_trusted_server
+        secure_shmem_client_netlink worker_client_netlink)
+target_link_libraries(labstor_trusted_server
+        pthread rt dl labstor_kernel_client yaml-cpp
+        secure_shmem_client_netlink worker_client_netlink)
 #Build labstor trusted server client
 add_library(labstor_client_library src/userspace_client/client.cpp)
+target_link_libraries(labstor_client_library rt dl)
 
 ######MODULES
 add_subdirectory(modules/kernel/secure_shmem)
-add_custom_target(clean_all COMMAND make clean && make clean_labstor_kernel_server && make clean_secure_shmem)
+add_subdirectory(modules/kernel/workers)
+add_custom_target(clean_all COMMAND
+        make clean &&
+        make clean_labstor_kernel_server &&
+        make clean_secure_shmem &&
+        make clean_kernel_worker)
 
 #######Unit tests
 #Client to trusted server tests

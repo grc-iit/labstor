@@ -7,7 +7,7 @@
 #include <labstor/util/singleton.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace_server/ipc_manager.h>
-#include "server.h"
+#include "labstor/userspace_server/server.h"
 
 void* labstor::IPCManager::WreapProcesses(void *nothing) {
     auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();

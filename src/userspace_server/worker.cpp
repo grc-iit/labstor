@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 9/7/21.
 //
 
+#include <labstor/userspace_server/worker.h>
 
-void* worker(void *nothing) {
+void labstor::Worker::ProcessWork() {
 }

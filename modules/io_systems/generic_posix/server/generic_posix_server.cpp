@@ -50,6 +50,10 @@ private:
         } while((dev_pathlen = GetParentDir(pathname, dev_pathlen)) != 0);
     }
 
+    inline void Write(int fd, ) {
+
+    }
+
     inline void Close(int fd) {
     }
 };

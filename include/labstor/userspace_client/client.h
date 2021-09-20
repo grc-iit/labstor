@@ -18,7 +18,7 @@ class LabStorClientContext {
 private:
     std::vector<pthread_t> workers_;
     labstor::PerProcessIPC ipc_;
-    labstor::ModulePool pkg_pool_;
+    labstor::ModuleManager pkg_pool_;
 public:
     inline bool IsConnected() { return ipc_.IsConnected(); }
     bool Connect(int num_queues, size_t queue_size);

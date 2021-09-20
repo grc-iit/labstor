@@ -57,7 +57,7 @@ struct shmem_pid_region {
     bool is_mapped;
 };
 
-struct shmem_region_info *find_region(int region_id) {
+struct shmem_region_info *find_shmem_region(int region_id) {
     struct shmem_region_info *pos;
     list_for_each_entry(pos, &region_map, node) {
         if(pos->region_id == region_id) {
@@ -66,6 +66,7 @@ struct shmem_region_info *find_region(int region_id) {
     }
     return NULL;
 }
+EXPORT_SYMBOL(find_shmem_region);
 
 struct shmem_pid_region *find_pid_region(int pid, int region_id) {
     struct shmem_pid_region *pos;
@@ -113,7 +114,7 @@ bool grant_pid_shmem(int region_id, int pid) {
         return false;
     }
     pid_region->pid = pid;
-    pid_region->region = find_region(region_id);
+    pid_region->region = find_shmem_region(region_id);
     if(pid_region->region == NULL) {
         pr_err("Could not find region %d\n", region_id);
         vfree(pid_region);
@@ -128,7 +129,7 @@ bool grant_pid_shmem(int region_id, int pid) {
 }
 
 void free_shmem_region_by_id(int region_id) {
-    struct shmem_region_info *region = find_region(region_id);
+    struct shmem_region_info *region = find_shmem_region(region_id);
     struct shmem_pid_region *pid_pos, *pid_pos_temp;
 
     if(region == NULL) {
@@ -172,7 +173,7 @@ void free_all_regions(void) {
 }
 
 static int labstor_open(struct inode *inode, struct file *filp) {
-    pr_info("labstor_open\n");
+    pr_debug("labstor_open\n");
     return 0;
 }
 
@@ -186,7 +187,7 @@ int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
     struct shmem_region_info *region;
     size_t size, i;
     pid_t pid;
-    int region_id = (int)filp->private_data;//(int)(filp->f_pos / PAGE_SIZE);
+    int region_id = (int)filp->private_data;
 
     //Acquire shared memory region
     pid = current->pid;
@@ -213,7 +214,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
     int code = 0;
     switch(rq->op) {
         case RESERVE_SHMEM: {
-            pr_info("Reserving shared memory of size %lu\n", rq->reserve.size);
+            pr_debug("Reserving shared memory of size %lu\n", rq->reserve.size);
             if(reserve_shmem(rq->reserve.size, rq->reserve.user_owned, &code)) {}
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -221,7 +222,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
         }
 
         case GRANT_PID_SHMEM: {
-            pr_info("Granting %d permission for region %d\n", rq->grant.pid, rq->grant.region_id);
+            pr_debug("Granting %d permission for region %d\n", rq->grant.pid, rq->grant.region_id);
             if(grant_pid_shmem(rq->grant.region_id, rq->grant.pid)) { code = 0; }
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -229,7 +230,7 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
         }
 
         case FREE_SHMEM: {
-            pr_info("Freeing region %d\n", rq->free.region_id);
+            pr_debug("Freeing region %d\n", rq->free.region_id);
             free_shmem_region_by_id(rq->free.region_id);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;

@@ -6,6 +6,3 @@
 
 #include <linux/kernel.h>
 
-void hi(void) {
-    printk("hi");
-}

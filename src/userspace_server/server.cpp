@@ -6,6 +6,7 @@
 #define _GNU_SOURCE
 #endif
 
+#include <iostream>
 #include <unistd.h>
 #include <pthread.h>
 #include <memory>
@@ -14,32 +15,14 @@
 #include <sys/sysinfo.h>
 #include <sched.h>
 
-#include "server.h"
+#include <labstor/userspace_server/server.h>
 #include <labstor/types/basics.h>
 #include <labstor/util/singleton.h>
 #include <labstor/userspace_server/worker.h>
 #include <labstor/kernel_client/kernel_client.h>
+#include <yaml-cpp/yaml.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
-
-void create_thread_pool(int n_cpu, int threads_per_cpu) {
-    auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
-    int nthreads = n_cpu * threads_per_cpu;
-    cpu_set_t cpus[n_cpu];
-    CPU_ZERO(cpus);
-
-    //Work orchestrator thread (none)
-    //pthread_create(&scs::Singleton<labstor::LabStorServerContext>::GetInstance()->work_orchestrator_, );
-
-    //Worker threads
-    labstor_context->worker_pool_.reserve(nthreads);
-    for(int i = 0; i < nthreads; ++i) {
-        CPU_SET((i%n_cpu), cpus);
-        pthread_create(&scs::Singleton<labstor::LabStorServerContext>::GetInstance()->worker_pool_[i], NULL, worker, NULL);
-        pthread_setaffinity_np(scs::Singleton<labstor::LabStorServerContext>::GetInstance()->worker_pool_[i], n_cpu, cpus);
-        CPU_CLR((i%n_cpu), cpus);
-    }
-}
 
 void* accept_initial_connections(void *nothing) {
     auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
@@ -128,18 +111,33 @@ int main(int argc, char **argv) {
     auto labstor_kernel_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
 
     //Load a configuration file
-    //YAML::Node config = YAML::LoadFile(argv[1]);
+    labstor_context->LoadConfig(argv[1]);
 
     //Get this process' info
     labstor_context->pid_ = getpid();
 
-    //Connect to the kernel server and establish IPCs
-    labstor_kernel_context->Connect();
+    //Connect to the kernel server and establish server-kernel SHMEM queues
+    //labstor_kernel_context->Connect();
 
     //Load all modules
+    for (const auto &module : labstor_context->config_["modules"]) {
+        labstor::id module_id(module.first.as<std::string>());
+        labstor::module_paths paths;
+        if(module.second["client"]) {
+            paths.client = module.second["client"].as<std::string>();
+        }
+        if(module.second["trusted_client"]) {
+            paths.trusted_client = module.second["trusted_client"].as<std::string>();
+        }
+        if(module.second["server"]) {
+            paths.server = module.second["server"].as<std::string>();
+        }
+        labstor_context->module_manager_.AddModulePaths(module_id, paths);
+        labstor_context->module_manager_.UpdateModule(paths.server);
+    }
 
     //Load the workers
-    create_thread_pool(get_nprocs_conf(), 1);
+    labstor_context->work_orchestrator_.CreateWorkers();
 
     //Create initialization server
     printf("LabStor Trusted Server running!\n");
