@@ -18,7 +18,6 @@ namespace labstor::ipc {
 struct request {
     size_t next;
     size_t est_time_us;
-    bool occupied;
 };
 
 struct request_queue_header {
@@ -58,11 +57,16 @@ struct request_queue {
     }
 
     inline bool Enqueue(struct request *rq, size_t est_time_us = 1) {
+        struct request *tail;
         rq->est_time_us = est_time_us;
-        rq->occupied = true;
+        rq->next = 0;
         if(header_->enqueued_ == header_->dequeued_) {
             header_->tail_ = (size_t)rq - (size_t)region_;
             header_->head_ = header_->tail_;
+        } else {
+            tail = (struct request*)(header_->tail_ + (size_t)region_);
+            tail->next = (size_t)rq - (size_t)region_;
+            header_->tail_ = tail->next;
         }
         ++header_->enqueued_;
         return true;
@@ -73,6 +77,7 @@ struct request_queue {
             return nullptr;
         }
         struct request *rq = (struct request *)((size_t)region_ + (size_t)header_->head_);
+        header_->head_ = rq->next;
         ++header_->dequeued_;
         return rq;
     }
