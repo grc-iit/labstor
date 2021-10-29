@@ -33,3 +33,7 @@ add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}
 
 ######SHARED MEMORY REQUEST QUEUE (USER - KERNEL)
 add_subdirectory(unit/request_queue_client_kernel)
+
+######CLEAN ALL TESTS
+add_custom_target(clean_tests COMMAND
+        cd ${CMAKE_BINARY_DIR} && make clean_build_request_queue_client_kernel)

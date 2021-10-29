@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     q.Init(region, region_size, sizeof(simple_request));
     for(int i = 0; i < 10; ++i) {
         rq = (struct simple_request*)q.Allocate(sizeof(struct simple_request));
-        rq->data = 12341;
+        rq->data = 12341 + i;
         printf("ENQUEUE IN USER: %d\n", rq->data);
         q.Enqueue(&rq->header);
     }

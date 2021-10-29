@@ -40,6 +40,7 @@ struct labstor_simple_allocator {
     inline void Attach(void *region, size_t region_size) {
         region_ = region;
         header_ = (struct labstor_simple_allocator_header*)region;
+        alloc_data_ = (char*)(header_ + 1);
     }
 
     inline void* Alloc(size_t size) {
@@ -109,6 +110,7 @@ static inline void labstor_allocator_init(struct labstor_simple_allocator *alloc
 static inline void labstor_allocator_attach(struct labstor_simple_allocator *alloc, void *region, size_t region_size) {
     alloc->region_ = region;
     alloc->header_ = (struct labstor_simple_allocator_header*)region;
+    alloc->alloc_data_ = (char*)(alloc->header_ + 1);
 }
 
 static inline void* labstor_allocator_alloc(struct labstor_simple_allocator *alloc, size_t size) {
