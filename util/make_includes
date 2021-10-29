@@ -4,10 +4,3 @@ LABSTOR_MODULES=$(CMAKE_SOURCE_DIR)/modules/kernel
 KPKG_DEVKIT=$(LABSTOR_MODULES)/kpkg_devkit
 EXTRA_CFLAGS=-I$(LABSTOR_KERNEL_SERVER) -I$(LABSTOR_INCLUDE) -I$(LABSTOR_MODULES) -DKERNEL_BUILD -Wno-missing-braces
 KBUILD_EXTRA_SYMBOLS += $(LABSTOR_KERNEL_SERVER)/Module.symvers $(KPKG_DEVKIT)/Module.symvers
-obj-m = secure_shmem.o
-secure_shmem-objs += secure_shmem_kernel.o
-KVERSION = $(shell uname -r)
-all:
-	make -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
-clean:
-	make -C /lib/modules/$(KVERSION)/build M=$(PWD) clean

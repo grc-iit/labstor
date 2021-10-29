@@ -16,9 +16,8 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
-#include "kpkg_devkit/module_registrar.h"
-#include "kpkg_devkit/types.h"
-#include "kpkg_devkit/unordered_map.h"
+#include <kpkg_devkit/module_registrar.h>
+#include <kpkg_devkit/request_queue.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages kernel modules for LabStor");
@@ -107,7 +106,7 @@ EXPORT_SYMBOL(labstor_msg_trusted_server);
 static int __init init_labstor_kernel_server(void) {
     init_labstor_module_registrar(256);
     if(start_server() < 0) {
-        unordered_map_free(&modules);
+        free_labstor_module_registrar();
         return -1;
     }
     pr_info("SERVER IS RUNNING!\n");
@@ -115,7 +114,7 @@ static int __init init_labstor_kernel_server(void) {
 }
 
 static void __exit exit_labstor_kernel_server(void) {
-    free_labstor_module_registrar(256);
+    free_labstor_module_registrar();
     sock_release(nl_sk->sk_socket);
 }
 

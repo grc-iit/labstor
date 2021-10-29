@@ -9,8 +9,8 @@ include_directories(include modules/kernel)
 set(KPKG_DEVKIT_INCLUDE )
 add_custom_target(build_labstor_kernel_server ALL COMMAND
         cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make
-            LABSTOR_INCLUDE=${CMAKE_SOURCE_DIR}/include
-            KPKG_DEVKIT_INCLUDE=${CMAKE_SOURCE_DIR}/modules/kernel/kpkg_devkit)
+        CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+        CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(build_labstor_kernel_server build_kpkg_devkit)
 add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make clean)
 

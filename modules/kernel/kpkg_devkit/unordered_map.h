@@ -5,7 +5,8 @@
 #ifndef LABSTOR_KERNEL_SERVER_UNORDERED_MAP
 #define LABSTOR_KERNEL_SERVER_UNORDERED_MAP
 
-#include "types.h"
+#include <labstor/types/basics.h>
+#include <linux/types.h>
 
 struct bucket {
     struct labstor_id id;

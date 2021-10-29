@@ -16,9 +16,9 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
-#include <kpkg_devkit/types.h>
+#include <kpkg_devkit/request_queue.h>
 #include <kpkg_devkit/module_registrar.h>
-#include "worker_kernel.h"
+#include <workers/worker_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages the scheduling of labstor kernel workers");

@@ -9,13 +9,11 @@
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
 #include <linux/kobject.h>
-#include <linux/mm.h>
-#include <linux/slab.h>
 
 #include "request_queue.h"
 #include "simple_allocator.h"
-#include "types.h"
 #include "unordered_map.h"
+#include "module_registrar.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("The labstor kernel module devkit");

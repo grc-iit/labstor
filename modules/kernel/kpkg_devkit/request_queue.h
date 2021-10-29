@@ -5,6 +5,7 @@
 #ifndef LABSTOR_KERNEL_SERVER_REQUEST_QUEUE
 #define LABSTOR_KERNEL_SERVER_REQUEST_QUEUE
 
+#include <labstor/types/basics.h>
 #include <linux/types.h>
 #include "simple_allocator.h"
 
@@ -31,11 +32,18 @@ struct labstor_queue_pair {
     struct labstor_request_queue *completion;
 };
 
+struct km_request {
+    struct labstor_id module_id;
+};
+
+typedef void (*process_request_fn_type)(struct labstor_queue_pair *qp, void *request);
+typedef void (*process_request_fn_netlink_type)(int pid, void *request);
+
 void labstor_request_queue_init(struct labstor_request_queue *q, void *region, size_t region_size, size_t request_unit);
 void labstor_request_queue_attach(struct labstor_request_queue *q, void *region);
 struct labstor_request* labstor_request_queue_allocate(struct labstor_request_queue *q, size_t size);
 
-inline bool labstor_request_queue_enqueue(struct labstor_request_queue *q, struct labstor_request *rq, size_t est_time_us) {
+static inline bool labstor_request_queue_enqueue(struct labstor_request_queue *q, struct labstor_request *rq, size_t est_time_us) {
     struct labstor_request *tail;
     rq->est_time_us = est_time_us;
     rq->next = 0;
@@ -51,7 +59,7 @@ inline bool labstor_request_queue_enqueue(struct labstor_request_queue *q, struc
     return true;
 }
 
-inline struct labstor_request* labstor_request_queue_dequeue(struct labstor_request_queue *q) {
+static inline struct labstor_request* labstor_request_queue_dequeue(struct labstor_request_queue *q) {
     struct labstor_request *rq;
     if(q->header_->enqueued_ == q->header_->dequeued_) {
         return NULL;
@@ -62,7 +70,7 @@ inline struct labstor_request* labstor_request_queue_dequeue(struct labstor_requ
     return rq;
 }
 
-inline void labstor_request_queue_free(struct labstor_request_queue *q, void *rq_data) {
+static inline void labstor_request_queue_free(struct labstor_request_queue *q, void *rq_data) {
     labstor_allocator_free(&q->allocator_, rq_data);
 }
 

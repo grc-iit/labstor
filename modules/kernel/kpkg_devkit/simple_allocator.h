@@ -24,7 +24,7 @@ struct simple_allocator {
     char *alloc_data_;
 };
 
-inline void labstor_allocator_init(struct simple_allocator *alloc, void *region, size_t region_size, size_t request_unit) {
+static inline void labstor_allocator_init(struct simple_allocator *alloc, void *region, size_t region_size, size_t request_unit) {
     alloc->region_ = region;
     alloc->header_ = (struct simple_allocator_header*)region;
     alloc->header_->request_unit = request_unit;
@@ -34,12 +34,12 @@ inline void labstor_allocator_init(struct simple_allocator *alloc, void *region,
     alloc->alloc_data_ = (char*)(alloc->header_ + 1);
 }
 
-inline void labstor_allocator_attach(struct simple_allocator *alloc, void *region, size_t region_size) {
+static inline void labstor_allocator_attach(struct simple_allocator *alloc, void *region, size_t region_size) {
     alloc->region_ = region;
     alloc->header_ = (struct simple_allocator_header*)region;
 }
 
-inline void* labstor_allocator_alloc(struct simple_allocator *alloc, size_t size) {
+static inline void* labstor_allocator_alloc(struct simple_allocator *alloc, size_t size) {
     struct simple_allocator_list_entry *entry;
     if(alloc->header_->seg_off_ < alloc->header_->region_size) {
         entry = (struct simple_allocator_list_entry *)(alloc->alloc_data_ + alloc->header_->seg_off_);
@@ -54,7 +54,7 @@ inline void* labstor_allocator_alloc(struct simple_allocator *alloc, size_t size
     return NULL;
 }
 
-inline void labstor_allocator_free(struct simple_allocator *alloc, void *data) {
+static inline void labstor_allocator_free(struct simple_allocator *alloc, void *data) {
     struct simple_allocator_list_entry *entry = (struct simple_allocator_list_entry *)data - 1;
     struct simple_allocator_list_entry *tail = (struct simple_allocator_list_entry *)(alloc->alloc_data_ + alloc->header_->tail_);
     entry->next = 0;

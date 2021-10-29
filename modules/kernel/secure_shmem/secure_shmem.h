@@ -7,9 +7,6 @@
 
 #include <labstor/types/basics.h>
 
-#include <linux/types.h>
-#include <linux/list.h>
-
 #define SHMEM_ID "SHMEM_ID"
 
 enum {
@@ -18,6 +15,9 @@ enum {
     FREE_SHMEM
 };
 
+#ifdef KERNEL_BUILD
+#include <linux/list.h>
+#include <linux/types.h>
 struct shmem_region_info {
     struct list_head node;
     int region_id;
@@ -25,6 +25,7 @@ struct shmem_region_info {
     void *vmalloc_ptr;
     bool user_owned;
 };
+#endif
 
 struct shmem_reserve_request {
     size_t size;

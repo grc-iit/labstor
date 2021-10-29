@@ -8,10 +8,8 @@ include_directories(include)
 set(KERNEL_SERVER_PATH ${CMAKE_SOURCE_DIR}/src/kernel_server)
 add_custom_target(build_secure_shmem ALL COMMAND
         cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make
-        KERNEL_SERVER=${KERNEL_SERVER_PATH}
-        SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        LABSTOR_INCLUDE=${CMAKE_SOURCE_DIR}/include
-        KPKG_DEVKIT_INCLUDE=${CMAKE_SOURCE_DIR}/modules/kernel/kpkg_devkit)
+        CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+        CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(build_secure_shmem build_labstor_kernel_server)
 add_custom_target(clean_secure_shmem COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make clean)
 add_library(secure_shmem_client_netlink netlink_client/shmem_user_netlink.cpp)

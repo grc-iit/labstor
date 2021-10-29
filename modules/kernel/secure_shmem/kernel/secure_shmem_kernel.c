@@ -18,9 +18,10 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 
-#include <kpkg_devkit/types.h>
+
+#include <kpkg_devkit/request_queue.h>
 #include <kpkg_devkit/module_registrar.h>
-#include "secure_shmem.h"
+#include <secure_shmem/secure_shmem.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that provides secure memory mapping");
