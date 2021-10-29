@@ -24,7 +24,7 @@ struct request_queue_test_request_netlink {
 };
 
 struct simple_request {
-    struct labstor_request request_header;
+    struct labstor_request header;
     int data;
 };
 

@@ -25,8 +25,11 @@ add_custom_target(test_shmem ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_exec)
 add_executable(request_queue_exec unit/request_queue/request_queue.cpp)
 add_custom_target(test_request_queue ${CMAKE_CURRENT_BINARY_DIR}/request_queue)
 
-######SHARED MEMORY REQUEST QUEUE
+######SHARED MEMORY REQUEST QUEUE (USER - USER)
 add_executable(test_shmem_request_queue_exec unit/shmem_request_queue/shmem_request_queue.cpp)
 add_dependencies(test_shmem_request_queue_exec labstor_kernel_client secure_shmem_client_netlink)
 target_link_libraries(test_shmem_request_queue_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_request_queue_exec)
+
+######SHARED MEMORY REQUEST QUEUE (USER - KERNEL)
+add_subdirectory(unit/request_queue_client_kernel)

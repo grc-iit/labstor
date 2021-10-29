@@ -45,7 +45,7 @@ struct bio_priv_data {
     ktime_t end_time;
     struct completion done;
 };
-struct km_request {
+struct labstor_km_request {
     int code;
     char dev_name[MAX_DEVNAME];
     size_t sector;
@@ -104,11 +104,11 @@ static int start_server(void)
 static void server_loop(struct sk_buff *skb)
 {
     struct nlmsghdr *nlh;
-    struct km_request *rq;
+    struct labstor_km_request *rq;
     int pid;
 
     nlh=(struct nlmsghdr*)skb->data;
-    rq = (struct km_request*)nlmsg_data(nlh);
+    rq = (struct labstor_km_request*)nlmsg_data(nlh);
     pid = nlh->nlmsg_pid; /*pid of sending process */
 
     switch(rq->code) {
@@ -180,14 +180,14 @@ static void send_msg_to_usr(int code, ktime_t time_ns, int pid)
     struct nlmsghdr *nlh;
     struct sk_buff *skb_out;
     int res = 0;
-    struct km_request *rq;
+    struct labstor_km_request *rq;
 
-    skb_out = nlmsg_new(sizeof(struct km_request), 0);
+    skb_out = nlmsg_new(sizeof(struct labstor_km_request), 0);
     if(!skb_out) {
         printk(KERN_ERR "time_linux_driver_io_km: Failed to allocate new skb\n");
         return;
     }
-    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, sizeof(struct km_request), 0);
+    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, sizeof(struct labstor_km_request), 0);
     NETLINK_CB(skb_out).dst_group = 0; /* not in mcast group */
     rq = nlmsg_data(nlh);
     rq->code = code;

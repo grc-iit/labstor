@@ -6,11 +6,7 @@
 #include <labstor/ipc/request_queue.h>
 #include <labstor/util/singleton.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
-
-struct simple_request {
-    struct labstor::ipc::request header;
-    int hi;
-};
+#include "request_queue_test.h"
 
 int main(int argc, char **argv) {
     int region_id;
@@ -29,14 +25,14 @@ int main(int argc, char **argv) {
     }
     printf("Sending ID: %d\n", region_id);
 
-    //Grant MPI rank access to region
+    //Grant process access to region
     shmem_netlink.GrantPidShmem(getpid(), region_id);
     void *region = shmem_netlink.MapShmem(region_id, region_size);
     if(region == NULL) {
         printf("Failed to map shmem\n");
         exit(1);
     }
-    printf("Mapped Region ID (rank=%d): %d %p\n", rank, region_id, region);
+    printf("Mapped Region ID: %d %p\n", region_id, region);
 
     //Initialize request queue and place request in the queue
     q.Init(region, region_size, sizeof(simple_request));
@@ -49,11 +45,10 @@ int main(int argc, char **argv) {
 
     //Send dequeue message to kernel module
     int code;
-    struct request_queue_test_request_netlink dqmsg = {
-            .header.module_id = REQUEST_QUEUE_TEST_ID,
-            .rq.op = REQUEST_QUEUE_TEST_PKG_DEQUEUE,
-            .rq.region_id = region_id
-    };
+    struct request_queue_test_request_netlink dqmsg;
+    strcpy(dqmsg.header.module_id.key, REQUEST_QUEUE_TEST_ID);
+    dqmsg.rq.op = REQUEST_QUEUE_TEST_PKG_DEQUEUE;
+    dqmsg.rq.region_id = region_id;
     labstor_kernel_context_->SendMSG(&dqmsg, sizeof(dqmsg));
     labstor_kernel_context_->RecvMSG(&code, sizeof(code));
     printf("Received the following code: %d\n", code);

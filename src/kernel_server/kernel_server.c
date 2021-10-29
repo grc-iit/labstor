@@ -18,6 +18,7 @@
 
 #include <kpkg_devkit/module_registrar.h>
 #include <kpkg_devkit/request_queue.h>
+#include "kernel_server.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages kernel modules for LabStor");
@@ -50,14 +51,14 @@ static int start_server(void) {
 
 static void server_loop(struct sk_buff *skb) {
     struct nlmsghdr *nlh;
-    struct km_request *km_rq;
+    struct labstor_km_request *km_rq;
     struct labstor_module *pkg;
     int code;
     void *rq;
     int pid;
 
     nlh=(struct nlmsghdr*)skb->data;
-    km_rq = (struct km_request*)nlmsg_data(nlh);
+    km_rq = (struct labstor_km_request*)nlmsg_data(nlh);
     pid = nlh->nlmsg_pid;
 
     //Load labstor module

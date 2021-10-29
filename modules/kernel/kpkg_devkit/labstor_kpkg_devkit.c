@@ -11,7 +11,6 @@
 #include <linux/kobject.h>
 
 #include "request_queue.h"
-#include "simple_allocator.h"
 #include "unordered_map.h"
 #include "module_registrar.h"
 
