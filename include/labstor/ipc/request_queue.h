@@ -21,13 +21,13 @@ struct request {
 };
 
 struct request_queue_header {
-    size_t region_size;
+    size_t region_size_;
     size_t enqueued_, dequeued_;
     size_t head_, tail_;
 };
 
 struct request_queue {
-    size_t region_size;
+    size_t region_size_;
     void *region_;
     struct request_queue_header *header_;
     struct simple_allocator allocator_;
@@ -40,16 +40,17 @@ struct request_queue {
     void Init(void *region, size_t region_size, size_t request_unit) {
         memset(region, 0, region_size);
         region_ = region;
+        region_size_ = region_size;
         header_ = (struct request_queue_header*)region;
-        header_->region_size = region_size;
+        header_->region_size_ = region_size;
         allocator_.Init((void*)(header_ + 1), region_size - sizeof(struct request_queue_header), request_unit);
     }
 
     void Attach(void *region) {
         region_ = region;
         header_ = (struct request_queue_header*)region;
-        region_size = header_->region_size;
-        allocator_.Attach((void*)(header_ + 1), region_size - sizeof(struct request_queue_header));
+        region_size_ = header_->region_size_;
+        allocator_.Attach((void*)(header_ + 1), region_size_ - sizeof(struct request_queue_header));
     }
 
     struct request* Allocate(size_t size) {

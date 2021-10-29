@@ -18,9 +18,6 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 
-#include <linux/types.h>
-#include <linux/list.h>
-
 #include <kpkg_devkit/types.h>
 #include <kpkg_devkit/module_registrar.h>
 #include "secure_shmem.h"
@@ -41,14 +38,6 @@ struct class *shmem_class;
 struct cdev shmem_cdev[N_MINORS];
 struct device *shmem_dev_struct;
 dev_t shmem_dev;
-
-struct shmem_region_info {
-    struct list_head node;
-    int region_id;
-    size_t  size;
-    void *vmalloc_ptr;
-    bool user_owned;
-};
 
 struct shmem_pid_region {
     struct list_head node;

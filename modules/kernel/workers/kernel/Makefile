@@ -1,5 +1,5 @@
 #DEVKIT allows module to be built
-EXTRA_CFLAGS=-I$(KERNEL_SERVER) -I$(SOURCE_DIR) -I$(LABSTOR_INCLUDE) -Wno-missing-braces
+EXTRA_CFLAGS=-I$(KERNEL_SERVER) -I$(SOURCE_DIR) -I$(LABSTOR_INCLUDE) -I$(KPKG_DEVKIT_INCLUDE) -Wno-missing-braces
 KBUILD_EXTRA_SYMBOLS += $(KERNEL_SERVER)/Module.symvers
 obj-m = worker.o
 worker-objs += worker_kernel.o

@@ -49,7 +49,6 @@ ssh llogan@$IP -p 4632
 
 IP=192.168.56.1
 rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/PhD/labstor llogan@${IP}:~/
-rsync -a -e 'ssh -p 4632' --progress /home/lukemartinlogan/Documents/Projects/PhD/custom-ubuntu/linux-stable llogan@${IP}:~/
 ```
 
 ```

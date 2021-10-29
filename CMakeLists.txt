@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(include modules/kernel)
 
 ######KERNEL SERVER
-add_custom_target(build_labstor_kernel_server ALL COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make LABSTOR_INCLUDE=${CMAKE_SOURCE_DIR}/include)
+set(KPKG_DEVKIT_INCLUDE )
+add_custom_target(build_labstor_kernel_server ALL COMMAND
+        cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make
+            LABSTOR_INCLUDE=${CMAKE_SOURCE_DIR}/include
+            KPKG_DEVKIT_INCLUDE=${CMAKE_SOURCE_DIR}/modules/kernel/kpkg_devkit)
+add_dependencies(build_labstor_kernel_server build_kpkg_devkit)
 add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make clean)
 
 ######KERNEL CLIENT

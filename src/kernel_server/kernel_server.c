@@ -26,8 +26,6 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("labstor_kernel_server");
 
 struct sock *nl_sk = NULL;
-struct unordered_map modules;
-
 #define NETLINK_USER 31
 
 //Prototypes
@@ -106,29 +104,8 @@ void labstor_msg_trusted_server(void *serialized_buf, size_t buf_size, int pid) 
 }
 EXPORT_SYMBOL(labstor_msg_trusted_server);
 
-void register_labstor_module(struct labstor_module *pkg) {
-    unordered_map_add(&modules, pkg->module_id, pkg);
-}
-EXPORT_SYMBOL(register_labstor_module);
-
-void unregister_labstor_module(struct labstor_module *pkg) {
-    //unordered_map_remove(&modules, pkg->module_id);
-}
-EXPORT_SYMBOL(unregister_labstor_module);
-
-struct labstor_module *get_labstor_module(struct labstor_id module_id) {
-    int id;
-    return unordered_map_get(&modules, module_id, &id);
-}
-EXPORT_SYMBOL(get_labstor_module);
-
-struct labstor_module *get_labstor_module_by_runtime_id(int runtime_id) {
-    return unordered_map_get_idx(&modules, runtime_id);
-}
-EXPORT_SYMBOL(get_labstor_module_by_runtime_id);
-
 static int __init init_labstor_kernel_server(void) {
-    unordered_map_init(&modules, 256);
+    init_labstor_module_registrar(256);
     if(start_server() < 0) {
         unordered_map_free(&modules);
         return -1;
@@ -137,10 +114,9 @@ static int __init init_labstor_kernel_server(void) {
     return 0;
 }
 
-static void __exit exit_labstor_kernel_server(void)
-{
+static void __exit exit_labstor_kernel_server(void) {
+    free_labstor_module_registrar(256);
     sock_release(nl_sk->sk_socket);
-    unordered_map_free(&modules);
 }
 
 module_init(init_labstor_kernel_server)

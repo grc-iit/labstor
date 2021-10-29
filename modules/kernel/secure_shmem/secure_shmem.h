@@ -7,12 +7,23 @@
 
 #include <labstor/types/basics.h>
 
+#include <linux/types.h>
+#include <linux/list.h>
+
 #define SHMEM_ID "SHMEM_ID"
 
 enum {
     RESERVE_SHMEM,
     GRANT_PID_SHMEM,
     FREE_SHMEM
+};
+
+struct shmem_region_info {
+    struct list_head node;
+    int region_id;
+    size_t  size;
+    void *vmalloc_ptr;
+    bool user_owned;
 };
 
 struct shmem_reserve_request {

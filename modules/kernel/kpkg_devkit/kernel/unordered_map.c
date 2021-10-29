@@ -21,10 +21,13 @@ void unordered_map_init(struct unordered_map *map, int nbuckets) {
     map->nbuckets_ = nbuckets;
     map->buckets_ = vzalloc(nbuckets*sizeof(struct bucket));
 }
+EXPORT_SYMBOL(unordered_map_init);
+
 
 void unordered_map_free(struct unordered_map *map) {
     vfree(map->buckets_);
 }
+EXPORT_SYMBOL(unordered_map_free);
 
 int unordered_map_add(struct unordered_map *map, struct labstor_id id, void *data) {
     int i;
@@ -41,6 +44,7 @@ int unordered_map_add(struct unordered_map *map, struct labstor_id id, void *dat
     }
     return -1;
 }
+EXPORT_SYMBOL(unordered_map_add);
 
 void* unordered_map_get(struct unordered_map *map, struct labstor_id id, int *runtime_id) {
     int i;
@@ -56,10 +60,12 @@ void* unordered_map_get(struct unordered_map *map, struct labstor_id id, int *ru
     }
     return NULL;
 }
+EXPORT_SYMBOL(unordered_map_get);
 
 void* unordered_map_get_idx(struct unordered_map *map, int idx) {
     return map->buckets_[idx].data;
 }
+EXPORT_SYMBOL(unordered_map_get_idx);
 
 void unordered_map_remove(struct unordered_map *map, struct labstor_id id) {
     int i;
@@ -74,7 +80,9 @@ void unordered_map_remove(struct unordered_map *map, struct labstor_id id) {
         }
     }
 }
+EXPORT_SYMBOL(unordered_map_remove);
 
 void unordered_map_remove_idx(struct unordered_map *map, int idx) {
     memset(&map->buckets_[idx].id, 0, sizeof(struct labstor_id));
 }
+EXPORT_SYMBOL(unordered_map_remove_idx);
