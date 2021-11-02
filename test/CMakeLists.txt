@@ -31,6 +31,13 @@ add_dependencies(test_shmem_request_queue_exec labstor_kernel_client secure_shme
 target_link_libraries(test_shmem_request_queue_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_request_queue_exec)
 
+######MODULE MANAGER
+add_executable(test_module_manager_exec unit/module_manager/test.cpp)
+target_link_libraries(test_module_manager_exec rt dl)
+target_include_directories(test_module_manager_exec PUBLIC unit/module_manager)
+add_library(simple_module SHARED unit/module_manager/simple_module.cpp)
+add_custom_target(test_module_manager ${CMAKE_CURRENT_BINARY_DIR}/test_module_manager_exec ${CMAKE_CURRENT_BINARY_DIR}/libsimple_module.so)
+
 ######SHARED MEMORY REQUEST QUEUE (USER - KERNEL)
 add_subdirectory(unit/request_queue_client_kernel)
 

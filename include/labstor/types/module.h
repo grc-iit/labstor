@@ -11,17 +11,30 @@
 #include <memory>
 #include <mutex>
 #include <labstor/types/basics.h>
+#include <labstor/ipc/request_queue.h>
+#include <labstor/util/errors.h>
+
+#ifndef __CLION_IDE__
+#define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME) \
+    extern "C" { labstor::Module* create_module() { return new MODULE_NAME(); } }
+#endif
 
 namespace labstor {
 
-struct module {
-    labstor::id module_id;
-    uint32_t runtime_id;
-    void (*process_request_fn)(struct queue_pair *qp, void *request, struct credentials *creds);
-    void* (*get_ops)(void);
-};
+class Module {
+protected:
+    labstor::id module_id_;
+    uint32_t runtime_id_;
+public:
+    inline labstor::id GetModuleID() { return module_id_; }
+    inline uint32_t GetRuntimeID() { return runtime_id_; }
+    inline void SetRuntimeID(uint32_t runtime_id) { runtime_id_ = runtime_id; }
 
-struct module_paths {
+    virtual void ProcessRequest(labstor::ipc::queue_pair *qp, void *request, labstor::credentials *creds) = 0;
+};
+typedef labstor::Module* (*create_module_fn)(void);
+
+struct ModulePath {
     std::string client;
     std::string trusted_client;
     std::string server;
@@ -36,9 +49,9 @@ enum class ModulePathType {
 class ModuleManager {
 private:
     std::mutex mutex_;
-    std::unordered_map<labstor::id, labstor::module_paths> paths_;
+    std::unordered_map<labstor::id, labstor::ModulePath> paths_;
     std::unordered_map<labstor::id, uint32_t> runtime_ids_;
-    std::unordered_map<uint32_t, labstor::module *> pkg_pool_;
+    std::unordered_map<uint32_t, labstor::Module *> pkg_pool_;
     std::atomic_uint32_t cur_runtime_id;
 public:
     ModuleManager() : cur_runtime_id(0) {}
@@ -46,31 +59,31 @@ public:
     void UpdateModule(std::string path) {
         uint32_t runtime_id;
         void *handle = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
-        labstor::module *new_pkg = (labstor::module*)dlsym(handle, "module_");
-        if(new_pkg == NULL) {
-            printf("Module %s does not exist\n", path.c_str());
-            return;
+        if(handle == NULL) {
+            throw DLSYM_MODULE_NOT_FOUND.format(path);
         }
-        labstor::module *old_pkg;
+        labstor::create_module_fn create_module = (labstor::create_module_fn)dlsym(handle, "create_module");
+        if(create_module == NULL) {
+            throw DLSYM_MODULE_NO_CONSTRUCTOR.format(path);
+        }
+        labstor::Module *new_pkg = create_module();
+        labstor::Module *old_pkg;
 
         mutex_.lock();
-        if(runtime_ids_.find(new_pkg->module_id) != runtime_ids_.end()) {
-            runtime_id = runtime_ids_[new_pkg->module_id];
+        if(runtime_ids_.find(new_pkg->GetModuleID()) != runtime_ids_.end()) {
+            runtime_id = runtime_ids_[new_pkg->GetModuleID()];
             old_pkg = pkg_pool_[runtime_id];
-            //Pause all future ops using this module, wait for all current ops to complete.
-            //if(old_pkg.pause) { old_pkg.pause(); }
             pkg_pool_[runtime_id] = new_pkg;
-            //if(old_pkg.resume) { old_pkg.resume(); }
         }
         else {
             runtime_id = cur_runtime_id++;
-            runtime_ids_[new_pkg->module_id] = runtime_id;
+            runtime_ids_[new_pkg->GetModuleID()] = runtime_id;
             pkg_pool_[runtime_id] = new_pkg;
         }
         mutex_.unlock();
     }
 
-    labstor::module *GetModule(labstor::id module_id) {
+    labstor::Module *GetModule(labstor::id module_id) {
         try {
             int runtime_id = runtime_ids_[module_id];
             return pkg_pool_[runtime_id];
@@ -80,7 +93,7 @@ public:
         }
     }
 
-    labstor::module *GetModule(int runtime_id) {
+    labstor::Module *GetModule(int runtime_id) {
         try {
             return pkg_pool_[runtime_id];
         }
@@ -89,7 +102,7 @@ public:
         }
     }
 
-    void AddModulePaths(labstor::id module_id, labstor::module_paths paths) {
+    void AddModulePaths(labstor::id module_id, labstor::ModulePath paths) {
         mutex_.lock();
         paths_[module_id] = paths;
         mutex_.unlock();

@@ -208,9 +208,6 @@ static void blk_mq_update_dispatch_busy(struct blk_mq_hw_ctx *hctx, bool busy)
     hctx->dispatch_busy = ewma;
 }
 
-
-
-
 static int __blk_mq_get_tag(struct blk_mq_alloc_data *data,
                             struct sbitmap_queue *bt)
 {
@@ -500,7 +497,6 @@ blk_qc_t submit_io_rq_layer(char *dev, int op, void *user_buf) {
 
 inline void submit_req_layer_io(struct queue_pair *qp, struct request_layer_request *req) {
     struct page *pages;
-
     //Convert user's buffer to pages
     //Get block device associated with semantic label
     bdev = blkdev_get_by_path(dev, BDEV_ACCESS_FLAGS, NULL);
@@ -538,26 +534,24 @@ void process_request_fn(struct queue_pair *qp, struct request_layer_request *req
     }
 }
 
-struct module {
+struct labstor_module request_layer_pkg = {
     .module_id = REQEUST_LAYER_PKG_ID,
     .process_request_fn = process_request_fn,
     .request_size = sizeof(struct request_layer_request),
     .get_ops = NULL
-} request_layer_pkg;
+};
 
 /**
  * MY FUNCTIONS
  * */
 
 
-static int __init init_request_layer_km(void)
-{
-    register_module(&reqest_layer_pkg);
+static int __init init_request_layer_km(void) {
+    register_labstor_module(&reqest_layer_pkg);
 }
 
-static void __exit exit_request_layer_km(void)
-{
-    unregister_module(&request_layer_pkg);
+static void __exit exit_request_layer_km(void) {
+    unregister_labstor_module(&request_layer_pkg);
 }
 
 module_init(init_request_layer_km)

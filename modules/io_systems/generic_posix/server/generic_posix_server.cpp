@@ -38,7 +38,7 @@ private:
         int dev_pathlen = pathlen;
         auto namespace_ = &Singleton<labstor::LabStorServerContext>->namespace_;
         struct posix_ops *ops;
-        labstor::module *pkg;
+        labstor::Module *pkg;
         void *data;
         do {
             std::string new_path = std::string(pathname, dev_pathlen);
@@ -58,7 +58,7 @@ private:
     }
 };
 
-labstor::module module_ = {
+labstor::Module module_ = {
     .process_request_fn = GenericFS_Server::process_request,
     .get_ops = nullptr
 };

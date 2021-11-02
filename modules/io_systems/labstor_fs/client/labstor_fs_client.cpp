@@ -14,7 +14,7 @@ public:
 private:
 };
 
-labstor::module pkg = {
+labstor::Module pkg = {
     .module_id = "ABCDE",
     .process_request_fn = nullptr,
     .get_ops = nullptr,

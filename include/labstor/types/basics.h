@@ -22,8 +22,13 @@ namespace labstor {
 
 struct id {
     char key[256];
+    id() = default;
+    ~id() = default;
     id(std::string key_str) {
         strcpy(key, key_str.c_str());
+    }
+    id(const char* key_str) {
+        strcpy(key, key_str);
     }
     bool operator==(const id &other) const {
         return strcmp(key, other.key);

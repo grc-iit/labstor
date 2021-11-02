@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
     //Load all modules
     for (const auto &module : labstor_context->config_["modules"]) {
         labstor::id module_id(module.first.as<std::string>());
-        labstor::module_paths paths;
+        labstor::ModulePath paths;
         if(module.second["client"]) {
             paths.client = module.second["client"].as<std::string>();
         }

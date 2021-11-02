@@ -17,7 +17,7 @@ public:
         return namespace_pkgs_.find(key) != namespace_pkgs.end();
     }
 
-    labstor::module *GetModule() {
+    labstor::Module *GetModule() {
     }
 };
 

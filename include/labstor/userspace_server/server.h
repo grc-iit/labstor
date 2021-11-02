@@ -22,7 +22,7 @@ namespace labstor {
 struct LabStorServerContext {
     int pid_;
     YAML::Node config_;
-    labstor::ipc::unordered_map<std::string, labstor::module> namespace_;
+    labstor::ipc::unordered_map<std::string, labstor::Module*> namespace_;
     std::unordered_map <pid_t, std::shared_ptr<labstor::PerProcessIPC>> ipc_pool_;
     labstor::ModuleManager module_manager_;
     labstor::IPCManager ipc_manager_;
