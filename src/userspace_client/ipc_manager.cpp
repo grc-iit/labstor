@@ -7,7 +7,7 @@
 #include <labstor/util/singleton.h>
 #include <labstor/util/errors.h>
 #include <labstor/types/basics.h>
-#include <labstor/userspace_server/ipc_manager.h>
+#include <labstor/userspace_client/ipc_manager.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 
 void labstor::Client::IPCManager::Connect(int num_queues) {
@@ -44,14 +44,14 @@ void labstor::Client::IPCManager::Connect(int num_queues) {
 void labstor::Client::IPCManager::SendMSG(void *buffer, size_t size) {
     int ret = send(serverfd_, buffer, size, 0);
     if (ret == -1) {
-        throw UNIX_SEND_FAILED.format(strerror(errno));
+        throw UNIX_SENDMSG_FAILED.format(strerror(errno));
     }
 }
 
 void labstor::Client::IPCManager::RecvMSG(void *buffer, size_t size) {
     int ret = recv(serverfd_, buffer, size, 0);
     if (ret == -1) {
-        throw UNIX_RECV_FAILED.format(strerror(errno));
+        throw UNIX_RECVMSG_FAILED.format(strerror(errno));
     }
 }
 
@@ -68,23 +68,23 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues) {
 
     //Mmap SHMEM
     size_t queue_size = reply.region_size / (num_queues * 2);
-    void *region = shmem_netlink::MapShmem(reply.region_id, reply.region_size);
+    void *region = ShmemNetlinkClient::MapShmem(reply.region_id, reply.region_size);
     for(int i = 0; i < num_queues; ++i) {}
 }
 
 void labstor::Client::IPCManager::CreateInternalQueues(int num_queues) {
-    interal_qp_region_ = malloc(labstor::ipc::reqest_queue::MinimumRegionSize()*num_queues*2);
+    interal_qp_region_ = malloc(labstor::ipc::request_queue::MinimumRegionSize()*num_queues*2);
     void *submission_region, *completion_region;
     size_t off = 0;
 
     for(int i = 0; i < num_queues; ++i) {
-        submission_region = interal_qp_region_ + off;
-        labstor::ipc::request_queue submission(submission_region, labstor::ipc::reqest_queue::MinimumRegionSize(), 0);
-        off += labstor::ipc::reqest_queue::MinimumRegionSize();
+        submission_region = (char*)interal_qp_region_ + off;
+        labstor::ipc::request_queue submission(submission_region, labstor::ipc::request_queue::MinimumRegionSize(), 0);
+        off += labstor::ipc::request_queue::MinimumRegionSize();
 
-        completion_region = interal_qp_region_ + off;
-        labstor::ipc::request_queue completion(completion_region, labstor::ipc::reqest_queue::MinimumRegionSize(), 0);
-        off += labstor::ipc::reqest_queue::MinimumRegionSize();
+        completion_region = (char*)interal_qp_region_ + off;
+        labstor::ipc::request_queue completion(completion_region, labstor::ipc::request_queue::MinimumRegionSize(), 0);
+        off += labstor::ipc::request_queue::MinimumRegionSize();
     }
 }
 

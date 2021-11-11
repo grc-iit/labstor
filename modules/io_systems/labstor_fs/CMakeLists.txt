@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(labstor)
 
+option(BUILD_SHARED_LIBS on)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(../generic_posix/include)

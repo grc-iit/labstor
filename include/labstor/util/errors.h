@@ -21,6 +21,10 @@ namespace labstor {
     const Error UNIX_CONNECT_FAILED(202, "Failed to connect over socket: {}");
     const Error UNIX_SENDMSG_FAILED(203, "Failed to send message over socket: {}");
     const Error UNIX_RECVMSG_FAILED(204, "Failed to receive message over socket: {}");
+    const Error UNIX_SETSOCKOPT_FAILED(205, "Failed to set socket options: {}");
+    const Error UNIX_GETSOCKOPT_FAILED(205, "Failed to acquire user credentials: {}");
+    const Error UNIX_LISTEN_FAILED(206, "Failed to set socket options: {}");
+    const Error UNIX_ACCEPT_FAILED(207, "Failed to set socket options: {}");
 
     const Error INVALID_RING_BUFFER_SIZE(300, "Failed to allocate ring buffer, {} is too small to support {} requests.");
 }

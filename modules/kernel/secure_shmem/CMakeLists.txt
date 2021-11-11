@@ -12,4 +12,9 @@ add_custom_target(build_secure_shmem ALL COMMAND
         CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(build_secure_shmem build_labstor_kernel_server)
 add_custom_target(clean_secure_shmem COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make clean)
-add_library(secure_shmem_client_netlink netlink_client/shmem_user_netlink.cpp)
+add_library(secure_shmem_client_netlink
+        netlink_client/shmem_user_netlink.cpp)
+add_dependencies(secure_shmem_client_netlink
+        labstor_kernel_client)
+target_link_libraries(secure_shmem_client_netlink
+        labstor_kernel_client)

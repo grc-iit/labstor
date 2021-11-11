@@ -22,7 +22,7 @@ struct PerProcessIPC {
     int clientfd_;
     void *shmem_region;
     labstor::GenericAllocator *alloc_;
-    std::vector<struct queue_pair> qps_;
+    std::vector<labstor::ipc::queue_pair> qps_;
 };
 
 class IPCManager {

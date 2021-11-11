@@ -28,13 +28,13 @@ MODULE_ALIAS("labstor_kernel_worker");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
-    struct worker_queue
+    struct labstor_request_queue worker_queue;
 };
 
 size_t time_slice_us_;
 struct sock *nl_sk = NULL;
 struct labstor_worker_struct *workers = NULL;
-int (*kthread_fn)(void*);
+typedef int (*kthread_fn)(void*);
 
 size_t time_slice_us;
 
@@ -48,6 +48,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
 
 bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
     struct labstor_worker_struct *worker;
+    void *region;
     int i;
     time_slice_us_ = time_slice_us;
     workers = vmalloc(num_workers * sizeof(struct labstor_worker_struct));
@@ -55,9 +56,10 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
         pr_err("Could not allocate worker array");
         return false;
     }
+    //region = shmem whatever...
     for(i = 0; i < num_workers; ++i) {
         worker = workers + i;
-        labstor_request_queue_init(&worker->worker_queue, region, worker_queue_size);
+        labstor_request_queue_init(&worker->worker_queue, region, region_size, time_slice_us);
         worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;

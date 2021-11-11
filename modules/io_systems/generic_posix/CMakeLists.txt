@@ -3,6 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(BUILD_SHARED_LIBS on)
 include_directories(include)
 
 add_library(generic_fs_server server/generic_posix_server.cpp)

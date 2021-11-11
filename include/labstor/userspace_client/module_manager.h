@@ -11,8 +11,8 @@ namespace labstor::Client {
 
 class ModuleManager : public ModuleTable {
 public:
-    void UpdateModule();
-    void GetModulePaths();
+    void UpdateModule(std::string module_path);
+    std::string GetModulePath(labstor::id module_id);
 };
 
 }

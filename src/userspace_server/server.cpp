@@ -19,6 +19,7 @@
 #include <labstor/types/basics.h>
 #include <labstor/util/singleton.h>
 
+#include <labstor/util/errors.h>
 #include <labstor/userspace_server/module_manager.h>
 #include <labstor/userspace_server/ipc_manager.h>
 #include <labstor/userspace_server/work_orchestrator.h>
@@ -43,16 +44,14 @@ void* accept_initial_connections(void *nothing) {
         //Accept client connection
         client_fd_ = accept(server_fd_, (struct sockaddr *) &client_addr_, &clilen);
         if (client_fd_ < 0) {
-            perror("ERROR on accept");
-            exit(1);
+            throw labstor::UNIX_ACCEPT_FAILED.format(strerror(errno));
         }
         printf("New client was accepted!\n");
         //Get the client's credentials
         len = sizeof(struct ucred);
         ret = getsockopt(client_fd_, SOL_SOCKET, SO_PEERCRED, &ucred, &len);
         if (ret < 0) {
-            perror("ERROR on acquiring client's credentials");
-            exit(1);
+            throw labstor::UNIX_GETSOCKOPT_FAILED.format(strerror(errno));
         }
         memcpy(&creds, &ucred, sizeof(ucred));
         printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
@@ -78,14 +77,12 @@ void server_init(void) {
     server_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
     ipc_manager_->SetServerFd(server_fd_);
     if(server_fd_ < 0) {
-        perror("socket() failed");
-        return;
+        throw labstor::UNIX_SOCKET_FAILED.format(strerror(errno));
     }
 
     ret = setsockopt(server_fd_, SOL_SOCKET, SO_PASSCRED, (void*)&optval, sizeof(optval));
     if(ret < 0) {
-        perror("setsockopt() failed");
-        return;
+        throw labstor::UNIX_SETSOCKOPT_FAILED.format(strerror(errno));
     }
 
     memset(&server_addr_, 0, sizeof(server_addr_));
@@ -93,14 +90,12 @@ void server_init(void) {
     strcpy(server_addr_.sun_path, TRUSTED_SERVER_PATH);
     ret = bind(server_fd_, (struct sockaddr *)&server_addr_, SUN_LEN(&server_addr_));
     if(ret < 0) {
-        perror("bind() failed");
-        return;
+        throw labstor::UNIX_BIND_FAILED.format(strerror(errno));
     }
 
     ret = listen(server_fd_, 1024);
     if(ret < 0) {
-        perror("listen() failed");
-        return;
+        throw labstor::UNIX_LISTEN_FAILED.format(strerror(errno));
     }
 
     //pthread_create(&labstor_config_->accept_thread_, NULL, accept_initial_connections, NULL);

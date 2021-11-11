@@ -13,6 +13,7 @@ class ModuleManager : public ModuleTable {
 private:
     std::atomic_uint32_t cur_runtime_id;
     std::unordered_map<labstor::id, labstor::ModulePath> paths_;
+    std::unordered_map<uint32_t, labstor::Module*> module_pool_;
 public:
     void UpdateModule(std::string path);
     void AddModulePaths(labstor::id module_id, labstor::ModulePath paths);

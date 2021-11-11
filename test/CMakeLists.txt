@@ -32,7 +32,7 @@ target_link_libraries(test_shmem_request_queue_exec labstor_kernel_client secure
 add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_request_queue_exec)
 
 ######MODULE MANAGER
-add_executable(test_module_manager_exec unit/module_manager/test.cpp)
+add_executable(test_module_manager_exec unit/module_manager/test.cpp ${CMAKE_SOURCE_DIR}/src/userspace_server/module_manager.cpp)
 target_link_libraries(test_module_manager_exec rt dl)
 target_include_directories(test_module_manager_exec PUBLIC unit/module_manager)
 add_library(simple_module SHARED unit/module_manager/simple_module.cpp)
