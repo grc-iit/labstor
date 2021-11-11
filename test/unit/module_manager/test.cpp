@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 11/2/21.
 //
 
-#include <labstor/types/module.h>
+#include <labstor/userspace_server/module_manager.h>
 
 const labstor::id SIMPLE_MODULE_ID = "SIMPLE_MODULE";
 
@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     }
     LABSTOR_ERROR_HANDLE_START()
     char *path = argv[1];
-    labstor::ModuleManager modules;
+    labstor::Server::ModuleManager modules;
     modules.UpdateModule(path);
     labstor::Module *simple_module = modules.GetModule(SIMPLE_MODULE_ID);
     printf("%s\n", simple_module->GetModuleID().key);

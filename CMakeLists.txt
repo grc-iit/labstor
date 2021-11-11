@@ -43,17 +43,3 @@ add_custom_target(stop_kernel_server_test COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DI
 ######MODULES & TESTS
 add_subdirectory(modules)
 add_subdirectory(test)
-
-##########NOTES
-
-#NDCTRL
-#ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --align=2M
-
-#add_executable(test_ipc_perf test/unit/boost_ipc/read_write_ipc.cpp)
-#target_link_libraries(test_ipc_perf rt boost_system mpi)
-#add_executable(test_unordered_map test/unit/boost_ipc/unordered_map.cpp)
-#target_link_libraries(test_unordered_map rt boost_system pthread mpi)
-
-#LabStor library
-#add_library(generic_posix_client src/io_systems/generic_posix/generic_posix_client.cpp)
-#add_library(generic_posix_server src/io_systems/generic_posix/generic_posix_server.cpp)

@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 9/7/21.
 //
 
-#ifndef LABSTOR_WORKER_H
-#define LABSTOR_WORKER_H
+#ifndef LABSTOR_SERVER_WORKER_H
+#define LABSTOR_SERVER_WORKER_H
 
 #ifdef __cplusplus
 
@@ -11,12 +11,13 @@
 
 namespace labstor {
 
-struct Worker {
+class Worker {
+private:
     size_t time_slice_us;
     int worker_id;
     void *work_queue;
     size_t work_queue_depth;
-
+public:
     std::thread std_thread;
     void ProcessWork();
 };
@@ -25,4 +26,7 @@ struct Worker {
 
 #endif
 
-#endif //LABSTOR_WORKER_H
+#ifndef __cplusplus
+#endif
+
+#endif //LABSTOR_SERVER_WORKER_H

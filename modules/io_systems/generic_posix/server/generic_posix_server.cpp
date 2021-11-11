@@ -36,7 +36,7 @@ private:
     inline void Open(labstor::queue_pair *qp, labstor::credentials *creds, const char *pathname, int flags, mode_t mode) {
         int pathlen = strlen(pathname);
         int dev_pathlen = pathlen;
-        auto namespace_ = &Singleton<labstor::LabStorServerContext>->namespace_;
+        auto namespace_ = &Singleton<labstor::Server::ConfigurationManager>->namespace_;
         struct posix_ops *ops;
         labstor::Module *pkg;
         void *data;

@@ -52,7 +52,7 @@ int ShmemNetlinkClient::FreeShmem(int region_id) {
 }
 
 void* ShmemNetlinkClient::MapShmem(int region_id, size_t region_size) {
-    int fd = open(shmem_chrdev_.c_str(), O_RDWR);
+    int fd = open(SHMEM_CHRDEV, O_RDWR);
     if(fd < 0) {
         return nullptr;
     }

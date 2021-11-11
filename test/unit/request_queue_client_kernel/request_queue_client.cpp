@@ -12,12 +12,12 @@ int main(int argc, char **argv) {
     int region_id;
     size_t region_size = 4096;
     labstor::ipc::request_queue q;
-    auto labstor_kernel_context_ = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
+    auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
     struct simple_request* rq;
 
     //Create SHMEM region
-    labstor_kernel_context_->Connect();
+    netlink_client__->Connect();
     region_id = shmem_netlink.CreateShmem(region_size, true);
     if(region_id < 0) {
         printf("Failed to allocate SHMEM!\n");
@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
     strcpy(dqmsg.header.module_id.key, REQUEST_QUEUE_TEST_ID);
     dqmsg.rq.op = REQUEST_QUEUE_TEST_PKG_DEQUEUE;
     dqmsg.rq.region_id = region_id;
-    labstor_kernel_context_->SendMSG(&dqmsg, sizeof(dqmsg));
-    labstor_kernel_context_->RecvMSG(&code, sizeof(code));
+    netlink_client__->SendMSG(&dqmsg, sizeof(dqmsg));
+    netlink_client__->RecvMSG(&code, sizeof(code));
     printf("Received the following code: %d\n", code);
 
     //Dequeue messages from kernel module

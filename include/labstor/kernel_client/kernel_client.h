@@ -19,9 +19,9 @@
 
 #define NETLINK_USER 31
 
-namespace labstor {
+namespace labstor::Kernel {
 
-class LabStorKernelClientContext {
+class NetlinkClient {
 private:
     int sockfd_;
 public:

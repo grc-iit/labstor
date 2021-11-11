@@ -12,12 +12,20 @@
 #include <linux/types.h>
 #endif
 
+#define RQ_QUEUE_PAUSED_SERVER 1
+#define RQ_QUEUE_BUSY_SERVER 2
+#define RQ_QUEUE_PAUSED_CLIENT 4
+#define RQ_QUEUE_BUSY_CLIENT 8
+
 struct labstor_request {
+    int qid;
+    size_t req_id;
     size_t next;
     size_t est_time_us;
 };
 
 struct labstor_request_queue_header {
+    int flags;
     size_t region_size_;
     size_t enqueued_, dequeued_;
     size_t head_, tail_;
@@ -48,11 +56,14 @@ struct labstor_km_request {
 namespace labstor::ipc {
 
 struct request {
+    int qid;
+    size_t id;
     size_t next;
     size_t est_time_us;
 };
 
 struct request_queue_header {
+    int flags, qid;
     size_t region_size_;
     size_t enqueued_, dequeued_;
     size_t head_, tail_;
@@ -63,10 +74,15 @@ struct request_queue {
     void *region_;
     struct request_queue_header *header_;
     struct labstor_simple_allocator allocator_;
+    int qid;
 
     request_queue() {}
     request_queue(void *region, size_t region_size, size_t request_unit) {
         Init(region, region_size, request_unit);
+    }
+
+    static size_t MinimumRegionSize() {
+        return sizeof(struct request_queue_header) + labstor_simple_allocator::MinimumRegionSize();
     }
 
     void Init(void *region, size_t region_size, size_t request_unit) {
@@ -75,6 +91,7 @@ struct request_queue {
         region_size_ = region_size;
         header_ = (struct request_queue_header*)region;
         header_->region_size_ = region_size;
+        header_->flags = 0;
         allocator_.Init((void*)(header_ + 1), region_size - sizeof(struct request_queue_header), request_unit);
     }
 
@@ -129,6 +146,12 @@ struct request_queue {
 struct queue_pair {
     request_queue submission;
     request_queue completion;
+    queue_pair(
+        void *sub_region, size_t sub_region_size, size_t sub_request_unit,
+        void *comp_region, size_t comp_region_size, size_t comp_request_unit) {
+        submission.Init(sub_region, sub_region_size, sub_request_unit);
+        completion.Init(comp_region, comp_region_size, comp_request_unit);
+    }
 };
 
 }

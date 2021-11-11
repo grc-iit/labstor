@@ -24,12 +24,12 @@ private:
     std::vector<labstor::ipc::queue_pair> qps_;
 public:
     PerProcessIPC() : sockfd_(-1) {}
+    PerProcessIPC(int sockfd) : sockfd_(sockfd) {}
     PerProcessIPC(int sockfd, struct credentials *creds) : sockfd_(sockfd), creds_(*creds) {}
 
-    bool IsConnected() { return sockfd_ >= 0; }
+    void CreateQueuePairs(void *region, size_t region_size);
+    void AttachQueuePairs();
     labstor::ipc::queue_pair& GetQueuePair(int i) { return qps_[i]; }
-    int GetNumQueues() { return qps_.size(); }
-    int GetSocket() { return sockfd_; }
 };
 
 }

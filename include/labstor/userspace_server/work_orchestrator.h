@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 9/7/21.
 //
 
-#ifndef LABSTOR_WORK_ORCHESTRATOR_H
-#define LABSTOR_WORK_ORCHESTRATOR_H
+#ifndef LABSTOR_SERVER_WORK_ORCHESTRATOR_H
+#define LABSTOR_SERVER_WORK_ORCHESTRATOR_H
 
 #include <sys/sysinfo.h>
 #include <sched.h>
@@ -14,7 +14,7 @@
 #include <labstor/util/singleton.h>
 #include <labstor/userspace_server/worker.h>
 
-namespace labstor {
+namespace labstor::Server {
 
 class WorkOrchestrator {
 private:
@@ -31,4 +31,4 @@ public:
 
 }
 
-#endif //LABSTOR_WORK_ORCHESTRATOR_H
+#endif //LABSTOR_SERVER_WORK_ORCHESTRATOR_H

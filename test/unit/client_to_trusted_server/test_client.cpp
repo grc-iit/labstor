@@ -4,8 +4,9 @@
 
 #include <labstor/util/singleton.h>
 #include <labstor/userspace_client/client.h>
+#include <labstor/userspace_client/ipc_manager.h>
 
 int main() {
-    auto labstor_context = scs::Singleton<labstor::LabStorClientContext>::GetInstance();
-    labstor_context->Connect(4, 1024);
+    auto ipc_manager_ = scs::Singleton<labstor::Client::IPCManager>::GetInstance();
+    ipc_manager_->Connect(4);
 }

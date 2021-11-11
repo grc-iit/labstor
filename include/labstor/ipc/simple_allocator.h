@@ -27,6 +27,10 @@ struct labstor_simple_allocator {
     struct labstor_simple_allocator_header *header_;
     char *alloc_data_;
 
+    static size_t MinimumRegionSize() {
+        return sizeof(labstor_simple_allocator_header);
+    }
+
     inline void Init(void *region, size_t region_size, size_t request_unit) {
         region_ = region;
         header_ = (struct labstor_simple_allocator_header*)region;

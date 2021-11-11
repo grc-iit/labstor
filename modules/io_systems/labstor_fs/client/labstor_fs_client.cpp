@@ -4,7 +4,7 @@
 
 class LabStorFS_Client {
 public:
-    void proccess_request(struct posix_request *rq) {
+    void ProcessRequest(labstor::ipc::queue_pair *qp, struct posix_request *rq, labstor::credentials *creds) {
         switch(rq->op) {
             case OPEN_RQ: {
                 break;
@@ -12,10 +12,8 @@ public:
         }
     }
 private:
+    void Open(const char *pathname, int flags, mode_t mode) {
+    }
 };
 
-labstor::Module pkg = {
-    .module_id = "ABCDE",
-    .process_request_fn = nullptr,
-    .get_ops = nullptr,
-} module_;
+LABSTOR_MODULE_CONSTRUCT(LabStorFS_Client)

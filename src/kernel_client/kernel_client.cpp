@@ -16,7 +16,7 @@ static int sockfd;
 static struct sockaddr_nl my_addr = {0};
 static struct sockaddr_nl kern_addr = {0};
 
-bool labstor::LabStorKernelClientContext::Connect()
+bool labstor::Kernel::NetlinkClient::Connect()
 {
     sockfd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_USER);
 
@@ -32,7 +32,7 @@ bool labstor::LabStorKernelClientContext::Connect()
     return true;
 }
 
-bool labstor::LabStorKernelClientContext::SendMSG(void *serialized_buf, size_t buf_size) {
+bool labstor::Kernel::NetlinkClient::SendMSG(void *serialized_buf, size_t buf_size) {
     int num_io_rqs = 0;
     struct nlmsghdr *nlh;
     socklen_t addrlen = sizeof(struct sockaddr_nl);
@@ -58,7 +58,7 @@ bool labstor::LabStorKernelClientContext::SendMSG(void *serialized_buf, size_t b
     return true;
 }
 
-bool labstor::LabStorKernelClientContext::RecvMSG(void *buf, size_t buf_size) {
+bool labstor::Kernel::NetlinkClient::RecvMSG(void *buf, size_t buf_size) {
     int num_io_rqs = 0;
     struct nlmsghdr *nlh;
     socklen_t addrlen = sizeof(struct sockaddr_nl);

@@ -12,21 +12,23 @@ private:
 
 public:
     static int Open(const char *pathname, int flags, mode_t mode) {
-        auto labstor_client = Singleton<labstor::LabStorClientContext>::GetInstance();
-        if(!labstor_client->IsConnected()) {
-            labstor_client->Connect();
+        int pathlen = strlen(pathname);
+        auto ipc_manager_ = scs::Singleton<labstor::Client::IPCManager>::GetInstance();
+        if(!ipc_manager_->IsConnected()) {
+            ipc_manager_->Connect();
         }
-        labstor::queue_pair *qp = labstor_client->GetQueue(tid);
-        struct posix_request *rq = (struct posix_request *)qp->GetRequest();
+
+        struct posix_request *rq = (struct posix_request *)ipc_manager->Alloc(sizeof(struct posix_request) + pathlen, tid);
         rq->open.path = pathname;
         rq->open.flags = flags;
         rq->open.mode = mode;
+
+        labstor::queue_pair *qp = ipc_manager_->GetQueue(tid);
         int qtok = qp->StartRequest();
         qp->Wait(qtok);
     }
 
-    static void Write() {
-
+    static void Write(int fd, const void *buf, size_t count) {
     }
 };
 

@@ -6,6 +6,6 @@
 #include <labstor/kernel_client/kernel_client.h>
 
 int main() {
-    auto labstor_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
-    labstor_context->Connect();
+    auto kernel_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+    kernel_client_->Connect();
 }

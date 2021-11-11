@@ -11,8 +11,8 @@ int main() {
     int region_id;
     size_t region_size = 128;
     char *region;
-    auto labstor_kernel_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
-    labstor_kernel_context->Connect();
+    auto netlink_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+    netlink_client_->Connect();
 
     ShmemNetlinkClient shmem;
 

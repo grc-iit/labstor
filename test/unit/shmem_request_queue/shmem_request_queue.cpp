@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
     size_t region_size = 4096;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     labstor::ipc::request_queue q;
-    auto labstor_kernel_context_ = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
+    auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
 
     //Create SHMEM region
-    labstor_kernel_context_->Connect();
+    netlink_client__->Connect();
     if(rank == 0) {
         region_id = shmem_netlink.CreateShmem(region_size, true);
         if(region_id < 0) {

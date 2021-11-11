@@ -18,18 +18,22 @@
 #include <labstor/userspace_server/server.h>
 #include <labstor/types/basics.h>
 #include <labstor/util/singleton.h>
-#include <labstor/userspace_server/worker.h>
+
+#include <labstor/userspace_server/module_manager.h>
+#include <labstor/userspace_server/ipc_manager.h>
+#include <labstor/userspace_server/work_orchestrator.h>
 #include <labstor/kernel_client/kernel_client.h>
 #include <yaml-cpp/yaml.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
 
 void* accept_initial_connections(void *nothing) {
-    auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
+    auto labstor_config_ = scs::Singleton<labstor::Server::ConfigurationManager>::GetInstance();
+    auto ipc_manager_ = scs::Singleton<labstor::Server::IPCManager>::GetInstance();
     int ret;
     struct ucred ucred;
     struct labstor::credentials creds;
-    int server_fd_ = labstor_context->accept_fd_;
+    int server_fd_ = ipc_manager_->GetServerFd();
     int client_fd_;
     struct sockaddr_un client_addr_;
     struct labstor::setup_request client_hints_;
@@ -55,8 +59,8 @@ void* accept_initial_connections(void *nothing) {
         //Receive message containing thread and queue size hints
         recv(client_fd_, (void*)&client_hints_, sizeof(client_hints_), 0);
         //Create new SHMEM queues
-        labstor_context->ipc_manager_.CreateIPC(client_fd_, &creds, client_hints_.num_queues, client_hints_.queue_size);
-        //Resend the same message to the server
+        //ipc_manager_->CreateQueuesSHMEM(client_fd_, &creds, client_hints_.num_queues);
+        //Resend the same message to the client
         send(client_fd_, (void*)&client_hints_, sizeof(client_hints_), 0);
     }
 }
@@ -66,12 +70,13 @@ void server_init(void) {
     int optval = 1;
     int ret;
     struct sockaddr_un server_addr_;
-    auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
+    auto labstor_config_ = scs::Singleton<labstor::Server::ConfigurationManager>::GetInstance();
+    auto ipc_manager_ = scs::Singleton<labstor::Server::IPCManager>::GetInstance();
 
     remove(TRUSTED_SERVER_PATH);
 
     server_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-    labstor_context->accept_fd_ = server_fd_;
+    ipc_manager_->SetServerFd(server_fd_);
     if(server_fd_ < 0) {
         perror("socket() failed");
         return;
@@ -98,7 +103,7 @@ void server_init(void) {
         return;
     }
 
-    //pthread_create(&labstor_context->accept_thread_, NULL, accept_initial_connections, NULL);
+    //pthread_create(&labstor_config_->accept_thread_, NULL, accept_initial_connections, NULL);
     accept_initial_connections(nullptr);
 }
 
@@ -107,37 +112,36 @@ int main(int argc, char **argv) {
         printf("USAGE: ./server [config.yaml]\n");
         exit(1);
     }
-    auto labstor_context = scs::Singleton<labstor::LabStorServerContext>::GetInstance();
-    auto labstor_kernel_context = scs::Singleton<labstor::LabStorKernelClientContext>::GetInstance();
+    auto labstor_config_ = scs::Singleton<labstor::Server::ConfigurationManager>::GetInstance();
+    auto module_manager_ = scs::Singleton<labstor::Server::ModuleManager>::GetInstance();
+    auto work_orchestrator_ = scs::Singleton<labstor::Server::WorkOrchestrator>::GetInstance();
+    auto netlink_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
 
     //Load a configuration file
-    labstor_context->LoadConfig(argv[1]);
+    labstor_config_->LoadConfig(argv[1]);
 
     //Get this process' info
-    labstor_context->pid_ = getpid();
+    labstor_config_->pid_ = getpid();
 
     //Connect to the kernel server and establish server-kernel SHMEM queues
-    //labstor_kernel_context->Connect();
+    //netlink_client_->Connect();
 
     //Load all modules
-    for (const auto &module : labstor_context->config_["modules"]) {
+    for (const auto &module : labstor_config_->config_["modules"]) {
         labstor::id module_id(module.first.as<std::string>());
         labstor::ModulePath paths;
         if(module.second["client"]) {
             paths.client = module.second["client"].as<std::string>();
         }
-        if(module.second["trusted_client"]) {
-            paths.trusted_client = module.second["trusted_client"].as<std::string>();
-        }
         if(module.second["server"]) {
             paths.server = module.second["server"].as<std::string>();
         }
-        labstor_context->module_manager_.AddModulePaths(module_id, paths);
-        labstor_context->module_manager_.UpdateModule(paths.server);
+        module_manager_->AddModulePaths(module_id, paths);
+        module_manager_->UpdateModule(paths.server);
     }
 
     //Load the workers
-    labstor_context->work_orchestrator_.CreateWorkers();
+    work_orchestrator_->CreateWorkers();
 
     //Create initialization server
     printf("LabStor Trusted Server running!\n");

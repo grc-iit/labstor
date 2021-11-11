@@ -28,20 +28,26 @@ MODULE_ALIAS("labstor_kernel_worker");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
-    char *worker_queue;
+    struct worker_queue
 };
 
 size_t time_slice_us_;
 struct sock *nl_sk = NULL;
 struct labstor_worker_struct *workers = NULL;
+int (*kthread_fn)(void*);
 
 size_t time_slice_us;
 
-int worker(void *data) {
+int worker_runtime(struct labstor_worker_struct *worker) {
+    pr_info("Worker: %p\n", worker);
+    while(true) {
+        labstor_request_queue_dequeue(&worker->worker_queue);
+    }
     return 0;
 }
 
 bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
+    struct labstor_worker_struct *worker;
     int i;
     time_slice_us_ = time_slice_us;
     workers = vmalloc(num_workers * sizeof(struct labstor_worker_struct));
@@ -50,7 +56,9 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
         return false;
     }
     for(i = 0; i < num_workers; ++i) {
-        workers[i].worker_task = kthread_run(worker, workers + i, "labstor_worker%d", i);
+        worker = workers + i;
+        labstor_request_queue_init(&worker->worker_queue, region, worker_queue_size);
+        worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
 }
@@ -58,6 +66,13 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
 void set_worker_affinity(int worker_id, int cpu_id) {
     kthread_bind(workers[worker_id].worker_task, cpu_id);
 }
+
+void pause_worker(int worker_id) {
+}
+
+void resume_worker(int worker_id) {
+}
+
 
 void worker_process_request_fn_netlink(int pid, struct kernel_worker_request *rq) {
     int code = 0;
