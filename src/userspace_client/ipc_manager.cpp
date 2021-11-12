@@ -7,6 +7,7 @@
 #include <labstor/util/singleton.h>
 #include <labstor/util/errors.h>
 #include <labstor/types/basics.h>
+#include <labstor/userspace_client/client.h>
 #include <labstor/userspace_client/ipc_manager.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 
@@ -56,6 +57,7 @@ void labstor::Client::IPCManager::RecvMSG(void *buffer, size_t size) {
 }
 
 void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues) {
+    labstor::shmem_allocator *shmem_alloc;
 
     //Send an IPC request to the server
     labstor::setup_request request;
@@ -64,27 +66,36 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues) {
 
     //Receive SHMEM IPCs
     labstor::setup_reply reply;
-    RecvMSG((void*)&reply, sizeof(labstor::setup_request));
+    RecvMSG((void*)&reply, sizeof(labstor::setup_reply));
 
-    //Mmap SHMEM
-    size_t queue_size = reply.region_size / (num_queues * 2);
+    //Create SHMEM allocator
     void *region = ShmemNetlinkClient::MapShmem(reply.region_id, reply.region_size);
-    for(int i = 0; i < num_queues; ++i) {}
+    shmem_alloc = new shmem_allocator();
+    shmem_alloc->Init(region, reply.region_size, reply.request_unit, reply.concurrency);
+    shmem_alloc_ = shmem_alloc;
+
+    //Create SHMEM request queues
+    for(int i = 0; i < reply.num_queues; ++i) {
+        void *sq_region = shmem_alloc_->Alloc(reply.queue_size, sched_getcpu());
+        void *cq_region = shmem_alloc_->Alloc(reply.queue_size, sched_getcpu());
+
+    }
 }
 
 void labstor::Client::IPCManager::CreateInternalQueues(int num_queues) {
-    interal_qp_region_ = malloc(labstor::ipc::request_queue::MinimumRegionSize()*num_queues*2);
-    void *submission_region, *completion_region;
-    size_t off = 0;
+    labstor::shmem_allocator *internal_alloc;
+    uint32_t region_size = labstor::ipc::request_queue::MinimumRegionSize()*num_queues*3;
+    void *region = malloc(region_size);
+
+    int request_unit = 256;
+    int concurrency = 8;
+    internal_alloc = new labstor::shmem_allocator();
+    internal_alloc->Init(region, region_size, request_unit, concurrency);
+    internal_alloc_ = internal_alloc;
 
     for(int i = 0; i < num_queues; ++i) {
-        submission_region = (char*)interal_qp_region_ + off;
-        labstor::ipc::request_queue submission(submission_region, labstor::ipc::request_queue::MinimumRegionSize(), 0);
-        off += labstor::ipc::request_queue::MinimumRegionSize();
-
-        completion_region = (char*)interal_qp_region_ + off;
-        labstor::ipc::request_queue completion(completion_region, labstor::ipc::request_queue::MinimumRegionSize(), 0);
-        off += labstor::ipc::request_queue::MinimumRegionSize();
+        void *sq_region = internal_alloc_->Alloc(request_unit, sched_getcpu());
+        void *cq_region = internal_alloc_->Alloc(request_unit, sched_getcpu());
     }
 }
 

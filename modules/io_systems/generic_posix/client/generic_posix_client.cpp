@@ -23,8 +23,8 @@ public:
         rq->open.flags = flags;
         rq->open.mode = mode;
 
-        labstor::queue_pair *qp = ipc_manager_->GetQueue(tid);
-        int qtok = qp->StartRequest();
+        labstor::queue_pair &qp = ipc_manager_->GetQueue(tid);
+        uint32_t qtok = qp->StartRequest();
         qp->Wait(qtok);
     }
 

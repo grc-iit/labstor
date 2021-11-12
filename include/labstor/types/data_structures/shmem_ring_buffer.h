@@ -16,7 +16,6 @@ namespace labstor {
 struct shmem_ring_buffer_header {
     uint64_t enqueued_, dequeued_;
     uint32_t max_depth_;
-    SpinLock lock_;
 };
 
 class shmem_ring_buffer {
@@ -38,7 +37,6 @@ public:
         queue_ = (uint32_t*)(header_ + 1);
         header_->enqueued_ = 0;
         header_->dequeued_ = 0;
-        header_->lock_.Init();
         if(max_depth > 0) {
             min_region_size = max_depth*sizeof(uint32_t) + sizeof(shmem_ring_buffer_header);
             if(min_region_size > region_size) {
@@ -74,10 +72,6 @@ public:
         while(!__atomic_compare_exchange_n(&header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
         return (void*)((char*)region_ + queue_[dequeued % header_->max_depth_]);
     }
-
-    inline void Lock() { header_->lock_.Lock(); }
-    inline void TryLock() { header_->lock_.TryLock(); }
-    inline void UnLock() { header_->lock_.UnLock(); }
 };
 
 }

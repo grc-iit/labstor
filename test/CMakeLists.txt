@@ -16,7 +16,11 @@ add_dependencies(client_to_kernel_exec labstor_kernel_client)
 target_link_libraries(client_to_kernel_exec labstor_kernel_client)
 
 ######MEMORY ALLOCATION
-add_executable(test_private_mem_alloc_exec unit/memory_allocator/single/test.cpp)
+add_executable(test_single_core_mem_alloc_exec unit/memory_allocator/single/test.cpp)
+add_executable(test_multicore_mem_alloc_exec unit/memory_allocator/multicore/test.cpp)
+add_dependencies(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink)
+target_link_libraries(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink mpi)
+add_custom_target(test_multicore_mem_alloc mpirun -n 4 ${CMAKE_CURRENT_BINARY_DIR}/test_multicore_mem_alloc_exec MULTICORE)
 
 ######SHARED MEMORY CREATION
 add_executable(test_shmem_exec unit/shared_memory/test_shmem.cpp)

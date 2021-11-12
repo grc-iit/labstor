@@ -47,28 +47,12 @@ struct setup_request {
 };
 
 struct setup_reply {
-    int region_id;
-    size_t region_size;
-};
-
-struct SpinLock {
-    int lock_;
-
-    SpinLock() { Init(); }
-    inline void Init() {
-        lock_ = 0;
-    }
-    inline void Lock() {
-        int unlocked = 0;
-        do {} while (!__atomic_compare_exchange_n(&lock_, &unlocked, 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    }
-    inline void UnLock() {
-        lock_ = 0;
-    }
-    inline int TryLock() {
-        int unlocked = 0;
-        return __atomic_compare_exchange_n(&lock_, &unlocked, 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
-    }
+    uint32_t region_id;
+    uint32_t region_size;
+    uint32_t request_unit;
+    uint32_t concurrency;
+    uint32_t num_queues;
+    uint32_t queue_size;
 };
 
 }

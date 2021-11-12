@@ -24,7 +24,6 @@ public:
         }
     }
 
-private:
     inline int GetParentDir(const  char *pathaname, int cur_size) {
         for(int i = cur_size; i >= 0; --i) {
             if(pathname[i] == '/') {
@@ -57,8 +56,4 @@ private:
     inline void Close(int fd) {
     }
 };
-
-labstor::Module module_ = {
-    .process_request_fn = GenericFS_Server::process_request,
-    .get_ops = nullptr
-};
+LABSTOR_MODULE_CREATE(GenericFS_Server);

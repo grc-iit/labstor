@@ -15,4 +15,4 @@ ipc_manager:
   kernel_shmem_mb: 1
   internal_shmem_mb: 16
   process_shmem_kb: 4
-  allocator_unit_bytes: 128
+  allocator_unit_bytes: 256

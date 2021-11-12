@@ -2,12 +2,12 @@
 // Created by lukemartinlogan on 8/21/21.
 //
 
-#ifndef LABSTOR_UNORDERED_MAP_H
-#define LABSTOR_UNORDERED_MAP_H
+#ifndef LABSTOR_SHMEM_UNORDERED_MAP_H
+#define LABSTOR_SHMEM_UNORDERED_MAP_H
 
 #include <atomic>
 
-namespace labstor::ipc {
+namespace labstor {
 
 template<typename S, typename T>
 struct bucket {
@@ -92,4 +92,4 @@ public:
 
 }
 
-#endif //LABSTOR_UNORDERED_MAP_H
+#endif //LABSTOR_SHMEM_UNORDERED_MAP_H

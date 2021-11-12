@@ -8,17 +8,109 @@
 #include <labstor/util/singleton.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 
+uint32_t ncores = 8;
+uint32_t page_size = 128;
+uint32_t num_pages = 64;
+size_t region_size = ncores * page_size * num_pages;
+void *region;
+
+labstor::GenericAllocator* private_allocator_init(int rank) {
+    labstor::private_shmem_allocator *allocator = new labstor::private_shmem_allocator();
+    if(rank == 0) {
+        allocator->Init(region, region_size, page_size);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank != 0) {
+        allocator->Attach(region);
+    }
+    return allocator;
+}
+
+labstor::GenericAllocator* multicore_allocator_init(int rank) {
+    labstor::shmem_allocator *allocator = new labstor::shmem_allocator();
+    if(rank == 0) {
+        allocator->Init(region, region_size, page_size, 4);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank != 0) {
+        allocator->Attach(region);
+    }
+    return allocator;
+}
+
+std::vector<void*> create_requests(int rank, labstor::GenericAllocator *allocator, int max) {
+    void *page;
+    int *intpg;
+    std::vector<void*> pages;
+    for(int i = 0; i < max; ++i) {
+        page = allocator->Alloc(page_size, rank % ncores);
+        if(page == nullptr) { break; }
+        intpg = (int*)page;
+        *intpg = rank*10000 + i;
+        pages.emplace_back(page);
+    }
+    return std::move(pages);
+}
+
+void view_request_values(int rank, int nprocs, std::vector<void*> &pages) {
+    MPI_Barrier(MPI_COMM_WORLD);
+    for(int p = 0; p < nprocs; ++p) {
+        if(rank == p) {
+            for (int i = 0; i < pages.size(); ++i) {
+                int *page = (int *)pages[i];
+                printf("PAGE[%d,%d]: %d\n", rank, i, *page);
+            }
+            printf("\n");
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+}
+
+void multicore_test(labstor::GenericAllocator *allocator) {
+    void *page;
+    int *intpg, i = 0;
+    std::vector<void*> pages;
+    int nprocs, rank;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+
+    //Allocate requests
+    pages = create_requests(rank, allocator, ncores*num_pages);
+
+    //View request values
+    view_request_values(rank, nprocs, pages);
+
+    //Free requests
+    for(uint32_t i = 0; i < pages.size(); ++i) {
+        allocator->Free(pages[i]);
+    }
+
+    //Allocate requests
+    pages = create_requests(rank, allocator, pages.size());
+
+    //View request values
+    view_request_values(rank, nprocs, pages);
+}
+
 int main(int argc, char **argv) {
     int rank, region_id;
     MPI_Init(&argc, &argv);
-    size_t region_size = 4096;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::ipc::request_queue q;
-    auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+    labstor::GenericAllocator *alloc;
+    auto netlink_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
+    std::string allocator_type;
+
+    //Allocator
+    if(argc != 2) {
+        printf("USAGE: ./test [allocator_type]\n");
+        exit(1);
+    }
+    allocator_type = argv[1];
 
     //Create SHMEM region
-    netlink_client__->Connect();
+    netlink_client_->Connect();
     if(rank == 0) {
         region_id = shmem_netlink.CreateShmem(region_size, true);
         if(region_id < 0) {
@@ -26,50 +118,27 @@ int main(int argc, char **argv) {
             exit(1);
         }
         printf("Sending ID: %d\n", region_id);
-        MPI_Send(&region_id, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
     }
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    //Acquire region ID from rank 0
-    if(rank == 1) {
-        MPI_Recv(&region_id, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        printf("Receiving Region ID: %d\n", region_id);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Bcast(&region_id, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("REGION ID: %d\n", region_id);
 
     //Grant MPI rank access to region
     shmem_netlink.GrantPidShmem(getpid(), region_id);
-    void *region = shmem_netlink.MapShmem(region_id, region_size);
+    region = shmem_netlink.MapShmem(region_id, region_size);
     if(region == NULL) {
         printf("Failed to map shmem\n");
         exit(1);
     }
     printf("Mapped Region ID (rank=%d): %d %p\n", rank, region_id, region);
 
-    //Initialize request queue and place request in the queue
-    if(rank == 0) {
-        q.Init(region, region_size, sizeof(simple_request));
-        for(int i = 0; i < 10; ++i) {
-            struct simple_request* rq = (struct simple_request*)q.Allocate(sizeof(struct simple_request));
-            rq->hi = 12341;
-            printf("ENQUEUEING REQUEST: %d\n", rq->hi);
-            q.Enqueue(&rq->header);
-        }
+    //Perform the tests
+    if(allocator_type == "PRIVATE") {
+        multicore_test(private_allocator_init(rank));
+    }
+    if(allocator_type == "MULTICORE") {
+        multicore_test(multicore_allocator_init(rank));
     }
     MPI_Barrier(MPI_COMM_WORLD);
-
-
-    //Dequeue request and print its value
-    if(rank == 1) {
-        q.Attach(region);
-        int i = 0;
-        while(i < 10) {
-            struct simple_request *rq = (struct simple_request *) q.Dequeue();
-            if(!rq) { continue; }
-            printf("RECEIVED REQUEST: %d\n", rq->hi);
-            ++i;
-        }
-    }
 
     //Delete SHMEM region
     shmem_netlink.FreeShmem(region_id);

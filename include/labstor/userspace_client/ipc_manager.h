@@ -8,7 +8,8 @@
 
 #include <vector>
 #include <labstor/types/basics.h>
-#include <labstor/ipc/request_queue.h>
+#include <labstor/types/allocator/shmem_allocator.h>
+#include <labstor/types/data_structures/shmem_request_queue.h>
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -21,14 +22,18 @@ class IPCManager {
 private:
     int serverfd_;
     pthread_t admin_thread_;
-    void *interal_qp_region_;
-    std::vector<labstor::ipc::queue_pair> shmem_qps_;
-    std::vector<labstor::ipc::queue_pair> internal_qps_;
+    labstor::GenericAllocator *shmem_alloc_;
+    labstor::GenericAllocator *internal_alloc_;
+    std::vector<labstor::queue_pair> qps_by_flags_;
+    std::unordered_map<uint64_t, labstor::queue_pair> qps_by_id_flags_;
 public:
     void Connect(int num_queues);
     void SendMSG(void *buffer, size_t size);
     void RecvMSG(void *buffer, size_t size);
-    labstor::ipc::queue_pair& GetQueuePair(int flags, int core) { return shmem_qps_[core]; }
+    inline labstor::queue_pair& GetQueuePair(uint32_t flags, int core) { return qps_by_flags_[flags]; }
+    inline labstor::queue_pair& GetQueuePair(char *str, uint32_t runtime_id, uint32_t flags) {
+        qps_by_id_flags_[flags | hash];
+    }
     void PauseQueues();
     void ResumeQueues();
 private:

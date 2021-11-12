@@ -30,10 +30,12 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("secure_shmem");
 
 atomic_t cur_region_id;
-DEFINE_MUTEX(region_map_mutex);
+DEFINE_MUTEX(labstor_mmap_mutex);
 LIST_HEAD(region_map);
-DEFINE_MUTEX(pid_regions_mutex);
 LIST_HEAD(pid_regions);
+
+#define LABSTOR_MMAP_LOCK mutex_lock_interruptible(&labstor_mmap_mutex);
+#define LABSTOR_MMAP_UNLOCK mutex_unlock(&labstor_mmap_mutex);
 
 #define N_MINORS 1
 struct class *shmem_class;
@@ -48,7 +50,10 @@ struct shmem_pid_region {
     bool is_mapped;
 };
 
-struct shmem_region_info *find_shmem_region(int region_id) {
+
+/*LOCKLESS UPDATES*/
+
+struct shmem_region_info *find_shmem_region_nolock(int region_id) {
     struct shmem_region_info *pos;
     list_for_each_entry(pos, &region_map, node) {
         if(pos->region_id == region_id) {
@@ -57,9 +62,8 @@ struct shmem_region_info *find_shmem_region(int region_id) {
     }
     return NULL;
 }
-EXPORT_SYMBOL(find_shmem_region);
 
-struct shmem_pid_region *find_pid_region(int pid, int region_id) {
+struct shmem_pid_region *find_pid_region_nolock(int pid, int region_id) {
     struct shmem_pid_region *pos;
     list_for_each_entry(pos, &pid_regions, node) {
         if(pos->pid == pid && pos->region->region_id == region_id) {
@@ -69,10 +73,15 @@ struct shmem_pid_region *find_pid_region(int pid, int region_id) {
     return NULL;
 }
 
-void* reserve_shmem(size_t size, bool user_owned, int *new_region_id) {
+void* reserve_shmem_nolock(size_t size, bool user_owned, int *new_region_id) {
     struct shmem_region_info *region_info;
 
-    region_info = vmalloc(sizeof(struct shmem_region_info));
+    if(size % PAGE_SIZE != 0) {
+        pr_warn("Shared memory is not page-aligned\n");
+        size = size + PAGE_SIZE - (size % PAGE_SIZE);
+    }
+
+    region_info = kvmalloc(sizeof(struct shmem_region_info), GFP_HIGHUSER);
     if(region_info == NULL) {
         pr_err("Could not allocate another secure shared memory region element");
         return NULL;
@@ -87,40 +96,34 @@ void* reserve_shmem(size_t size, bool user_owned, int *new_region_id) {
     }
     region_info->user_owned = user_owned;
 
-    mutex_lock_interruptible(&region_map_mutex);
     list_add(&region_info->node, &region_map);
-    mutex_unlock(&region_map_mutex);
-
     if(new_region_id) {
         *new_region_id = region_info->region_id;
     }
     return region_info->vmalloc_ptr;
 }
 
-bool grant_pid_shmem(int region_id, int pid) {
+bool grant_pid_shmem_nolock(int region_id, int pid) {
     struct shmem_pid_region *pid_region;
-    pid_region = vmalloc(sizeof(struct shmem_pid_region));
+    pid_region = kvmalloc(sizeof(struct shmem_pid_region), GFP_HIGHUSER);
     if(pid_region == NULL) {
         pr_err("Could not allocate a permissions element");
         return false;
     }
     pid_region->pid = pid;
-    pid_region->region = find_shmem_region(region_id);
+    pid_region->region = find_shmem_region_nolock(region_id);
     if(pid_region->region == NULL) {
         pr_err("Could not find region %d\n", region_id);
         vfree(pid_region);
         return false;
     }
     pid_region->is_mapped = false;
-
-    mutex_lock_interruptible(&pid_regions_mutex);
     list_add(&pid_region->node, &pid_regions);
-    mutex_unlock(&pid_regions_mutex);
     return true;
 }
 
-void free_shmem_region_by_id(int region_id) {
-    struct shmem_region_info *region = find_shmem_region(region_id);
+void free_shmem_region_by_id_nolock(int region_id) {
+    struct shmem_region_info *region = find_shmem_region_nolock(region_id);
     struct shmem_pid_region *pid_pos, *pid_pos_temp;
 
     if(region == NULL) {
@@ -128,28 +131,21 @@ void free_shmem_region_by_id(int region_id) {
         return;
     }
 
-    mutex_lock_interruptible(&region_map_mutex);
-    mutex_lock_interruptible(&pid_regions_mutex);
-
     list_del(&region->node);
     vfree(region->vmalloc_ptr);
-    vfree(region);
+    kvfree(region);
 
     list_for_each_entry_safe(pid_pos, pid_pos_temp, &pid_regions, node) {
         if(pid_pos->region->region_id == region_id) {
             list_del(&pid_pos->node);
-            vfree(pid_pos);
+            kvfree(pid_pos);
         }
     }
-    mutex_unlock(&pid_regions_mutex);
-    mutex_unlock(&region_map_mutex);
 }
 
-void free_all_regions(void) {
+void free_all_regions_nolock(void) {
     struct shmem_region_info *region_pos, *region_pos_temp;
     struct shmem_pid_region *pid_pos, *pid_pos_temp;
-    mutex_lock_interruptible(&region_map_mutex);
-    mutex_lock_interruptible(&pid_regions_mutex);
     list_for_each_entry_safe(region_pos, region_pos_temp, &region_map, node) {
         list_del(&region_pos->node);
         vfree(region_pos->vmalloc_ptr);
@@ -159,8 +155,90 @@ void free_all_regions(void) {
         list_del(&pid_pos->node);
         vfree(pid_pos);
     }
-    mutex_unlock(&pid_regions_mutex);
-    mutex_unlock(&region_map_mutex);
+}
+
+int labstor_mmap_nolock(struct file *filp, struct vm_area_struct *vma) {
+    struct shmem_pid_region *pid_region;
+    struct shmem_region_info *region;
+    size_t size, i;
+    pid_t pid;
+    int region_id = (int)filp->private_data;
+
+    //Acquire shared memory region
+    pid = current->pid;
+    size = vma->vm_end - vma->vm_start;
+    pid_region = find_pid_region_nolock(pid, region_id);
+    if(pid_region == NULL) {
+        pr_err("Process %d tried accessing region %d without permission\n", pid, region_id);
+        return -1;
+    }
+    region = pid_region->region;
+
+    //Map region into userspace
+    for(i = 0; i < size; i += PAGE_SIZE) {
+        if(remap_pfn_range(vma, vma->vm_start + i, vmalloc_to_pfn((char*)region->vmalloc_ptr + i), PAGE_SIZE, vma->vm_page_prot)) {
+            pr_err("Could not map region %d into pid %d's address space", region->region_id, pid);
+            return -1;
+        }
+        //SetPageReserved(page);
+    }
+    return 0;
+}
+
+
+/*LOCKED UPDATES*/
+
+struct shmem_region_info *find_shmem_region(int region_id) {
+    struct shmem_region_info *pos;
+    LABSTOR_MMAP_LOCK
+    pos = find_shmem_region_nolock(region_id);
+    LABSTOR_MMAP_UNLOCK
+    return pos;
+}
+EXPORT_SYMBOL(find_shmem_region);
+
+struct shmem_pid_region *find_pid_region(int pid, int region_id) {
+    struct shmem_pid_region *pid_region;
+    LABSTOR_MMAP_LOCK
+    pid_region = find_pid_region_nolock(pid, region_id);
+    LABSTOR_MMAP_UNLOCK
+    return pid_region;
+}
+
+void* reserve_shmem(size_t size, bool user_owned, int *new_region_id) {
+    void *region;
+    LABSTOR_MMAP_LOCK
+    region = reserve_shmem_nolock(size, user_owned, new_region_id);
+    LABSTOR_MMAP_UNLOCK
+    return region;
+}
+
+bool grant_pid_shmem(int region_id, int pid) {
+    bool granted;
+    LABSTOR_MMAP_LOCK
+    granted = grant_pid_shmem_nolock(region_id, pid);
+    LABSTOR_MMAP_UNLOCK
+    return granted;
+}
+
+void free_shmem_region_by_id(int region_id) {
+    LABSTOR_MMAP_LOCK
+    free_shmem_region_by_id_nolock(region_id);
+    LABSTOR_MMAP_UNLOCK
+}
+
+void free_all_regions(void) {
+    LABSTOR_MMAP_LOCK
+    free_all_regions_nolock();
+    LABSTOR_MMAP_UNLOCK
+}
+
+int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
+    int ret;
+    LABSTOR_MMAP_LOCK
+    ret = labstor_mmap_nolock(filp, vma);
+    LABSTOR_MMAP_UNLOCK
+    return ret;
 }
 
 static int labstor_open(struct inode *inode, struct file *filp) {
@@ -173,33 +251,7 @@ static loff_t labstor_lseek(struct file *file, loff_t offset, int orig) {
     return offset;
 }
 
-int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
-    struct shmem_pid_region *pid_region;
-    struct shmem_region_info *region;
-    size_t size, i;
-    pid_t pid;
-    int region_id = (int)filp->private_data;
 
-    //Acquire shared memory region
-    pid = current->pid;
-    size = vma->vm_end - vma->vm_start;
-    pid_region = find_pid_region(pid, region_id);
-    if(pid_region == NULL) {
-        pr_err("Process %d tried accessing region %d without permission\n", pid, region_id);
-        return -1;
-    }
-    region = pid_region->region;
-
-    //Map region into userspace
-    for(i = 0; i < size; i += PAGE_SIZE) {
-        if(remap_pfn_range(vma, vma->vm_start + i, vmalloc_to_pfn(region->vmalloc_ptr + i), size, vma->vm_page_prot)) {
-            pr_err("Could not map region %d into pid %d's address space", region->region_id, pid);
-            return 0;
-        }
-        //SetPageReserved(page);
-    }
-    return 0;
-}
 
 void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
     int code = 0;

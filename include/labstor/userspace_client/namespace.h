@@ -11,7 +11,7 @@ namespace labstor::Client {
 
 struct Namespace {
     int region_id;
-    labstor::ipc::unordered_map<std::string, labstor::Module*> namespace_;
+    labstor::unordered_map<std::string, labstor::Module*> namespace_;
 };
 
 }
