@@ -5,6 +5,7 @@
 #ifndef LABSTOR_SMALL_SHMEM_ALLOCATOR_H
 #define LABSTOR_SMALL_SHMEM_ALLOCATOR_H
 
+#include "allocator.h"
 #include "private_shmem_allocator.h"
 
 #ifdef __cplusplus
@@ -18,6 +19,7 @@ struct shmem_allocator_entry {
 };
 
 struct shmem_allocator_header {
+    uint32_t region_size_;
     int concurrency_;
 };
 
@@ -25,73 +27,67 @@ class shmem_allocator : public GenericAllocator {
 private:
     int concurrency_;
     void *region_;
-    size_t region_size_, per_core_region_size_;
+    uint32_t region_size_;
     shmem_allocator_header *header_;
     std::vector<private_shmem_allocator> per_core_allocs_;
 public:
-    small_shmem_allocator() = default;
+    shmem_allocator() = default;
 
     void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency) {
-        concurrency_ = concurrency;
+        uint32_t per_core_region_size;
+        void *core_region;
+
         region_ = region;
         region_size_ = region_size;
-        per_core_region_size_ = (region_size - sizeof(shmem_allocator_header)) / concurrency;
-        header_ = (shmem_alocator_header*)region_;
+        header_ = (shmem_allocator_header *)region;
+        header_->region_size_ = region_size;
         header_->concurrency_ = concurrency;
+        concurrency_ = concurrency;
 
-        uint32_t off = sizeof(shmem_allocator_header);
-        per_core_allocs_.reserve(concurrency);
+        core_region = (void*)(header_ + 1);
+        per_core_region_size = region_size / concurrency;
+        per_core_allocs_.resize(concurrency);
         for(int i = 0; i < concurrency; ++i) {
-            per_core_allocs_.emplace_back();
-            per_core_allocs_[i].Init((char*)region_ + off, per_core_region_size_, request_unit);
-            off += per_core_region_size;
+            per_core_allocs_[i].Init(core_region, per_core_region_size, request_unit);
+            core_region = (void*)((char*)core_region + per_core_region_size);
         }
     }
 
-    void Attach(void *region, size_t region_size) {
-        header_ =  (shmem_alocator_header*)region_;
+    void Attach(void *region) override {
+        uint32_t per_core_region_size;
+        void *core_region;
+
+        region_ = region;
+        header_ = (shmem_allocator_header *)region;
+        region_size_ = header_->region_size_;
         concurrency_ = header_->concurrency_;
 
-        uint32_t off = sizeof(shmem_allocator_header);
-        per_core_allocs_.reserve(concurrency);
-        for(int i = 0; i < concurrency; ++i) {
-            per_core_allocs_.emplace_back();
-            per_core_allocs_[i].Attach((char*)region_ + off, per_core_region_size_, request_unit);
-            off += per_core_region_size;
+        core_region = (void*)(header_ + 1);
+        per_core_region_size = region_size_ / concurrency_;
+        per_core_allocs_.resize(concurrency_);
+        for(int i = 0; i < concurrency_; ++i) {
+            per_core_allocs_[i].Attach(core_region);
+            core_region = (void*)((char*)core_region + per_core_region_size);
         }
     }
 
-    void *Alloc(uint32_t size, uint32_t core) {
-        private_shmem_allocator *alloc_;
-        for(int i = 0; i < 2*concurrency_; ++i) {
-            alloc_ = &per_core_allocs_[core];
-            if(!alloc_->TryLock()) {
-                core = (core + 1) % concurency_;
-                continue;
+    void *Alloc(uint32_t size, uint32_t core) override {
+        int save = core;
+        shmem_allocator_entry *page;
+        do {
+            page = (shmem_allocator_entry *)per_core_allocs_[core].Alloc(size, core);
+            if(page) {
+                page->core_ = core;
+                return (void*)(page + 1);
             }
-            shmem_allocator_entry *entry = (shmem_allocator_entry *)alloc_->Alloc(size + sizeof(shmem_allocator_entry));
-            if (entry == nullptr) {
-                alloc_->UnLock();
-                continue;
-            }
-            entry->core_ = core;
-            alloc_->UnLock();
-            return (void*)(entry + 1);
-        }
+            core = (core + 1)%concurrency_;
+        } while(core != save);
+        return nullptr;
     }
 
-    void Free(void *data) {
-        int core;
-        shmem_allocator_entry *entry = (shmem_allocator_entry *)data - 1;
-        core = entry->core_;
-        while(1) {
-            alloc_ = &per_core_allocs_[core];
-            if(!alloc_->TryLock()) {
-                core = (core + 1) % concurency_;
-                continue;
-            }
-            alloc_->Free((void*)entry);
-        }
+    void Free(void *data) override {
+        int core = ((shmem_allocator_entry*)data - 1)->core_;
+        per_core_allocs_[core].Free(data);
     }
 };
 

@@ -7,14 +7,14 @@
 
 #ifdef __cplusplus
 
-#include <stddef.h>
+#include <stdint.h>
 
 namespace labstor {
 
 class GenericAllocator {
 public:
-    virtual void* Alloc(uint32_t size, uint32_t id) = 0;
-    virtual void Free(void *data, uint32_t core) = 0;
+    virtual void* Alloc(uint32_t size, uint32_t core) = 0;
+    virtual void Free(void *data) = 0;
     virtual void Attach(void *region) {};
 };
 

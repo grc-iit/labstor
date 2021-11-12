@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include modules/kernel)
 
+#set(CMAKE_C_FLAGS "-g -O3")
+#set(CMAKE_CXX_FLAGS "-g -O3")
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 

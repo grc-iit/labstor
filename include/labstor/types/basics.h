@@ -60,7 +60,7 @@ struct SpinLock {
     }
     inline void Lock() {
         int unlocked = 0;
-        do {} while (__atomic_compare_exchange_n(&lock_, &unlocked, 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+        do {} while (!__atomic_compare_exchange_n(&lock_, &unlocked, 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     }
     inline void UnLock() {
         lock_ = 0;
