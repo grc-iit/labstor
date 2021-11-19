@@ -12,6 +12,7 @@
 #include <linux/kernel.h>
 #include <linux/string.h>
 
+/*
 void labstor_request_queue_init(struct labstor_request_queue *q, void *region, size_t region_size, size_t request_unit) {
     memset(region, 0, region_size);
     q->region_ = region;
@@ -34,3 +35,4 @@ struct labstor_request* labstor_request_queue_allocate(struct labstor_request_qu
     return (struct labstor_request*)labstor_allocator_alloc(&q->allocator_, size);
 }
 EXPORT_SYMBOL(labstor_request_queue_allocate);
+*/

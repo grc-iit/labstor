@@ -28,7 +28,7 @@ MODULE_ALIAS("labstor_kernel_worker");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
-    struct labstor_request_queue worker_queue;
+    //struct labstor_request_queue worker_queue;
 };
 
 size_t time_slice_us_;
@@ -41,7 +41,7 @@ size_t time_slice_us;
 int worker_runtime(struct labstor_worker_struct *worker) {
     pr_info("Worker: %p\n", worker);
     while(true) {
-        labstor_request_queue_dequeue(&worker->worker_queue);
+        //labstor_request_queue_dequeue(&worker->worker_queue);
     }
     return 0;
 }
@@ -59,7 +59,7 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
     //region = shmem whatever...
     for(i = 0; i < num_workers; ++i) {
         worker = workers + i;
-        labstor_request_queue_init(&worker->worker_queue, region, region_size, time_slice_us);
+        //labstor_request_queue_init(&worker->worker_queue, region, region_size, time_slice_us);
         worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;

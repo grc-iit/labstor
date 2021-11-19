@@ -5,6 +5,6 @@
 #ifndef LABSTOR_REQUEST_QUEUE_KERNEL_H
 #define LABSTOR_REQUEST_QUEUE_KERNEL_H
 
-#include <labstor/ipc/request_queue.h>
+#include <labstor/types/data_structures/shmem_request_queue.h>
 
 #endif //LABSTOR_REQUEST_QUEUE_KERNEL_H

@@ -35,6 +35,15 @@ cmake ../
 make -j4  
 ```
 
+# 4. Running
+```
+module load yaml-cpp
+make start_kernel_server
+make start_trusted_server
+make stop_trusted_server
+make stop_kernel_server
+```
+
 ```
 kthread affinity:
 https://stackoverflow.com/questions/18064292/set-thread-affinity-in-a-linux-kernel-module

@@ -15,7 +15,6 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/module.h>
-#include <labstor/types/ipc_pool.h>
 
 #define NETLINK_USER 31
 

@@ -10,6 +10,7 @@
 
 #ifdef __cplusplus
 
+#include <sys/sysinfo.h>
 #include "allocator.h"
 
 namespace labstor {
@@ -33,9 +34,13 @@ private:
 public:
     shmem_allocator() = default;
 
-    void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency) {
+    void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency = 0) {
         uint32_t per_core_region_size;
         void *core_region;
+
+        if(concurrency == 0) {
+            concurrency = get_nprocs_conf();
+        }
 
         region_ = region;
         region_size_ = region_size;
@@ -72,7 +77,7 @@ public:
     }
 
     void *Alloc(uint32_t size, uint32_t core) override {
-        int save = core;
+        int save = core % concurrency_;
         shmem_allocator_entry *page;
         do {
             page = (shmem_allocator_entry *)per_core_allocs_[core].Alloc(size, core);

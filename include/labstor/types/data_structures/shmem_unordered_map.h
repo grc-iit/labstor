@@ -7,6 +7,8 @@
 
 #include <atomic>
 
+#ifdef __cplusplus
+
 namespace labstor {
 
 template<typename S, typename T>
@@ -91,5 +93,7 @@ public:
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_SHMEM_UNORDERED_MAP_H

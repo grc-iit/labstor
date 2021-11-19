@@ -12,6 +12,7 @@ namespace labstor {
     const Error INVALID_STORAGE_TYPE(1, "{} is not a valid storage method");
     const Error INVALID_SERIALIZER_TYPE(2, "{} is not a valid serializer type");
     const Error INVALID_TRANSPORT_TYPE(3, "{} is not a valid transport type");
+    const Error INVALID_AFFINITY(3, "Could not set CPU affinity of thread: {}");
 
     const Error DLSYM_MODULE_NOT_FOUND(100, "Module {} was not found");
     const Error DLSYM_MODULE_NO_CONSTRUCTOR(101, "Module {} has no constructor");
@@ -23,8 +24,8 @@ namespace labstor {
     const Error UNIX_RECVMSG_FAILED(204, "Failed to receive message over socket: {}");
     const Error UNIX_SETSOCKOPT_FAILED(205, "Failed to set socket options: {}");
     const Error UNIX_GETSOCKOPT_FAILED(205, "Failed to acquire user credentials: {}");
-    const Error UNIX_LISTEN_FAILED(206, "Failed to set socket options: {}");
-    const Error UNIX_ACCEPT_FAILED(207, "Failed to set socket options: {}");
+    const Error UNIX_LISTEN_FAILED(206, "Failed to listen for connections: {}");
+    const Error UNIX_ACCEPT_FAILED(207, "Failed accept connections: {}");
 
     const Error INVALID_RING_BUFFER_SIZE(300, "Failed to allocate ring buffer, {} is too small to support {} requests.");
 }

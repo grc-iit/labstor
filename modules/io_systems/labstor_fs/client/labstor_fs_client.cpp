@@ -4,7 +4,7 @@
 
 class LabStorFS_Client {
 public:
-    void ProcessRequest(labstor::ipc::queue_pair *qp, struct posix_request *rq, labstor::credentials *creds) {
+    void ProcessRequest(labstor::queue_pair *qp, struct posix_request *rq, labstor::credentials *creds) {
         switch(rq->op) {
             case OPEN_RQ: {
                 break;

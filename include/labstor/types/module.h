@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <labstor/types/basics.h>
-#include <labstor/ipc/request_queue.h>
+#include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/util/errors.h>
 
 #ifndef __CLION_IDE__
@@ -32,7 +32,7 @@ public:
 
     virtual void ReinforceRequestStats(void *request, size_t time_measure) {};
     virtual size_t EstRequestTime(void *request){ return 1; };
-    virtual void ProcessRequest(labstor::ipc::queue_pair *qp, void *request, labstor::credentials *creds) = 0;
+    virtual void ProcessRequest(labstor::queue_pair *qp, void *request, labstor::credentials *creds) = 0;
 };
 typedef labstor::Module* (*create_module_fn)(void);
 

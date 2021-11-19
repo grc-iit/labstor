@@ -6,7 +6,6 @@
 #define LABSTOR_SERVER_WORK_ORCHESTRATOR_H
 
 #include <sys/sysinfo.h>
-#include <sched.h>
 #include <memory>
 #include <unordered_map>
 #include <vector>

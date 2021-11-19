@@ -3,22 +3,22 @@
 //
 
 #include <mpi.h>
-#include <labstor/ipc/simple_allocator.h>
-#include <labstor/ipc/request_queue.h>
+#include <labstor/types/allocator/shmem_allocator.h>
+#include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/util/singleton.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 
 struct simple_request {
-    struct labstor::ipc::request header;
+    struct labstor::request header;
     int hi;
 };
 
 int main(int argc, char **argv) {
-    int rank, region_id;
+    /*int rank, region_id;
     MPI_Init(&argc, &argv);
     size_t region_size = 4096;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::ipc::request_queue q;
+    labstor::request_queue q;
     auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
 
@@ -79,5 +79,5 @@ int main(int argc, char **argv) {
     //Delete SHMEM region
     shmem_netlink.FreeShmem(region_id);
 
-    MPI_Finalize();
+    MPI_Finalize();*/
 }

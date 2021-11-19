@@ -1,0 +1,27 @@
+//
+// Created by lukemartinlogan on 11/18/21.
+//
+
+#ifndef LABSTOR_CLIENT_MACROS_H
+#define LABSTOR_CLIENT_MACROS_H
+
+#include <labstor/util/singleton.h>
+#define LABSTOR_CONFIGURATION_MANAGER_CLASS labstor::Client::ConfigurationManager
+#define LABSTOR_IPC_MANAGER_CLASS labstor::Client::IPCManager
+#define LABSTOR_MODULE_MANAGER_CLASS labstor::Client::ModuleManager
+#define LABSTOR_WORK_ORCHESTRATOR_CLASS labstor::Client::WorkOrchestrator
+#define LABSTOR_KERNEL_CLIENT_CLASS labstor::Kernel::NetlinkClient
+
+#define LABSTOR_CONFIGURATION_MANAGER_T std::shared_ptr<LABSTOR_CONFIGURATION_MANAGER_CLASS>
+#define LABSTOR_IPC_MANAGER_T std::shared_ptr<LABSTOR_IPC_MANAGER_CLASS>
+#define LABSTOR_MODULE_MANAGER_T std::shared_ptr<LABSTOR_MODULE_MANAGER_CLASS>
+#define LABSTOR_WORK_ORCHESTRATOR_T std::shared_ptr<LABSTOR_WORK_ORCHESTRATOR_CLASS>
+#define LABSTOR_KERNEL_CLIENT_T std::shared_ptr<LABSTOR_KERNEL_CLIENT_CLASS>
+
+#define LABSTOR_CONFIGURATION_MANAGER scs::Singleton<LABSTOR_CONFIGURATION_MANAGER_CLASS>::GetInstance()
+#define LABSTOR_IPC_MANAGER scs::Singleton<LABSTOR_IPC_MANAGER_CLASS>::GetInstance()
+#define LABSTOR_MODULE_MANAGER scs::Singleton<LABSTOR_MODULE_MANAGER_CLASS>::GetInstance()
+#define LABSTOR_WORK_ORCHESTRATOR scs::Singleton<LABSTOR_WORK_ORCHESTRATOR_CLASS>::GetInstance()
+#define LABSTOR_KERNEL_CLIENT scs::Singleton<LABSTOR_KERNEL_CLIENT_CLASS>::GetInstance()
+
+#endif //LABSTOR_CLIENT_MACROS_H

@@ -12,7 +12,7 @@ namespace labstor::Server {
 
 struct Namespace {
     int region_id;
-    labstor::ipc::unordered_map<labstor::id, labstor::Module*> namespace_;
+    labstor::unordered_map<labstor::id, labstor::Module*> namespace_;
 };
 
 }

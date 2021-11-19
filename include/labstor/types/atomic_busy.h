@@ -7,6 +7,8 @@
 
 #define ATOMIC_PLEASE_PAUSE 0x80000000
 
+#ifdef __cplusplus
+
 namespace labstor {
 
 struct AtomicBusy {
@@ -23,7 +25,7 @@ struct AtomicBusy {
             new_flags = flag_ref | ATOMIC_PLEASE_PAUSE;
         } while (!__atomic_compare_exchange_n(&flag_ref_, &flag_ref, new_flags, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     }
-    inline void IsPaused() {
+    inline bool IsPaused() {
         uint32_t new_flags = ATOMIC_PLEASE_PAUSE;
         return __atomic_compare_exchange_n(&flag_ref_, &new_flags, new_flags, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
     }
@@ -48,5 +50,7 @@ struct AtomicBusy {
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_ATOMIC_BUSY_H

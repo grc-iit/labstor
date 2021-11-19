@@ -4,27 +4,50 @@
 
 #include <memory>
 
+#include <labstor/util/errors.h>
 #include <labstor/util/singleton.h>
 #include <labstor/types/basics.h>
+#include <labstor/types/socket.h>
 #include <labstor/userspace_server/server.h>
 #include <labstor/userspace_server/ipc_manager.h>
 #include <labstor/kernel_client/kernel_client.h>
+#include <labstor/types/messages.h>
 
-void* labstor::Server::IPCManager::WreapProcesses(void *nothing) {
-    auto labstor_config_ = scs::Singleton<labstor::Server::ConfigurationManager>::GetInstance();
-    while(1) {
-        //Iterate over all IPCs and then check if process is still alive
-        //If dead, release shared memory
-    }
-}
-
-void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials *creds, int num_queues) {
+void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
     register_lock_.lock();
+    //Create new IPC
+    pid_to_ipc_.emplace(creds.pid, PerProcessIPC(client_fd, creds));
+    PerProcessIPC &ipc = pid_to_ipc_[creds.pid];
+    //Create shared memory
     register_lock_.unlock();
+
+    //Send shared memory to client
+    labstor::setup_reply reply;
+    reply.region_id = 0;
+    reply.region_size = labstor_config_->config_["ipc_manager"]["process_shmem_kb"].as<int>();
+    ipc.GetSocket().SendMSG(&reply, sizeof(reply));
 }
 
-labstor::ipc::queue_pair& GetQP(int flags) {
+void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, admin_request header) {
+    //Receive SHMEM queue offsets
+    labstor::register_qp_request request;
+    client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::register_qp_request));
+
+    //Receive the SHMEM queue pointers
+    uint32_t size = request.count_*sizeof(queue_pair_ptr);
+    labstor::queue_pair_ptr *ptrs = (labstor::queue_pair_ptr*)malloc(size);
+    client_ipc.GetSocket().RecvMSG((void*)ptrs, size);
+    for(int i = 0; i < request.count_; ++i) {
+    }
+    free(ptrs);
+
+    //Reply success
+    labstor::register_qp_reply reply(0);
+    client_ipc.GetSocket().SendMSG((void*)&reply, sizeof(labstor::register_qp_reply));
 }
 
-labstor::ipc::queue_pair& GetQP(int nreqs, int req_size, int flags) {
+labstor::queue_pair& GetQP(int flags) {
+}
+
+labstor::queue_pair& GetQP(int nreqs, int req_size, int flags) {
 }

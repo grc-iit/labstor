@@ -1,3 +1,7 @@
+modules:
+  secure_shmem:
+      client: "/home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/modules/kernel/secure_shmem/secure_shmem_client.so"
+      server: "/home/lukemartinlogan/Documents/Projects/PhD/labstor/cmake-build-debug/modules/kernel/secure_shmem/secure_shmem_client.so"
 work_orchestrator:
   time_slice_us: 1000
   policy: round-robin

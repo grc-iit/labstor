@@ -5,14 +5,6 @@
 #ifndef LABSTOR_BASICS_H
 #define LABSTOR_BASICS_H
 
-struct labstor_id {
-    char key[256];
-};
-
-struct labstor_netlink_header {
-    struct labstor_id module_id;
-};
-
 #ifdef __cplusplus
 
 #include <cstring>
@@ -42,19 +34,6 @@ struct credentials {
     int priority;
 };
 
-struct setup_request {
-    int num_queues;
-};
-
-struct setup_reply {
-    uint32_t region_id;
-    uint32_t region_size;
-    uint32_t request_unit;
-    uint32_t concurrency;
-    uint32_t num_queues;
-    uint32_t queue_size;
-};
-
 }
 
 template <>
@@ -65,5 +44,13 @@ struct std::hash<labstor::id> {
 };
 
 #endif
+
+struct labstor_id {
+    char key[256];
+};
+
+struct labstor_netlink_header {
+    struct labstor_id module_id;
+};
 
 #endif //LABSTOR_BASICS_H

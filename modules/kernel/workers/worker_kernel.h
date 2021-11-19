@@ -66,7 +66,7 @@ namespace labstor {
 
 struct worker_queue {
     int nqueues;
-    labstor::ipc::request_queue *queues;
+    labstor::request_queue *queues;
 };
 
 }

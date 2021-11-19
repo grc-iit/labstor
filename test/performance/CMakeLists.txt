@@ -3,6 +3,4 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(unit)
-add_subdirectory(performance)
-#add_subdirectory()
+add_executable(test_getcpu getcpu/test.cpp)

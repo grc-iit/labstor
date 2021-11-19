@@ -11,23 +11,27 @@
 #include <linux/types.h>
 #endif
 
-#define LABSTOR_QUEUE_INTERNAL 1
+#define LABSTOR_QUEUE_INTERMEDIATE 1
 #define LABSTOR_QUEUE_UNORDERED 2
-#define LABSTOR_QUEUE_PRIMARY 4
+#define LABSTOR_QUEUE_INTERNAL 4
 #define LABSTOR_QUEUE_BATCH 8
+#define LABSTOR_QUEUE_HIGH_LATENCY 16
 
 #define LABSTOR_QUEUE_PRIMARY 0
 #define LABSTOR_QUEUE_ORDERED 0
-#define LABSTOR_QUEUE_INTERMEDIATE 0
-#define LABSTOR_QUEUE_STREAM 0
+#define LABSTOR_QUEUE_SHMEM 0
+#define LABSTOR_QUEUE_STREAM
+#define LABSTOR_QUEUE_LOW_LATENCY 0
+
+#include <labstor/types/atomic_busy.h>
+#include <labstor/types/data_structures/ring_buffer.h>
+#include <labstor/constants/macros.h>
+
 
 #ifdef __cplusplus
-
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <labstor/types/atomic_busy.h>
-#include <labstor/types/data_structures/shmem_ring_buffer.h>
 
 namespace labstor {
 
@@ -39,14 +43,13 @@ struct request {
 struct request_queue_header {
     uint32_t qid_, flags_;
     AtomicBusy update_lock_;
-    shmem_ring_buffer_header queue_;
 };
 
 class request_queue {
 private:
     void *region_;
     request_queue_header *header_;
-    shmem_ring_buffer queue_;
+    ring_buffer<uint32_t> queue_;
     AtomicBusy *update_lock_;
 public:
     void Init(void *region, uint32_t region_size, uint32_t qid, uint32_t flags) {
@@ -56,19 +59,23 @@ public:
         header_->flags_ = flags;
         header_->update_lock_.Init();
         update_lock_ = &header_->update_lock_;
-        queue_.Init(&header_->queue_, region_size - sizeof(request_queue_header));
+        queue_.Init(header_+1, region_size - sizeof(request_queue_header));
     }
     void Attach(void *region) {
         region_ = region;
         header_ = (request_queue_header*)region;
         update_lock_ = &header_->update_lock_;
-        queue_.Attach((char*)region_ + sizeof(request_queue_header));
+        queue_.Attach(header_ + 1);
     }
     bool Enqueue(request *rq) {
-        return queue_.Enqueue(rq);
+        return queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_));
     }
     request* Dequeue() {
-        return (request*)queue_.Dequeue();
+        uint32_t off;
+        if(!queue_.Dequeue(off)) {
+            return nullptr;
+        }
+        return (request*)LABSTOR_REGION_ADD(off, region_);
     }
 
     inline void MarkPaused() {
@@ -101,7 +108,14 @@ struct queue_pair {
     }
 };
 
+struct queue_pair_ptr {
+    uint32_t sq_off;
+    uint32_t cq_off;
+};
+
 }
+
+#endif
 
 struct labstor_request {
     int qid;
