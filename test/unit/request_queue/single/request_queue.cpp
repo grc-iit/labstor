@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 9/21/21.
 //
 
-#include <labstor/types/data_structures/ring_buffer.h>
+#include <labstor/types/data_structures/shmem_ring_buffer.h>
 #include <labstor/util/singleton.h>
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 

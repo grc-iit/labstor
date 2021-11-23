@@ -11,78 +11,97 @@
 #include <linux/types.h>
 #endif
 
-#define LABSTOR_QUEUE_INTERMEDIATE 1
-#define LABSTOR_QUEUE_UNORDERED 2
-#define LABSTOR_QUEUE_INTERNAL 4
-#define LABSTOR_QUEUE_BATCH 8
-#define LABSTOR_QUEUE_HIGH_LATENCY 16
+#define LABSTOR_QP_INTERMEDIATE 0x10000000
+#define LABSTOR_QP_UNORDERED 0x20000000
+#define LABSTOR_QP_BATCH 0x40000000
+#define LABSTOR_QP_HIGH_LATENCY 0x80000000
 
-#define LABSTOR_QUEUE_PRIMARY 0
-#define LABSTOR_QUEUE_ORDERED 0
-#define LABSTOR_QUEUE_SHMEM 0
-#define LABSTOR_QUEUE_STREAM
-#define LABSTOR_QUEUE_LOW_LATENCY 0
+#define LABSTOR_QP_IS_INTERMEDIATE(flags) (flags & LABSTOR_QP_INTERMEDIATE)
+#define LABSTOR_QP_IS_UNORDERED(flags) (flags & LABSTOR_QP_UNORDERED)
+#define LABSTOR_QP_IS_BATCH(flags) (flags & LABSTOR_QP_BATCH)
+#define LABSTOR_QP_IS_HIGH_LATENCY(flags) (flags & LABSTOR_QP_HIGH_LATENCY)
 
-#include <labstor/types/atomic_busy.h>
-#include <labstor/types/data_structures/ring_buffer.h>
+#define LABSTOR_QP_IS_PRIMARY(flags) (!(flags & LABSTOR_QP_INTERMEDIATE))
+#define LABSTOR_QP_IS_ORDERED(flags) (!(flags & LABSTOR_QP_UNORDERED))
+#define LABSTOR_QP_IS_STREAM(flags) (!(flags & LABSTOR_QP_BATCH))
+#define LABSTOR_QP_IS_LOW_LATENCY(flags) (!(flags & LABSTOR_QP_HIGH_LATENCY))
+
+#include <labstor/types/shmem_atomic_busy.h>
+#include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_ring_buffer.h>
 #include <labstor/constants/macros.h>
-
 
 #ifdef __cplusplus
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "labstor/types/shmem_type.h"
 
-namespace labstor {
-
-struct request {
-    uint32_t qtok_;
-    uint32_t ns_id_;
-};
+namespace labstor::ipc {
 
 struct request_queue_header {
-    uint32_t qid_, flags_;
+    uint32_t flags_;
+    labstor::credentials creds_;
     AtomicBusy update_lock_;
 };
 
-class request_queue {
+class request_queue : public shmem_type {
 private:
-    void *region_;
     request_queue_header *header_;
     ring_buffer<uint32_t> queue_;
     AtomicBusy *update_lock_;
 public:
-    void Init(void *region, uint32_t region_size, uint32_t qid, uint32_t flags) {
+    inline static uint32_t GetSize(uint32_t max_depth) {
+        return sizeof(request_queue_header) + ring_buffer<uint32_t>::GetSize(max_depth);
+    }
+    inline uint32_t GetSize() {
+        return GetSize(queue_.GetMaxDepth());
+    }
+
+    inline void Init(void *region, uint32_t region_size, uint32_t flags) {
         region_ = region;
         header_ = (request_queue_header*)region;
-        header_->qid_ = qid;
         header_->flags_ = flags;
         header_->update_lock_.Init();
         update_lock_ = &header_->update_lock_;
         queue_.Init(header_+1, region_size - sizeof(request_queue_header));
     }
-    void Attach(void *region) {
+    inline void Init(void *region, uint32_t region_size, uint32_t flags, labstor::credentials creds) {
+        Init(region, region_size, flags);
+        header_->creds_ = creds;
+    }
+    inline void Attach(void *region) {
         region_ = region;
         header_ = (request_queue_header*)region;
         update_lock_ = &header_->update_lock_;
         queue_.Attach(header_ + 1);
     }
-    bool Enqueue(request *rq) {
-        return queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_));
-    }
-    request* Dequeue() {
-        uint32_t off;
-        if(!queue_.Dequeue(off)) {
-            return nullptr;
-        }
-        return (request*)LABSTOR_REGION_ADD(off, region_);
+
+    inline labstor::credentials* GetCredentials() {
+        return &header_->creds_;
     }
 
+    inline bool Enqueue(request *rq) {
+        return queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_));
+    }
+    inline bool Dequeue(request *&rq) {
+        uint32_t off;
+        if(!queue_.Dequeue(off)) { return false; }
+        rq = (request*)LABSTOR_REGION_ADD(off, region_);
+        return true;
+    }
+
+    inline uint32_t GetDepth() {
+        return queue_.GetDepth();
+    }
+    inline uint32_t GetFlags() {
+        return header_->flags_;
+    }
     inline void MarkPaused() {
         update_lock_->MarkPaused();
     }
-    inline void IsPaused() {
-        update_lock_->IsPaused();
+    inline bool IsPaused() {
+        return update_lock_->IsPaused();
     }
     inline void UnPause() {
         update_lock_->UnPause();
@@ -95,33 +114,13 @@ public:
     }
 };
 
-struct queue_pair {
-    request_queue submission;
-    request_queue completion;
-    queue_pair(
-        void *sub_region, size_t sub_region_size,
-        void *comp_region, size_t comp_region_size,
-        uint32_t qid,
-        uint32_t flags) {
-        submission.Init(sub_region, sub_region_size, flags, qid);
-        completion.Init(comp_region, comp_region_size, flags, qid);
-    }
-};
-
-struct queue_pair_ptr {
-    uint32_t sq_off;
-    uint32_t cq_off;
-};
-
 }
 
 #endif
 
 struct labstor_request {
-    int qid;
-    size_t req_id;
-    size_t next;
-    size_t est_time_us;
+    uint32_t qtok_;
+    uint32_t ns_id_;
 };
 
 struct labstor_km_request {

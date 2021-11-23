@@ -7,15 +7,13 @@
 
 #include <labstor/types/module.h>
 
-const labstor::id SIMPLE_MODULE_ID = "SIMPLE_MODULE";
-
 class SimpleModule : public labstor::Module {
 public:
-    SimpleModule();
+    SimpleModule() : Module("SIMPLE_MODULE") {}
     void print1();
     void print2();
     void print3();
-    void ProcessRequest(labstor::queue_pair *qp, void *request, labstor::credentials *creds);
+    void ProcessRequest(labstor::ipc::queue_pair qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
 
 #endif //LABSTOR_SIMPLE_MODULE_H

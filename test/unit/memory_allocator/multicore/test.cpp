@@ -15,7 +15,7 @@ size_t region_size = ncores * page_size * num_pages;
 void *region;
 
 labstor::GenericAllocator* private_allocator_init(int rank) {
-    labstor::private_shmem_allocator *allocator = new labstor::private_shmem_allocator();
+    labstor::ipc::private_shmem_allocator *allocator = new labstor::ipc::private_shmem_allocator();
     if(rank == 0) {
         allocator->Init(region, region_size, page_size);
     }
@@ -27,7 +27,7 @@ labstor::GenericAllocator* private_allocator_init(int rank) {
 }
 
 labstor::GenericAllocator* multicore_allocator_init(int rank) {
-    labstor::shmem_allocator *allocator = new labstor::shmem_allocator();
+    labstor::ipc::shmem_allocator *allocator = new labstor::ipc::shmem_allocator();
     if(rank == 0) {
         allocator->Init(region, region_size, page_size, 4);
     }

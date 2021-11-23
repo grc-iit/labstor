@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 9/12/21.
 //
 
+#include <labstor/userspace_server/macros.h>
 #include <labstor/util/singleton.h>
 #include <labstor/kernel_client/kernel_client.h>
 #include <secure_shmem/secure_shmem.h>
@@ -11,7 +12,7 @@ int main() {
     int region_id;
     size_t region_size = 128;
     char *region;
-    auto netlink_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+    auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     netlink_client_->Connect();
 
     ShmemNetlinkClient shmem;

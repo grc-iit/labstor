@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     char *path = argv[1];
     labstor::Server::ModuleManager modules;
     modules.UpdateModule(path);
-    labstor::Module *simple_module = modules.GetModule(SIMPLE_MODULE_ID);
+    labstor::Module *simple_module = modules.GetModuleConstructor(SIMPLE_MODULE_ID)();
     printf("%s\n", simple_module->GetModuleID().key);
     LABSTOR_ERROR_HANDLE_END()
 }

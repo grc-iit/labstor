@@ -46,7 +46,7 @@ void labstor::Client::IPCManager::Connect(int num_queues) {
     serversock_.RecvMSG(&reply, sizeof(reply));
 
     //Attach SHMEM allocator
-    /*labstor::shmem_allocator *shmem_alloc;
+    /*labstor::ipc::shmem_allocator *shmem_alloc;
     void *region = ShmemNetlinkClient::MapShmem(reply.region_id, reply.region_size);
     shmem_alloc = new shmem_allocator();
     shmem_alloc->Init(region, reply.region_size, reply.request_unit, reply.concurrency);

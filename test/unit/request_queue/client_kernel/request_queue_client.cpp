@@ -11,7 +11,7 @@
 int main(int argc, char **argv) {
     /*int region_id;
     size_t region_size = 4096;
-    labstor::request_queue q;
+    labstor::ipc::request_map q;
     auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
     struct simple_request* rq;

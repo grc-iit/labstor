@@ -9,7 +9,7 @@
 #include <linux/types.h>
 #include "request_queue.h"
 
-//typedef void (*process_request_fn_type)(struct labstor_queue_pair *qp, void *rq);
+//typedef void (*process_request_fn_type)(struct labstor_queue_pair qp, void *rq);
 typedef void (*process_request_fn_type)(void);
 typedef void (*process_request_fn_netlink_type)(int pid, void *rq);
 

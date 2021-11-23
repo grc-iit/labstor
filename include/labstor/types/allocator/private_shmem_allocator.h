@@ -7,14 +7,14 @@
 
 #include "allocator.h"
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/ring_buffer.h>
+#include <labstor/types/data_structures/shmem_ring_buffer.h>
 
 #ifdef __cplusplus
 
 #include "allocator.h"
 #include <stddef.h>
 
-namespace labstor {
+namespace labstor::ipc {
 
 struct private_shmem_allocator_header {
     uint32_t region_size_;
@@ -26,7 +26,7 @@ private:
     void *region_;
     uint32_t region_size_;
     private_shmem_allocator_header *header_;
-    ring_buffer<uint32_t> objs_;
+    labstor::ipc::ring_buffer<uint32_t> objs_;
 public:
     private_shmem_allocator() = default;
 

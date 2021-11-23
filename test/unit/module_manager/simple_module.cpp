@@ -5,9 +5,6 @@
 #include <labstor/types/module.h>
 #include "simple_module.h"
 
-SimpleModule::SimpleModule() {
-    module_id_ = SIMPLE_MODULE_ID;
-}
 void SimpleModule::print1() {
     printf("HELLO1\n");
 }
@@ -17,7 +14,7 @@ void SimpleModule::print2() {
 void SimpleModule::print3() {
     printf("HELLO3\n");
 }
-void SimpleModule::ProcessRequest(labstor::queue_pair *qp, void *request, labstor::credentials *creds) {
+void SimpleModule::ProcessRequest(labstor::ipc::queue_pair qp, labstor::ipc::request *request, labstor::credentials *creds) {
     printf("HERE?");
 }
 

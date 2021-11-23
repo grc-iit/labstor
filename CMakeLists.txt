@@ -22,23 +22,27 @@ add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src
 ######KERNEL CLIENT
 add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
 
-######LABSTOR USERSPACE SERVER
-add_executable(labstor_trusted_server
-        src/userspace_server/server.cpp
+######LABSTOR USERSPACE SERVER LIB
+add_library(labstor_server_library
         src/userspace_server/worker.cpp
+        src/userspace_server/module_manager.cpp
         src/userspace_server/ipc_manager.cpp
-        src/userspace_server/work_orchestrator.cpp
-        src/userspace_server/module_manager.cpp)
-add_dependencies(labstor_trusted_server
+        src/userspace_server/work_orchestrator.cpp)
+add_dependencies(labstor_server_library
         labstor_kernel_client
         secure_shmem_client_netlink
         worker_client_netlink)
-target_link_libraries(labstor_trusted_server
+target_link_libraries(labstor_server_library
         pthread rt dl
         labstor_kernel_client
         yaml-cpp
         secure_shmem_client_netlink
         worker_client_netlink)
+
+######LABSTOR USERSPACE SERVER
+add_executable(labstor_trusted_server src/userspace_server/iosched.cpp)
+add_dependencies(labstor_trusted_server labstor_server_library)
+target_link_libraries(labstor_trusted_server labstor_server_library)
 
 ######LABSTOR USERSPACE CLIENT
 add_library(labstor_client_library

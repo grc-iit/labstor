@@ -10,7 +10,7 @@
 #include <labstor/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/shmem_request_queue.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
 
@@ -32,17 +32,51 @@ private:
     UnixSocket serversock_;
     labstor::GenericAllocator *shmem_alloc_;
     labstor::GenericAllocator *internal_alloc_;
-    std::vector<labstor::queue_pair> qps_;
-    std::unordered_map<uint64_t, labstor::queue_pair> qps_by_id_;
+    std::vector<labstor::ipc::queue_pair> shmem_qps_;
+    std::vector<labstor::ipc::queue_pair> internal_qps_;
 public:
     void Connect(int num_queues);
-    inline labstor::queue_pair& GetQueuePair(uint32_t flags) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, bool shmem) {
+        if(LABSTOR_QP_IS_STREAM(flags)) {
+            if(shmem) {
+                qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, sched_getcpu(), shmem_qps_.size(), 0)];
+            } else {
+                qp = internal_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, sched_getcpu(), internal_qps_.size(), 1)];
+            }
+            return;
+        }
     }
-    inline labstor::queue_pair& GetQueuePair(uint32_t flags, const std::string &str, uint32_t runtime_id) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash, bool shmem) {
+        if(LABSTOR_QP_IS_STREAM(flags)) {
+            if(shmem) {
+                qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, hash, shmem_qps_.size(), 0)];
+            } else {
+                qp = internal_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, hash, internal_qps_.size(), 1)];
+            }
+            return;
+        }
     }
-    inline labstor::queue_pair& GetQueuePair(uint32_t flags, uint32_t depth) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id, bool shmem) {
+        if(LABSTOR_QP_IS_STREAM(flags)) {
+            if(shmem) {
+                qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, str, ns_id, shmem_qps_.size(), 0)];
+            } else {
+                qp = internal_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, str, ns_id, shmem_qps_.size(), 0)];
+            }
+            return;
+        }
+    }
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, uint32_t depth=0) {
+        if(LABSTOR_QP_IS_BATCH(flags)) {
+            uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
+            uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth);
+            qp.sq.Init(internal_alloc_->Alloc(sq_sz), sq_sz, flags);
+            qp.cq.Init(internal_alloc_->Alloc(cq_sz), cq_sz);
+            return;
+        }
     }
     void PauseQueues();
+    void WaitForPause();
     void ResumeQueues();
 private:
     void CreateQueuesSHMEM(int num_queues);

@@ -8,7 +8,7 @@ private:
     std::unordered_map<int, void*> fd_to_md_;
 
 public:
-    static void process_request(labstor::queue_pair *qp, struct posix_request *rq, labstor::credentials *creds) {
+    static void process_request(labstor::ipc::queue_pair *qp, struct posix_request *rq, labstor::credentials *creds) {
         switch(rq->op) {
             case POSIX_OPEN_RQ:
                 Open(qp, creds, rq->open.pathname, rq->open.flags, rq->open.mode);
@@ -27,7 +27,7 @@ private:
         }
     }
 
-    inline void Open(labstor::queue_pair *qp, labstor::credentials *creds, const char *pathname, int flags, mode_t mode) {
+    inline void Open(labstor::ipc::queue_pair *qp, labstor::credentials *creds, const char *pathname, int flags, mode_t mode) {
 
     }
 

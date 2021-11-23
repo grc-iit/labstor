@@ -13,7 +13,7 @@
 #include <sys/sysinfo.h>
 #include "allocator.h"
 
-namespace labstor {
+namespace labstor::ipc {
 
 struct shmem_allocator_entry {
     int core_;

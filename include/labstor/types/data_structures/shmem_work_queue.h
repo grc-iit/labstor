@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 11/12/21.
 //
 
-#ifndef LABSTOR_SHMEM_REQUEST_QUEUE_H
-#define LABSTOR_SHMEM_REQUEST_QUEUE_H
+#ifndef LABSTOR_SHMEM_WORK_QUEUE_H
+#define LABSTOR_SHMEM_WORK_QUEUE_H
 
 #include <labstor/types/basics.h>
 
@@ -16,37 +16,55 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <labstor/types/data_structures/ring_buffer.h>
-#include <labstor/types/data_structures/shmem_request_queue.h>
+#include <labstor/constants/macros.h>
+#include <labstor/types/data_structures/shmem_ring_buffer.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include "labstor/types/shmem_type.h"
 
-namespace labstor {
+namespace labstor::ipc {
 
-struct work_queue_header {
-    ring_buffer_header queue_;
-};
-
-class work_queue {
+class work_queue : public shmem_type {
 private:
-    void *region_;
-    work_queue_header *header_;
-    shmem_ring_buffer queue_;
+    ring_buffer<queue_pair_ptr> queue_;
 public:
+    static uint32_t GetSize(uint32_t num_buckets) {
+        return ring_buffer<queue_pair_ptr>::GetSize(num_buckets);
+    }
+    inline uint32_t GetSize() {
+        return queue_.GetSize();
+    }
+
+
     void Init(void *region, uint32_t region_size) {
-        region_ = region;
-        header_ = (work_queue_header*)region_;
-        queue_.Init(&header_->queue_, region_size);
+        queue_.Init(region_, region_size);
     }
+
     void Attach(void *region) {
-        region_ = region;
-        header_ = (work_queue_header*)region;
-        queue_.Attach(region_);
+        queue_.Attach(region);
     }
-    bool Enqueue(request_queue *rq) {
-        return queue_.Enqueue(rq);
+
+    bool Enqueue(queue_pair &qp) {
+        queue_pair_ptr ptr;
+        ptr.sq_off = LABSTOR_REGION_SUB(qp.sq.GetRegion(), region_);
+        ptr.cq_off = LABSTOR_REGION_SUB(qp.cq.GetRegion(), region_);
+        return queue_.Enqueue(ptr);
     }
-    request_queue* Dequeue() {
-        return (request_queue*)queue_.Dequeue();
+
+    bool Dequeue(queue_pair &qp) {
+        queue_pair_ptr ptr;
+        if(!queue_.Dequeue(ptr)) {
+            return false;
+        }
+        qp.sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region_));
+        qp.cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region_));
+        return true;
+    }
+
+    inline uint32_t GetLength() {
+        return queue_.GetDepth();
     }
 };
 
-#endif //LABSTOR_SHMEM_REQUEST_QUEUE_H
+}
+
+#endif //LABSTOR_SHMEM_WORK_QUEUE_H

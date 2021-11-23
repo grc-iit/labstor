@@ -9,7 +9,7 @@
 #include <secure_shmem/netlink_client/shmem_user_netlink.h>
 
 struct simple_request {
-    struct labstor::request header;
+    struct labstor::ipc::request header;
     int hi;
 };
 
@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
     size_t region_size = 4096;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::request_queue q;
+    labstor::ipc::request_map q;
     auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
 

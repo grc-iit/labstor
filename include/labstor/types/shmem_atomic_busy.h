@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 11/12/21.
 //
 
-#ifndef LABSTOR_ATOMIC_BUSY_H
-#define LABSTOR_ATOMIC_BUSY_H
+#ifndef LABSTOR_SHMEM_ATOMIC_BUSY_H
+#define LABSTOR_SHMEM_ATOMIC_BUSY_H
 
 #define ATOMIC_PLEASE_PAUSE 0x80000000
 
@@ -53,4 +53,4 @@ struct AtomicBusy {
 
 #endif
 
-#endif //LABSTOR_ATOMIC_BUSY_H
+#endif //LABSTOR_SHMEM_ATOMIC_BUSY_H

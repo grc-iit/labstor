@@ -8,18 +8,25 @@
 #ifdef __cplusplus
 
 #include <thread>
+#include <labstor/userspace_server/macros.h>
+#include <labstor/userspace_server/namespace.h>
+#include <labstor/types/daemon/daemon.h>
+#include <labstor/types/data_structures/shmem_work_queue.h>
 
 namespace labstor {
 
-class Worker {
+class Worker : DaemonWorker {
 private:
-    size_t time_slice_us;
-    int worker_id;
-    void *work_queue;
-    size_t work_queue_depth;
+    LABSTOR_NAMESPACE_T namespace_;
+    labstor::ipc::work_queue work_queue_;
 public:
-    std::thread std_thread;
-    void ProcessWork();
+    Worker() {
+        namespace_ = LABSTOR_NAMESPACE;
+    }
+    void AssignQP(labstor::ipc::queue_pair qp) {
+        work_queue_.Enqueue(qp);
+    }
+    void DoWork();
 };
 
 }

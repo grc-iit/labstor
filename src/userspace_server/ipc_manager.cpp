@@ -14,12 +14,12 @@
 #include <labstor/types/messages.h>
 
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
-    register_lock_.lock();
+    lock_.lock();
     //Create new IPC
     pid_to_ipc_.emplace(creds.pid, PerProcessIPC(client_fd, creds));
     PerProcessIPC &ipc = pid_to_ipc_[creds.pid];
     //Create shared memory
-    register_lock_.unlock();
+    lock_.unlock();
 
     //Send shared memory to client
     labstor::setup_reply reply;
@@ -34,8 +34,8 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, admin_req
     client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::register_qp_request));
 
     //Receive the SHMEM queue pointers
-    uint32_t size = request.count_*sizeof(queue_pair_ptr);
-    labstor::queue_pair_ptr *ptrs = (labstor::queue_pair_ptr*)malloc(size);
+    uint32_t size = request.count_*sizeof(labstor::ipc::queue_pair_ptr);
+    labstor::ipc::queue_pair_ptr *ptrs = (labstor::ipc::queue_pair_ptr*)malloc(size);
     client_ipc.GetSocket().RecvMSG((void*)ptrs, size);
     for(int i = 0; i < request.count_; ++i) {
     }
@@ -46,8 +46,41 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, admin_req
     client_ipc.GetSocket().SendMSG((void*)&reply, sizeof(labstor::register_qp_reply));
 }
 
-labstor::queue_pair& GetQP(int flags) {
+void labstor::Server::IPCManager::PauseQueues() {
+    for(auto &pid_ipc : pid_to_ipc_) {
+        PerProcessIPC &ipc = pid_ipc.second;
+        for(labstor::ipc::queue_pair &qp : ipc.qps_) {
+            if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
+                qp.sq.MarkPaused();
+            }
+        }
+    }
 }
 
-labstor::queue_pair& GetQP(int nreqs, int req_size, int flags) {
+void labstor::Server::IPCManager::WaitForPause() {
+    int num_unpaused;
+    do {
+        num_unpaused = 0;
+        for (auto &pid_ipc : pid_to_ipc_) {
+            PerProcessIPC &ipc = pid_ipc.second;
+            for (labstor::ipc::queue_pair &qp : ipc.qps_) {
+                if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
+                    num_unpaused += qp.sq.IsPaused();
+                } else {
+                    num_unpaused += qp.sq.GetDepth();
+                }
+            }
+        }
+    } while(num_unpaused);
+}
+
+void labstor::Server::IPCManager::ResumeQueues() {
+    for(auto &pid_ipc : pid_to_ipc_) {
+        PerProcessIPC &ipc = pid_ipc.second;
+        for(labstor::ipc::queue_pair &qp : ipc.qps_) {
+            if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
+                qp.sq.UnPause();
+            }
+        }
+    }
 }

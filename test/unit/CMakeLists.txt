@@ -42,8 +42,9 @@ add_custom_target(test_shmem ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_exec)
 #add_subdirectory(request_queue/client_kernel)
 
 ######MODULE MANAGER
-add_executable(test_module_manager_exec module_manager/test.cpp ${CMAKE_SOURCE_DIR}/src/userspace_server/module_manager.cpp)
-target_link_libraries(test_module_manager_exec rt dl)
+add_executable(test_module_manager_exec module_manager/test.cpp)
+add_dependencies(test_module_manager_exec labstor_server_library)
+target_link_libraries(test_module_manager_exec rt dl labstor_server_library)
 target_include_directories(test_module_manager_exec PUBLIC module_manager)
 add_library(simple_module SHARED module_manager/simple_module.cpp)
 add_custom_target(test_module_manager ${CMAKE_CURRENT_BINARY_DIR}/test_module_manager_exec ${CMAKE_CURRENT_BINARY_DIR}/libsimple_module.so)
