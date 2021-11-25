@@ -42,9 +42,7 @@ struct Namespace {
 
     uint32_t GetNamespaceID(std::string key) {
         if(is_decentralized_) {
-            uint32_t *id = key_to_ns_id_.Find(key);
-            if(id == nullptr) { throw INVALID_NAMESPACE_ENTRY.format(); }
-            return *id;
+            return key_to_ns_id_[key];
         }
     }
 

@@ -7,6 +7,8 @@
 
 #include "labstor/types/shmem_type.h"
 
+#ifdef __cplusplus
+
 namespace labstor::ipc {
 
 struct array_header {
@@ -20,10 +22,13 @@ private:
     T *arr_;
 public:
     inline static uint32_t GetSize(uint32_t length) {
-        return sizeof(ring_buffer_header) + sizeof(T)*length;
+        return sizeof(array_header) + sizeof(T)*length;
     }
     inline uint32_t GetSize() {
         return GetSize(header_->length_);
+    }
+    inline uint32_t GetLength() {
+        return header_->length_;
     }
 
     void Init(void *region, uint32_t region_size, uint32_t length = 0) {
@@ -34,10 +39,20 @@ public:
         } else {
             header_->length_ = (region_size - sizeof(array_header)) / sizeof(T);
         }
+        arr_ = (T*)(header_ + 1);
     }
+
+    void Attach(void *region) {
+        region_ = region;
+        header_ = (array_header*)region_;
+        arr_ = (T*)(header_ + 1);
+    }
+
     T& operator [] (int i) { return arr_[i]; }
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_SHMEM_ARRAY_H

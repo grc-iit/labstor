@@ -11,24 +11,10 @@
 #include <linux/types.h>
 #endif
 
-#define LABSTOR_QP_INTERMEDIATE 0x10000000
-#define LABSTOR_QP_UNORDERED 0x20000000
-#define LABSTOR_QP_BATCH 0x40000000
-#define LABSTOR_QP_HIGH_LATENCY 0x80000000
-
-#define LABSTOR_QP_IS_INTERMEDIATE(flags) (flags & LABSTOR_QP_INTERMEDIATE)
-#define LABSTOR_QP_IS_UNORDERED(flags) (flags & LABSTOR_QP_UNORDERED)
-#define LABSTOR_QP_IS_BATCH(flags) (flags & LABSTOR_QP_BATCH)
-#define LABSTOR_QP_IS_HIGH_LATENCY(flags) (flags & LABSTOR_QP_HIGH_LATENCY)
-
-#define LABSTOR_QP_IS_PRIMARY(flags) (!(flags & LABSTOR_QP_INTERMEDIATE))
-#define LABSTOR_QP_IS_ORDERED(flags) (!(flags & LABSTOR_QP_UNORDERED))
-#define LABSTOR_QP_IS_STREAM(flags) (!(flags & LABSTOR_QP_BATCH))
-#define LABSTOR_QP_IS_LOW_LATENCY(flags) (!(flags & LABSTOR_QP_HIGH_LATENCY))
-
 #include <labstor/types/shmem_atomic_busy.h>
-#include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/shmem_ring_buffer.h>
+#include "shmem_qtok.h"
+#include "shmem_request.h"
+#include "shmem_ring_buffer.h"
 #include <labstor/constants/macros.h>
 
 #ifdef __cplusplus
@@ -40,7 +26,7 @@
 namespace labstor::ipc {
 
 struct request_queue_header {
-    uint32_t flags_;
+    uint32_t qid_;
     labstor::credentials creds_;
     AtomicBusy update_lock_;
 };
@@ -58,16 +44,16 @@ public:
         return GetSize(queue_.GetMaxDepth());
     }
 
-    inline void Init(void *region, uint32_t region_size, uint32_t flags) {
+    inline void Init(void *region, uint32_t region_size, uint32_t qid) {
         region_ = region;
         header_ = (request_queue_header*)region;
-        header_->flags_ = flags;
+        header_->qid_ = qid;
         header_->update_lock_.Init();
         update_lock_ = &header_->update_lock_;
         queue_.Init(header_+1, region_size - sizeof(request_queue_header));
     }
-    inline void Init(void *region, uint32_t region_size, uint32_t flags, labstor::credentials creds) {
-        Init(region, region_size, flags);
+    inline void Init(void *region, uint32_t region_size, uint32_t qid, labstor::credentials creds) {
+        Init(region, region_size, qid);
         header_->creds_ = creds;
     }
     inline void Attach(void *region) {
@@ -81,8 +67,11 @@ public:
         return &header_->creds_;
     }
 
-    inline bool Enqueue(request *rq) {
-        return queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_));
+    inline qtok_t Enqueue(request *rq) {
+        qtok_t qtok;
+        qtok.qid = header_->qid_;
+        while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_), qtok.req_id)) {}
+        return qtok;
     }
     inline bool Dequeue(request *&rq) {
         uint32_t off;
@@ -95,7 +84,7 @@ public:
         return queue_.GetDepth();
     }
     inline uint32_t GetFlags() {
-        return header_->flags_;
+        return header_->qid_;
     }
     inline void MarkPaused() {
         update_lock_->MarkPaused();

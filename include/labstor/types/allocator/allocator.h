@@ -7,12 +7,13 @@
 
 #ifdef __cplusplus
 
+#include <labstor/types/shmem_type.h>
 #include <stdint.h>
 #include <sched.h>
 
 namespace labstor {
 
-class GenericAllocator {
+class GenericAllocator : public shmem_type {
 public:
     void* Alloc(uint32_t size) {
         return Alloc(size, sched_getcpu());

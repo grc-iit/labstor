@@ -8,5 +8,5 @@
 
 int main() {
     auto ipc_manager_ = scs::Singleton<labstor::Client::IPCManager>::GetInstance();
-    ipc_manager_->Connect(4);
+    ipc_manager_->Connect();
 }

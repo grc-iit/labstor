@@ -27,12 +27,15 @@ struct shmem_allocator_header {
 class shmem_allocator : public GenericAllocator {
 private:
     int concurrency_;
-    void *region_;
     uint32_t region_size_;
     shmem_allocator_header *header_;
     std::vector<private_shmem_allocator> per_core_allocs_;
 public:
     shmem_allocator() = default;
+
+    uint32_t GetSize() {
+        return region_size_;
+    }
 
     void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency = 0) {
         uint32_t per_core_region_size;

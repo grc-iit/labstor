@@ -7,18 +7,29 @@
 
 #define REQEUST_LAYER_PKG_ID "REQUEST_LAYER_PKG"
 
-enum {
-    RQ_PKG_SUBMIT_REQUEST,
-    RQ_PKG_POLL_REQUEST
+#ifdef __cpluplus
+namespace labstor::drivers {
+enum class MQOps {
+    kSubmit
+}
 };
+#endif
+
+#ifdef KERNEL_BUILD
+enum {
+    MQ_SUBMIT_REQUEST
+};
+#endif
 
 struct request_layer_request {
-    int op;
-    char dev[256];
-    char *user_buf;
-    size_t lba;
-    size_t off;
-    int hctx;
+    int op_;
+    int dev_id_;
+    char *user_buf_;
+    size_t lba_;
+    size_t off_;
+    int hctx_;
 };
+
+
 
 #endif //LABSTOR_REQUEST_LAYER_H

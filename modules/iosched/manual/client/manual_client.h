@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 11/23/21.
 //
 
-#ifndef LABSTOR_MANUAL_H
-#define LABSTOR_MANUAL_H
+#ifndef LABSTOR_IOSCHED_MANUAL_CLIENT_H
+#define LABSTOR_IOSCHED_MANUAL_CLIENT_H
 
 #include <labstor/types/module.h>
 #include <labstor/constants/macros.h>
@@ -11,7 +11,7 @@
 #include <labstor/userspace_client/ipc_manager.h>
 #include <labstor/userspace_client/namespace.h>
 
-namespace labstor::iosched::Client {
+namespace labstor::Client::iosched {
 
 class Manual : public labstor::Module {
 private:
@@ -30,12 +30,16 @@ public:
         dev_id_ = dev_id;
     }
     void Write(void *buf, size_t buf_size, size_t lba, int hctx) {
-        ipc_manager_->GetQueuePair(LABSTOR_QP_INTERMEDIATE, )
+        labstor::ipc::qtok_t qtok;
+        labstor::ipc::queue_pair qp;
+        ipc_manager_->GetQueuePair(qp, LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
+        qtok = qp.Enqueue();
+        qp.Wait(qtok);
     }
-    void Read(void *buf, size_t buf_size, size_t lba, int hctx);
-};
+    void Read(void *buf, size_t buf_size, size_t lba, int hctx) {
+    }
 };
 
 }
 
-#endif //LABSTOR_MANUAL_H
+#endif //LABSTOR_IOSCHED_MANUAL_CLIENT_H

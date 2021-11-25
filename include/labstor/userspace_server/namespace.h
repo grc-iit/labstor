@@ -39,6 +39,7 @@ public:
     Namespace() {
         LABSTOR_CONFIGURATION_MANAGER_T labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
         uint32_t max_entries = labstor_config_->config_["namespace"]["max_entries"].as<uint32_t>();
+        uint32_t max_collisions = labstor_config_->config_["namespace"]["max_collisions"].as<uint32_t>();
         uint32_t shmem_size = labstor_config_->config_["namespace"]["shmem_kb"].as<uint32_t>() * 1024;
         uint32_t request_unit = labstor_config_->config_["namespace"]["shmem_request_unit"].as<uint32_t>();
 
@@ -56,7 +57,7 @@ public:
         //Initialize the shared memory space
         uint32_t remainder = shmem_size;
         void *section = region_;
-        key_to_ns_id_.Init(section, labstor::ipc::string_map::GetSize(max_entries));
+        key_to_ns_id_.Init(section, labstor::ipc::string_map::GetSize(max_entries, max_collisions), max_collisions);
         remainder -= key_to_ns_id_.GetSize();
         section = key_to_ns_id_.GetNextSection();
         shared_state_.Init(section, labstor::ipc::array<uint32_t>::GetSize(max_entries));

@@ -10,110 +10,46 @@
 
 #ifdef __cplusplus
 #include "labstor/types/shmem_type.h"
+#include "shmem_unordered_map.h"
 
 namespace labstor::ipc {
 
-struct string_map_header {
-    uint32_t num_buckets_;
+struct string_map_bucket {
+    uint32_t off_;
+    uint32_t value_;
+
+    string_map_bucket() = default;
+    string_map_bucket(labstor::ipc::string key, uint32_t value, void *region) {
+        off_ = LABSTOR_REGION_SUB(key.c_str(), region);
+        value_ = value;
+    }
+    inline uint32_t GetValue(void *region) {
+        return value_;
+    }
+    inline labstor::ipc::string GetKey(void *region) {
+        labstor::ipc::string key;
+        if(off_ == 0) { return key; }
+        key.Attach(LABSTOR_REGION_ADD(off_, region));
+        return key;
+    }
+    inline uint32_t& GetAtomicKey() {
+        return off_;
+    }
+    inline static uint32_t hash(const labstor::ipc::string &key, void *region) {
+        return labstor::ipc::string::hash(key.c_str(), key.size());
+    }
+
+    inline uint32_t IsMarked() { return GetAtomicKey() & unordered_map_atomics_null0<uint32_t>::mark; }
+    inline uint32_t IsNull() { return GetAtomicKey() == unordered_map_atomics_null0<uint32_t>::null; }
+    inline uint32_t GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null0<uint32_t>::mark; }
+    inline static uint32_t Null() { return unordered_map_atomics_null0<uint32_t>::null; }
 };
 
-class string_map : public shmem_type {
-private:
-    string_map_header *header_;
-    uint32_t *buckets_;
-    uint32_t num_buckets_;
+class string_map : public unordered_map<labstor::ipc::string, uint32_t, uint32_t, string_map_bucket> {
 public:
-    static uint32_t GetSize(uint32_t num_buckets) {
-        return sizeof(string_map_header) + num_buckets * sizeof(uint32_t);
-    }
-    inline uint32_t GetSize() {
-        return GetSize(header_->num_buckets_);
-    }
-
-    void Init(void *region, uint32_t region_size) {
-        uint32_t num_buckets = (region_size - sizeof(string_map_header)) / sizeof(uint32_t);
-        region_ = region;
-        header_ = (string_map_header * )(region_);
-        num_buckets_ = num_buckets;
-        header_->num_buckets_ = num_buckets;
-        buckets_ = (uint32_t*)(header_ + 1);
-        memset(buckets_, 0, num_buckets * sizeof(uint32_t));
-    }
-
-    void Attach(void *region) {
-        region_ = region;
-        header_ = (string_map_header * )(region_);
-        num_buckets_ = header_->num_buckets_;
-        buckets_ = (uint32_t*)(header_ + 1);
-    }
-
-    bool Set(labstor::ipc::string key, uint32_t value) {
-        uint32_t b = map_key(key)%num_buckets_;
-        uint32_t off = LABSTOR_REGION_SUB(key.c_str(), region_);
-        for (uint32_t i = 0; i < num_buckets_; ++i) {
-            if (__atomic_compare_exchange_n(&buckets_[b], &off, 0, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
-                return true;
-            }
-            b = (b + 1) % num_buckets_;
-        }
-        return false;
-    }
-
-    uint32_t FindIndex(labstor::ipc::string key) {
-        labstor::ipc::string bucket_key;
-        uint32_t b = map_key(key)%num_buckets_;
-        for (uint32_t i = 0; i < num_buckets_; ++i) {
-            if(buckets_[b] == 0) { continue; }
-            bucket_key.Attach(LABSTOR_REGION_ADD(buckets_[b], region_));
-            if (key == bucket_key) { return b; }
-            b = (b + 1) % num_buckets_;
-        }
-        return -1;
-    }
-
-    uint32_t *Find(labstor::ipc::string key) {
-        uint32_t idx = FindIndex(key);
-        if(idx == -1) { return nullptr; }
-        return &buckets_[idx];
-    }
-
-    uint32_t FindIndex(std::string key) {
-        labstor::ipc::string bucket_key;
-        uint32_t b = map_key(key)%num_buckets_;
-        for (uint32_t i = 0; i < num_buckets_; ++i) {
-            if(buckets_[b] == 0) { continue; }
-            bucket_key.Attach(LABSTOR_REGION_ADD(buckets_[b], region_));
-            if (bucket_key == key) { return b; }
-            b = (b + 1) % num_buckets_;
-        }
-        return -1;
-    }
-
-    uint32_t *Find(std::string key) {
-        uint32_t idx = FindIndex(key);
-        if(idx == -1) { return nullptr; }
-        return &buckets_[idx];
-    }
-
-    void Remove(labstor::ipc::string key) {
-        uint32_t idx = FindIndex(key);
-        if(idx == -1) { return; }
-        buckets_[idx] = 0;
-    }
-private:
-    uint32_t map_key(labstor::ipc::string key) {
-        uint32_t sum = 0;
-        for(int i = 0; i < key.size(); ++i) {
-            sum += key[i] << 4*(i%4);
-        }
-        return sum;
-    }
-    uint32_t map_key(std::string key) {
-        uint32_t sum = 0;
-        for(int i = 0; i < key.size(); ++i) {
-            sum += key[i] << 4*(i%4);
-        }
-        return sum;
+    inline bool Set(labstor::ipc::string key, uint32_t value) {
+        string_map_bucket bucket(key, value, region_);
+        return unordered_map<labstor::ipc::string, uint32_t, uint32_t, string_map_bucket>::Set(bucket);
     }
 };
 

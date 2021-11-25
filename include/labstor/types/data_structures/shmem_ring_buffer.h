@@ -57,13 +57,19 @@ public:
     }
 
     inline bool Enqueue(T data) {
+        uint32_t enqueued;
+        return Enqueue(data, enqueued);
+    }
+
+    inline bool Enqueue(T data, uint32_t &req_id) {
         uint64_t enqueued;
         do {
             enqueued = header_->enqueued_;
-            if((enqueued - header_->dequeued_) > header_->max_depth_) { return false; }
+            if(GetDepth() > header_->max_depth_) { return false; }
         }
         while(!__atomic_compare_exchange_n(&header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-        queue_[enqueued % header_->max_depth_] = data;
+        req_id = (uint32_t)(enqueued % (1u << 31));
+        queue_[req_id % header_->max_depth_] = data;
         return true;
     }
 

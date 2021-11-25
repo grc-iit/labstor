@@ -28,6 +28,9 @@ add_dependencies(test_shmem_exec labstor_kernel_client secure_shmem_client_netli
 target_link_libraries(test_shmem_exec labstor_kernel_client secure_shmem_client_netlink)
 add_custom_target(test_shmem ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_exec)
 
+######UNORDERED MAP
+add_executable(test_shmem_unordered_map unordered_map/test.cpp)
+
 ######IN-MEMORY REQUEST QUEUE
 #add_executable(request_queue_exec request_queue/single/request_queue.cpp)
 #add_custom_target(test_request_queue ${CMAKE_CURRENT_BINARY_DIR}/request_queue)

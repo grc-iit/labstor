@@ -45,8 +45,8 @@ private:
     int server_fd_;
     void *internal_mem_;
     std::mutex lock_;
-    labstor::GenericAllocator *internal_alloc_;
-    std::unordered_map<int, PerProcessIPC> pid_to_ipc_;
+    labstor::GenericAllocator *private_alloc_;
+    std::unordered_map<int32_t, PerProcessIPC> pid_to_ipc_;
     labstor::ipc::int_map<int, uint32_t> pid_to_num_stream_qps_;
     labstor::ipc::int_map<uint32_t, labstor::ipc::queue_pair> qps_by_id_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
@@ -61,9 +61,9 @@ public:
     inline int GetServerFd() { return server_fd_; }
 
     void RegisterClient(int client_fd, labstor::credentials &creds);
-    void *Allocate(int size);
+    void *Allocate(int size, bool internal);
     void Free(void *ptr);
-    void RegisterQP(PerProcessIPC client_ipc, admin_request header);
+    void RegisterQP(PerProcessIPC client_ipc, labstor::ipc::admin_request header);
     void PauseQueues();
     void WaitForPause();
     void ResumeQueues();
@@ -97,9 +97,9 @@ public:
         }
         if(LABSTOR_QP_IS_BATCH(flags)) {
             uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
-            uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth);
-            qp.sq.Init(internal_alloc_->Alloc(sq_sz), sq_sz, flags);
-            qp.cq.Init(internal_alloc_->Alloc(cq_sz), cq_sz);
+            uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth, 4);
+            qp.sq.Init(private_alloc_->Alloc(sq_sz), sq_sz, flags);
+            qp.cq.Init(private_alloc_->Alloc(cq_sz), cq_sz, 4);
             return;
         }
     }

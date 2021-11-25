@@ -5,6 +5,10 @@
 #ifndef LABSTOR_SHMEM_TYPE_H
 #define LABSTOR_SHMEM_TYPE_H
 
+#ifdef __cplusplus
+
+#include <stdint.h>
+
 namespace labstor {
 
 class shmem_type {
@@ -17,5 +21,7 @@ public:
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_SHMEM_TYPE_H

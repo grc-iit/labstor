@@ -23,12 +23,15 @@ struct private_shmem_allocator_header {
 
 class private_shmem_allocator : public GenericAllocator {
 private:
-    void *region_;
     uint32_t region_size_;
     private_shmem_allocator_header *header_;
     labstor::ipc::ring_buffer<uint32_t> objs_;
 public:
     private_shmem_allocator() = default;
+
+    uint32_t GetSize() {
+        return sizeof(private_shmem_allocator_header) + objs_.GetSize();
+    }
 
     inline void Init(void *region, uint32_t region_size, uint32_t request_unit) {
         uint32_t max_objs = 2 * region_size / request_unit, i = 0;

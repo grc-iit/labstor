@@ -22,16 +22,16 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     lock_.unlock();
 
     //Send shared memory to client
-    labstor::setup_reply reply;
+    labstor::ipc::setup_reply reply;
     reply.region_id = 0;
     reply.region_size = labstor_config_->config_["ipc_manager"]["process_shmem_kb"].as<int>();
     ipc.GetSocket().SendMSG(&reply, sizeof(reply));
 }
 
-void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, admin_request header) {
+void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, labstor::ipc::admin_request header) {
     //Receive SHMEM queue offsets
-    labstor::register_qp_request request;
-    client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::register_qp_request));
+    labstor::ipc::register_qp_request request;
+    client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::ipc::register_qp_request));
 
     //Receive the SHMEM queue pointers
     uint32_t size = request.count_*sizeof(labstor::ipc::queue_pair_ptr);
@@ -42,8 +42,8 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, admin_req
     free(ptrs);
 
     //Reply success
-    labstor::register_qp_reply reply(0);
-    client_ipc.GetSocket().SendMSG((void*)&reply, sizeof(labstor::register_qp_reply));
+    labstor::ipc::register_qp_reply reply(0);
+    client_ipc.GetSocket().SendMSG((void*)&reply, sizeof(labstor::ipc::register_qp_reply));
 }
 
 void labstor::Server::IPCManager::PauseQueues() {

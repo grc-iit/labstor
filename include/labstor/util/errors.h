@@ -29,7 +29,7 @@ namespace labstor {
     const Error UNIX_ACCEPT_FAILED(207, "Failed accept connections: {}");
 
     const Error INVALID_RING_BUFFER_SIZE(300, "Failed to allocate ring buffer, {} is too small to support {} requests.");
-    const Error INVALID_UNORDERED_MAP_KEY(301, "Failed to index an unordered map");
+    const Error INVALID_UNORDERED_MAP_KEY(301, "No such key in map");
 
     const Error SHMEM_CREATE_FAILED(400, "Failed to allocate SHMEM");
 

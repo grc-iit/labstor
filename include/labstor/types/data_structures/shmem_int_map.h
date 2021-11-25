@@ -7,92 +7,45 @@
 
 #include <labstor/util/errors.h>
 #include "labstor/types/shmem_type.h"
+#include "shmem_unordered_map.h"
 
 namespace labstor::ipc {
 
 template<typename S, typename T>
-struct bucket {
-    S key;
-    T value;
-};
+struct int_map_bucket {
+    S key_;
+    T value_;
 
-struct int_map_header {
-    uint32_t num_buckets_;
+    int_map_bucket() = default;
+    int_map_bucket(S key, T value) {
+        key_ = key;
+        value_ = value;
+    }
+    inline T GetValue(void *region) {
+        return value_;
+    }
+    inline S GetKey(void *region) {
+        return key_;
+    }
+    inline S& GetAtomicKey() {
+        return key_;
+    }
+    inline static uint32_t hash(const uint32_t &key, const void *region) {
+        return key;
+    }
+
+    inline S IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<S>::mark; }
+    inline S IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<S>::null; }
+    inline S GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null1<S>::mark; }
+    inline static S Null() { return unordered_map_atomics_null1<S>::null; }
 };
 
 template<typename S, typename T>
-class int_map : public shmem_type {
-private:
-    void *region_;
-    int_map_header *header_;
-    bucket<S, T> *buckets_;
-    uint32_t num_buckets_;
+class int_map : public unordered_map<uint32_t, T, uint32_t, int_map_bucket<S, T>> {
 public:
-    inline static uint32_t GetSize(uint32_t max_depth) {
-        return sizeof(ring_buffer_header) + sizeof(bucket<S, T>)*max_depth;
-    }
-    inline uint32_t GetSize() {
-        return GetSize(header_->num_buckets_);
-    }
-
-    void Init(void *region, uint32_t region_size) {
-        uint32_t num_buckets = (region_size - sizeof(int_map_header)) / sizeof(bucket<S, T>);
-        region_ = region;
-        header_ = (int_map_header *) (region_);
-        num_buckets_ = num_buckets;
-        header_->num_buckets_ = num_buckets;
-        buckets_ = (bucket<S, T> *) (header_ + 1);
-        memset(buckets_, 0, num_buckets * sizeof(bucket<S, T>));
-    }
-
-    void Attach(void *region) {
-        region_ = region;
-        header_ = (int_map_header *) (region_);
-        num_buckets_ = header_->num_buckets_;
-        buckets_ = (bucket<S, T> *) (header_ + 1);
-    }
-
-    bool Set(S key, T value) {
-        uint32_t b = map_key(key) % num_buckets_;
-        uint32_t empty = 0;
-        for (uint32_t i = 0; i < num_buckets_; ++i) {
-            if (__atomic_compare_exchange_n(&buckets_[b].key, &empty, key, false, __ATOMIC_RELAXED,
-                                            __ATOMIC_RELAXED)) {
-                buckets_[b].value = value;
-                return true;
-            }
-            b = (b + 1) % num_buckets_;
-        }
-        return false;
-    }
-
-    uint32_t FindIndex(S key) {
-        uint32_t b = map_key(key) % num_buckets_;
-        for (uint32_t i = 0; i < num_buckets_; ++i) {
-            if (buckets_[b].key == key) {
-                return b;
-            }
-            b = (b + 1) % num_buckets_;
-        }
-        throw INVALID_UNORDERED_MAP_KEY.format();
-    }
-
-    T &Find(S key) {
-        uint32_t idx = FindIndex(key);
-        return buckets_[idx].value;
-    }
-
-    void Remove(S key) {
-        uint32_t idx = FindIndex(key);
-        buckets_[idx] = 0;
-    }
-
-    inline T& operator [](S key) {
-        return Find(key);
-    }
-private:
-    inline uint32_t map_key(S key) {
-        return key;
+    inline bool Set(uint32_t key, uint32_t value) {
+        int_map_bucket bucket(key, value);
+        return unordered_map<uint32_t, T, uint32_t, int_map_bucket<S, T>>::Set(bucket);
     }
 };
 
