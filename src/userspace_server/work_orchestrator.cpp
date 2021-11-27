@@ -3,6 +3,7 @@
 //
 
 #include <labstor/util/errors.h>
+#include <labstor/util/debug.h>
 #include <labstor/types/daemon/userspace_daemon.h>
 #include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/userspace_server/macros.h>
@@ -15,6 +16,7 @@
 #include <modules/kernel/workers/netlink_client/worker_user_netlink.h>
 
 void labstor::Server::WorkOrchestrator::CreateWorkers() {
+    AUTO_TRACE("labstor::Server::WorkOrchestrator::CreateWorkers")
     auto labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     const auto &config = labstor_config_->config_["work_orchestrator"];
@@ -37,6 +39,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
 }
 
 void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair &qp, int worker_id) {
+    AUTO_TRACE("labstor::Server::WorkOrchestrator::AssignQueuePair")
     auto &server_workers = worker_pool_[pid_];
     if(worker_id < 0) {
         throw NOT_YET_IMPLEMENTED.format("Dynamic work orchestration");

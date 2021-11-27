@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <labstor/util/errors.h>
-#include <labstor/util/singleton.h>
+#include <labstor/util/debug.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/socket.h>
 #include <labstor/userspace_server/server.h>
@@ -14,6 +14,7 @@
 #include <labstor/types/messages.h>
 
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
+    AUTO_TRACE("labstor::Server::IPCManager::RegisterClient", client_fd)
     //Create new IPC
     pid_to_ipc_.Set(creds.pid, PerProcessIPC(client_fd, creds));
     PerProcessIPC ipc = pid_to_ipc_[creds.pid];
@@ -45,6 +46,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
 }
 
 void labstor::Server::IPCManager::RegisterQP(PerProcessIPC &client_ipc) {
+    AUTO_TRACE("labstor::Server::IPCManager::RegisterQP")
     //Receive SHMEM queue offsets
     labstor::ipc::register_qp_request request;
     client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::ipc::register_qp_request));

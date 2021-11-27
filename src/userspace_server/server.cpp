@@ -18,6 +18,7 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/util/errors.h>
+#include <labstor/util/debug.h>
 
 #include <labstor/types/daemon/userspace_daemon.h>
 #include <labstor/userspace_server/server.h>
@@ -42,6 +43,7 @@ public:
     }
 
     void DoWork() {
+        AUTO_TRACE("labstor::Server::AcceptWorker")
         int ret;
         struct ucred ucred;
         labstor::credentials creds;
@@ -69,6 +71,7 @@ public:
 };
 
 void server_init(void) {
+    AUTO_TRACE("labstor::Server::server_init")
     int server_fd;
     int optval = 1;
     int ret;
@@ -104,6 +107,7 @@ void server_init(void) {
 }
 
 int main(int argc, char **argv) {
+    AUTO_TRACE("labstor::Server")
     if(argc != 2) {
         printf("USAGE: ./server [config.yaml]\n");
         exit(1);

@@ -2,10 +2,12 @@
 // Created by lukemartinlogan on 9/7/21.
 //
 
+#include <labstor/util/debug.h>
 #include <labstor/types/module.h>
 #include <labstor/userspace_server/worker.h>
 
 void labstor::Server::Worker::DoWork() {
+    AUTO_TRACE("labstor::Server::Worker::DoWork")
     labstor::ipc::queue_pair qp;
     labstor::ipc::request *rq;
     uint32_t length = work_queue_.GetLength();

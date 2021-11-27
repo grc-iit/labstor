@@ -5,6 +5,7 @@
 #ifndef LABSTOR_ERROR_SERIALIZER_H
 #define LABSTOR_ERROR_SERIALIZER_H
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <type_traits>
@@ -180,7 +181,9 @@ namespace labstor {
                 }
                 buffer[off++] = fmt[i];
             }
-            return std::string(buffer, off);
+            std::string str(buffer, off);
+            free(buffer);
+            return str;
         }
     };
 }
