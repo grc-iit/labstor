@@ -30,6 +30,9 @@ struct request_map_bucket {
         labstor::ipc::request *rq = (labstor::ipc::request *)LABSTOR_REGION_ADD(off_, region);
         return rq->qtok_;
     }
+    inline uint32_t& GetAtomicValue() {
+        return off_;
+    }
     inline uint32_t& GetAtomicKey() {
         return off_;
     }

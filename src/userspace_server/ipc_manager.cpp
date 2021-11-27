@@ -14,21 +14,37 @@
 #include <labstor/types/messages.h>
 
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
-    lock_.lock();
     //Create new IPC
-    pid_to_ipc_.emplace(creds.pid, PerProcessIPC(client_fd, creds));
-    PerProcessIPC &ipc = pid_to_ipc_[creds.pid];
+    pid_to_ipc_.Set(creds.pid, PerProcessIPC(client_fd, creds));
+    PerProcessIPC ipc = pid_to_ipc_[creds.pid];
+
     //Create shared memory
-    lock_.unlock();
+    ipc.region_id_ = shmem_client_.CreateShmem(per_process_shmem_, true);
+    if(ipc.region_id_ < 0) {
+        throw SHMEM_CREATE_FAILED.format();
+    }
+    shmem_client_.GrantPidShmem(getpid(), ipc.region_id_);
+    ipc.shmem_region_ = shmem_client_.MapShmem(ipc.region_id_, per_process_shmem_);
+    if(!ipc.shmem_region_) {
+        throw MMAP_FAILED.format(strerror(errno));
+    }
+
+    //Create SHMEM allocator
+    labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
+    alloc->Init(ipc.shmem_region_, per_process_shmem_, allocator_unit_);
+    ipc.alloc_ = alloc;
 
     //Send shared memory to client
     labstor::ipc::setup_reply reply;
-    reply.region_id = 0;
-    reply.region_size = labstor_config_->config_["ipc_manager"]["process_shmem_kb"].as<int>();
+    reply.region_id = ipc.region_id_;
+    reply.region_size = per_process_shmem_;
     ipc.GetSocket().SendMSG(&reply, sizeof(reply));
+
+    //Receive and register client QPs
+    RegisterQP(ipc);
 }
 
-void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, labstor::ipc::admin_request header) {
+void labstor::Server::IPCManager::RegisterQP(PerProcessIPC &client_ipc) {
     //Receive SHMEM queue offsets
     labstor::ipc::register_qp_request request;
     client_ipc.GetSocket().RecvMSG((void*)&request, sizeof(labstor::ipc::register_qp_request));
@@ -38,6 +54,8 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, labstor::
     labstor::ipc::queue_pair_ptr *ptrs = (labstor::ipc::queue_pair_ptr*)malloc(size);
     client_ipc.GetSocket().RecvMSG((void*)ptrs, size);
     for(int i = 0; i < request.count_; ++i) {
+        labstor::ipc::queue_pair qp(ptrs[i], client_ipc.shmem_region_);
+        work_orchestrator_->AssignQueuePair(qp, i);
     }
     free(ptrs);
 
@@ -47,13 +65,9 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC client_ipc, labstor::
 }
 
 void labstor::Server::IPCManager::PauseQueues() {
-    for(auto &pid_ipc : pid_to_ipc_) {
-        PerProcessIPC &ipc = pid_ipc.second;
-        for(labstor::ipc::queue_pair &qp : ipc.qps_) {
-            if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
-                qp.sq.MarkPaused();
-            }
-        }
+    for(int pid : pids_) {
+        PerProcessIPC ipc = pid_to_ipc_[pid];
+        //Search all primary streaming queues
     }
 }
 
@@ -61,26 +75,8 @@ void labstor::Server::IPCManager::WaitForPause() {
     int num_unpaused;
     do {
         num_unpaused = 0;
-        for (auto &pid_ipc : pid_to_ipc_) {
-            PerProcessIPC &ipc = pid_ipc.second;
-            for (labstor::ipc::queue_pair &qp : ipc.qps_) {
-                if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
-                    num_unpaused += qp.sq.IsPaused();
-                } else {
-                    num_unpaused += qp.sq.GetDepth();
-                }
-            }
-        }
     } while(num_unpaused);
 }
 
 void labstor::Server::IPCManager::ResumeQueues() {
-    for(auto &pid_ipc : pid_to_ipc_) {
-        PerProcessIPC &ipc = pid_ipc.second;
-        for(labstor::ipc::queue_pair &qp : ipc.qps_) {
-            if(LABSTOR_QP_IS_PRIMARY(qp.sq.GetFlags())) {
-                qp.sq.UnPause();
-            }
-        }
-    }
 }

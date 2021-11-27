@@ -13,15 +13,19 @@
 #include <labstor/types/daemon/daemon.h>
 #include <labstor/types/data_structures/shmem_work_queue.h>
 
-namespace labstor {
+namespace labstor::Server {
 
-class Worker : DaemonWorker {
+class Worker : public DaemonWorker {
 private:
     LABSTOR_NAMESPACE_T namespace_;
+    void *region_;
     labstor::ipc::work_queue work_queue_;
 public:
-    Worker() {
+    Worker(uint32_t depth) {
         namespace_ = LABSTOR_NAMESPACE;
+        uint32_t region_size = labstor::ipc::work_queue::GetSize(depth);
+        region_ = malloc(region_size);
+        work_queue_.Init(region_, region_size);
     }
     void AssignQP(labstor::ipc::queue_pair qp) {
         work_queue_.Enqueue(qp);

@@ -44,6 +44,17 @@ typedef admin_reply register_qp_reply;
 struct poll_request : public labstor::ipc::request {
     labstor::ipc::qtok_t qtok_;
     labstor::ipc::qtok_set qtoks_;
+
+    void Init(int ns_id, int op, labstor::ipc::qtok_t qtok) {
+        ns_id_ = ns_id;
+        op_ = op;
+    }
+
+    void Init(int ns_id, int op, labstor::ipc::qtok_set qtoks) {
+        ns_id_ = ns_id;
+        op_ = op;
+        qtoks_ = qtoks;
+    }
 };
 
 }

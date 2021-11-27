@@ -14,9 +14,7 @@
 namespace labstor::Server {
 
 struct ConfigurationManager {
-    int pid_;
     YAML::Node config_;
-
     void LoadConfig(char *path) {
         config_ = YAML::LoadFile(path);
     }

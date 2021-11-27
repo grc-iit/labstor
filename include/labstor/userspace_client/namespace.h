@@ -18,6 +18,8 @@
 #include <labstor/types/data_structures/shmem_ring_buffer.h>
 #include <labstor/types/module.h>
 
+#include <modules/registrar/client/registrar_client.h>
+
 namespace labstor::Client {
 
 struct Namespace {
@@ -30,6 +32,7 @@ struct Namespace {
     labstor::ipc::array<uint32_t> shared_state_;
     std::vector<labstor::Module*> private_state_;
     LABSTOR_IPC_MANAGER_T ipc_manager_;
+    labstor::Registrar::Client registrar_;
 
     Namespace() {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
@@ -42,7 +45,9 @@ struct Namespace {
 
     uint32_t GetNamespaceID(std::string key) {
         if(is_decentralized_) {
-            return key_to_ns_id_[key];
+            return key_to_ns_id_[labstor::ipc::string(key)];
+        } else {
+            return registrar_.GetNamespaceID(key);
         }
     }
 

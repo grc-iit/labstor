@@ -6,22 +6,23 @@
 #define LABSTOR_IOSCHED_MANUAL_CLIENT_H
 
 #include <labstor/types/module.h>
+#include <labstor/types/messages.h>
 #include <labstor/constants/macros.h>
 #include <labstor/userspace_server/macros.h>
 #include <labstor/userspace_server/ipc_manager.h>
 #include <labstor/userspace_server/namespace.h>
 #include <kernel/mq_driver/request_layer.h>
 
-namespace labstor::iosched::Server {
+namespace labstor::iosched::Manual {
 
-class Manual : public labstor::Module {
+class Server: public labstor::Module {
 private:
     LABSTOR_NAMESPACE_T namespace_;
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     int ns_id_;
     int dev_id_;
 public:
-    Manual() {
+    Server() {
         namespace_ = LABSTOR_NAMESPACE;
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
@@ -40,12 +41,13 @@ public:
         }
     }
 
-    void Init(std::string dev_name) {
+    void Register(std::string dev_name) {
+        namespace_.AddKey(dev_name, CreateModule());
     }
 
     inline void IO(void *buf, size_t buf_size, size_t lba, int hctx, labstor::ipc::driver::MQOps op) {
         labstor::ipc::queue_pair kernel_qp;
-        mq_driver_request *mq_rq = (mq_driver_request*)ipc_manager_->Alloc(sizeof(labstor::ipc::poll_request));
+        mq_submit_request *mq_rq = (mq_driver_request*)ipc_manager_->Alloc(sizeof(labstor::ipc::poll_request));
         ipc_manager_->GetQueuePair(kernel_qp, LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_STREAM | LABSTOR_QP_LOW_LATENCY, 0, KERNEL_PID);
         mq_rq->op_ = op;
         mq_rq->buf_ = buf;

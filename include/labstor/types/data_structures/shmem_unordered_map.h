@@ -47,14 +47,14 @@ public:
     inline uint32_t GetSize() {
         return buckets_.GetSize() + overflow_.GetSize();
     }
-    uint32_t GetNumBuckets() {
+    inline uint32_t GetNumBuckets() {
         return buckets_.GetLength();
     }
-    uint32_t GetOverflow() {
+    inline uint32_t GetOverflow() {
         return overflow_.GetLength();
     }
 
-    void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
         uint32_t overflow_region_size = array<bucket_t>::GetSize(max_collisions);
         uint32_t bucket_region_size = region_size - overflow_region_size;
         buckets_.Init(region, bucket_region_size);
@@ -65,13 +65,13 @@ public:
         for(int i = 0; i < buckets_.GetLength(); ++i) { buckets_[i].GetAtomicKey() = bucket_t::Null(); }
         for(int i = 0; i < overflow_.GetLength(); ++i) { overflow_[i].GetAtomicKey() = bucket_t::Null(); }
     }
-    void Attach(void *region) {
+    inline void Attach(void *region) {
         buckets_.Attach(region);
         region = buckets_.GetNextSection();
         overflow_.Attach(region);
     }
 
-    bool Set(bucket_t &bucket) {
+    inline bool Set(bucket_t &bucket) {
         uint32_t b = bucket_t::hash(bucket.GetKey(region_), region_) % buckets_.GetLength();
         if(AtomicSetKeyValue(buckets_, b, bucket)) {
             return true;
@@ -84,7 +84,7 @@ public:
         return false;
     }
 
-    bool Find(S key, T &value) {
+    inline bool Find(S key, T &value) {
         uint32_t b = bucket_t::hash(key, region_) % buckets_.GetLength();
 
         //Check the primary map first
@@ -98,7 +98,8 @@ public:
         return false;
     }
 
-    bool Remove(S key) {
+
+    inline bool Remove(S key) {
         uint32_t b = bucket_t::hash(key, region_) % buckets_.GetLength();
 
         //Check the primary map first
@@ -138,7 +139,6 @@ private:
         } while(!__atomic_compare_exchange_n(&arr[i].GetAtomicKey(), &tmp.GetAtomicKey(), tmp.GetAtomicKey(), false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
         return true;
     }
-
     inline bool AtomicNullifyKey(array<bucket_t> &arr, int i, S &key) {
         S_Atomic null = bucket_t::Null();
         bucket_t tmp;

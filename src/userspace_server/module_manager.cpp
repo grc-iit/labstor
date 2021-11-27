@@ -9,9 +9,26 @@
 #include <labstor/userspace_server/namespace.h>
 #include <labstor/userspace_server/ipc_manager.h>
 
+void labstor::Server::ModuleManager::LoadDefaultModules() {
+    if(labstor_config_->config_["modules"]) {
+        for (const auto &module : labstor_config_->config_["modules"]) {
+            labstor::id module_id(module.first.as<std::string>());
+            labstor::ModulePath paths;
+            if (module.second["client"]) {
+                paths.client = module.second["client"].as<std::string>();
+            }
+            if (module.second["server"]) {
+                paths.server = module.second["server"].as<std::string>();
+            }
+            AddModulePaths(module_id, paths);
+            UpdateModule(paths.server);
+        }
+    }
+}
+
 void labstor::Server::ModuleManager::UpdateModule(std::string path) {
     labstor::id module_id;
-    create_module_fn new_fn;
+    labstor::ModuleHandle module_info;
     labstor::Module *old_instance, *new_instance;
     uint32_t runtime_id;
     LABSTOR_NAMESPACE_T namespace_ = LABSTOR_NAMESPACE;
@@ -23,17 +40,17 @@ void labstor::Server::ModuleManager::UpdateModule(std::string path) {
 
     //Process update
     LABSTOR_ERROR_HANDLE_TRY {
-        new_fn = OpenModule(path, module_id);
-        SetModuleConstructor(module_id, new_fn);
+        module_info = OpenModule(path, module_id);
         std::queue<labstor::Module*> &modules = namespace_->AllModuleInstances(module_id);
         for(int i = 0; i < modules.size(); ++i) {
             labstor::Module *old_instance = modules.front();
             modules.pop();
-            new_instance = new_fn();
+            new_instance = module_info.constructor_();
             new_instance->StateUpdate(old_instance);
             modules.push(new_instance);
             delete old_instance;
         }
+        SetModuleConstructor(module_id, module_info);
     } LABSTOR_ERROR_HANDLE_CATCH {
         ipc_manager_->ResumeQueues();
         throw err;

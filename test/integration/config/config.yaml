@@ -1,0 +1,27 @@
+modules:
+  Dummy:
+    client: test/integration/libdummy_client.so
+    server: test/integration/libdummy_server.so
+work_orchestrator:
+  time_slice_us: 1000
+  policy: round-robin
+  work_queue_depth: 1024
+  kernel_workers:
+    - {worker_id: 1, cpu_id: 1}
+    - {worker_id: 2, cpu_id: 2}
+  server_workers:
+    - {worker_id: 1, cpu_id: 3}
+    - {worker_id: 2, cpu_id: 4}
+ipc_manager:
+  pid_to_ipc_size_mb: 2
+  qps_by_id_size_mb: 2
+  max_collisions: 64
+  allocator_unit_bytes: 128
+  kernel_shmem_mb: 1
+  process_shmem_kb: 16
+namespace:
+  max_entries: 1024
+  max_collisions: 16
+  shmem_request_unit: 128
+  shmem_kb: 1024
+admin_thread: 0

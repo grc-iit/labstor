@@ -12,11 +12,11 @@
 
 class ShmemNetlinkClient {
 private:
-    std::shared_ptr<labstor::Kernel::NetlinkClient> kernel_context_;
+    std::shared_ptr<labstor::Kernel::NetlinkClient> kernel_client_;
     int PAGE_SIZE;
 public:
     ShmemNetlinkClient() {
-        kernel_context_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+        kernel_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
         PAGE_SIZE = getpagesize();
     }
     int CreateShmem(size_t region_size, bool user_owned);

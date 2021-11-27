@@ -22,15 +22,19 @@ class Daemon {
 protected:
     int n_cpu_;
     int affinity_;
-    DaemonWorker *worker_;
+    std::shared_ptr<DaemonWorker> worker_;
 public:
     Daemon() {
         n_cpu_ = get_nprocs_conf();
         affinity_ = -1;
     }
 
-    void SetWorker(DaemonWorker *worker) {
+    void SetWorker(std::shared_ptr<DaemonWorker> worker) {
         worker_ = worker;
+    }
+
+    inline std::shared_ptr<DaemonWorker> GetWorker() {
+        return worker_;
     }
 
     virtual void Start() = 0;

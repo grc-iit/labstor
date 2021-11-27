@@ -17,7 +17,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include <labstor/types/basics.h>
-#include <labstor/util/singleton.h>
 #include <labstor/util/errors.h>
 
 #include <labstor/types/daemon/userspace_daemon.h>
@@ -110,54 +109,32 @@ int main(int argc, char **argv) {
         exit(1);
     }
     auto labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
+    auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     auto module_manager_ = LABSTOR_MODULE_MANAGER;
     auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
-    auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
 
-    //Load a configuration file
     labstor_config_->LoadConfig(argv[1]);
-
-    //Get this process' info
-    labstor_config_->pid_ = getpid();
-
-    //Load all modules
-    if(labstor_config_->config_["modules"]) {
-        for (const auto &module : labstor_config_->config_["modules"]) {
-            labstor::id module_id(module.first.as<std::string>());
-            labstor::ModulePath paths;
-            if (module.second["client"]) {
-                paths.client = module.second["client"].as<std::string>();
-            }
-            if (module.second["server"]) {
-                paths.server = module.second["server"].as<std::string>();
-            }
-            module_manager_->AddModulePaths(module_id, paths);
-            module_manager_->UpdateModule(paths.server);
-        }
-    }
-
-    //Load the workers
+    netlink_client_->Connect();
+    module_manager_->LoadDefaultModules();
     work_orchestrator_->CreateWorkers();
-
-    //Create the labstor server socket
     server_init();
 
     //Create the thread for accepting connections
-    labstor::UserspaceDaemon accept_daemon;
-    AcceptWorker accept_worker;
-    accept_daemon.SetWorker(&accept_worker);
-    accept_daemon.Start();
-    accept_daemon.SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
+    std::shared_ptr<labstor::UserspaceDaemon> accept_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
+    std::shared_ptr<AcceptWorker> accept_worker = std::shared_ptr<AcceptWorker>(new AcceptWorker());
+    accept_daemon->SetWorker(accept_worker);
+    accept_daemon->Start();
+    accept_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
 
     //Create the thread for processing administrative requests
-    labstor::UserspaceDaemon admin_daemon;
-    labstor::Server::AdminWorker admin_worker;
-    admin_daemon.SetWorker(&admin_worker);
-    admin_daemon.Start();
-    admin_daemon.SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
+    std::shared_ptr<labstor::UserspaceDaemon> admin_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
+    std::shared_ptr<labstor::Server::AdminWorker> admin_worker = std::shared_ptr<labstor::Server::AdminWorker>(new labstor::Server::AdminWorker());
+    admin_daemon->SetWorker(admin_worker);
+    admin_daemon->Start();
+    admin_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
 
     //Wait for the daemons to die
     printf("LabStor server has started\n");
-    accept_daemon.Wait();
-    admin_daemon.Wait();
+    accept_daemon->Wait();
+    admin_daemon->Wait();
 }

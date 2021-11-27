@@ -4,7 +4,7 @@
 
 #include <labstor/types/data_structures/shmem_ring_buffer.h>
 #include <labstor/util/singleton.h>
-#include <secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 int main(int argc, char **argv) {
     size_t region_size = 4096;

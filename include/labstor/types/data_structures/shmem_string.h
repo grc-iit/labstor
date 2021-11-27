@@ -18,20 +18,42 @@ struct string_header {
 struct string {
     string_header *header_;
     char *data_;
+    uint32_t length_;
 
-    string() : header_(nullptr), data_(nullptr) {}
+    string() : header_(nullptr), data_(nullptr), length_(0) {}
+
+    string(const std::string &str, labstor::GenericAllocator *alloc) {
+        header_ = (string_header*)alloc->Alloc(str.size());
+        header_->length_ = str.size();
+        length_ = header_->length_;
+        data_ = (char*)(header_ + 1);
+        memcpy(data_, str.c_str(), str.size());
+    }
+
+    string(char *str) {
+        data_ = str;
+        length_ = strlen(str);
+    }
+
+    string(labstor::id key) {
+        header_ = nullptr;
+        data_ = (char*)key.key;
+        length_ = strlen(data_);
+    }
 
     inline void Init(void *region_, std::string str) {
         header_ = (string_header*)region_;
         data_ = (char*)(header_ + 1);
         memcpy(data_, str.c_str(), str.size());
         header_->length_ = str.size();
+        length_ = header_->length_;
         data_[header_->length_] = 0;
     }
 
     inline void Attach(void *region_) {
         header_ = (string_header*)region_;
         data_ = (char*)(header_ + 1);
+        length_ = header_->length_;
     }
 
     inline char& operator [](int idx) const {
@@ -56,7 +78,7 @@ struct string {
     inline char* c_str() const {
         return data_;
     }
-    inline uint32_t size() const { return header_ ? header_->length_ : 0; }
+    inline uint32_t size() const { return length_; }
 
     static inline uint32_t hash(const char *key, const uint32_t length) {
         uint32_t sum = 0;

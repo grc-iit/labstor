@@ -23,19 +23,13 @@ public:
 
     void DoWork() override {
         int op;
-        for(auto &client_pid_ipc : ipc_manager_->GetIPCTable()) {
+        for(int pid : ipc_manager_->GetConnectedProcesses()) {
             LABSTOR_ERROR_HANDLE_TRY {
                 labstor::ipc::admin_request header;
-                PerProcessIPC &ipc = client_pid_ipc.second;
+                PerProcessIPC ipc = ipc_manager_->GetIPC(pid);
                 if(!ipc.GetSocket().RecvMSGPeek(&header, sizeof(header), false)) {
                     continue;
                 }
-                /*switch (op) {
-                    case LABSTOR_ADMIN_REGISTER_QP: {
-                        ipc_manager_->RegisterQP(ipc, header);
-                        break;
-                    }
-                }*/
             } LABSTOR_ERROR_HANDLE_CATCH {
                 //TODO: Free IPC
             }

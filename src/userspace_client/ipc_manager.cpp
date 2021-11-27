@@ -12,7 +12,7 @@
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/userspace_client/client.h>
 #include <labstor/userspace_client/ipc_manager.h>
-#include <secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 void labstor::Client::IPCManager::Connect() {
     ssize_t ret;

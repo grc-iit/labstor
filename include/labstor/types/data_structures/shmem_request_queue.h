@@ -67,6 +67,10 @@ public:
         return &header_->creds_;
     }
 
+    inline uint32_t GetQid() {
+        return header_->qid_;
+    }
+
     inline qtok_t Enqueue(request *rq) {
         qtok_t qtok;
         qtok.qid = header_->qid_;

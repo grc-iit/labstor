@@ -27,6 +27,9 @@ struct int_map_bucket {
     inline S GetKey(void *region) {
         return key_;
     }
+    inline T& GetAtomicValue() {
+        return value_;
+    }
     inline S& GetAtomicKey() {
         return key_;
     }
@@ -41,11 +44,11 @@ struct int_map_bucket {
 };
 
 template<typename S, typename T>
-class int_map : public unordered_map<uint32_t, T, uint32_t, int_map_bucket<S, T>> {
+class int_map : public unordered_map<S, T, S, int_map_bucket<S, T>> {
 public:
-    inline bool Set(uint32_t key, uint32_t value) {
+    inline bool Set(S key, T value) {
         int_map_bucket bucket(key, value);
-        return unordered_map<uint32_t, T, uint32_t, int_map_bucket<S, T>>::Set(bucket);
+        return unordered_map<S, T, S, int_map_bucket<S, T>>::Set(bucket);
     }
 };
 

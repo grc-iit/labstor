@@ -5,7 +5,7 @@
 #ifndef LABSTOR_ROUND_ROBIN_CLIENT_H
 #define LABSTOR_ROUND_ROBIN_CLIENT_H
 
-namespace labstor::Client::iosched {
+namespace labstor::iosched::Manual {
 
 class RoundRobin : public labstor::Module {
 private:

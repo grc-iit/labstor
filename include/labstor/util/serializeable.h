@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 5/31/21.
 //
 
-#ifndef PMEMCPY_ERROR_SERIALIZER_H
-#define PMEMCPY_ERROR_SERIALIZER_H
+#ifndef LABSTOR_ERROR_SERIALIZER_H
+#define LABSTOR_ERROR_SERIALIZER_H
 
 #include <vector>
 #include <string>
@@ -185,4 +185,4 @@ namespace labstor {
     };
 }
 
-#endif //PMEMCPY_ERROR_SERIALIZER_H
+#endif //LABSTOR_ERROR_SERIALIZER_H

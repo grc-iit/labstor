@@ -35,7 +35,8 @@
 #define LABSTOR_QP_IS_LOW_LATENCY(flags) (!(flags & LABSTOR_QP_HIGH_LATENCY))
 #define LABSTOR_QP_IS_SHMEM(flags) (!(flags & LABSTOR_QP_PRIVATE))
 
-#define LABSTOR_GET_QP_IDX(flags) ((flags >> 15) & 0xFFF)
+#define LABSTOR_GET_QP_IDX(qid) ((qid >> 15) & 0xFFF)
+#define LABSTOR_GET_QP_PID(qid) (qid & 0x7FFF)
 
 namespace labstor::ipc {
 
@@ -62,21 +63,39 @@ struct queue_pair {
     queue_pair(uint32_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
         Init(qid, sq_region, sq_size, cq_region, cq_size);
     }
-
-    void Init(uint32_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
-        sq.Init(sq_region, sq_size, qid);
-        cq.Init(cq_region, cq_size, 4);
-    }
-
-    void Attach(queue_pair_ptr &ptr, void *region) {
+    queue_pair(queue_pair_ptr &ptr, void *region) {
         sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region));
         cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
     }
 
-    labstor::ipc::request* Wait(uint32_t qtok) {
+    inline void Init(uint32_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+        sq.Init(sq_region, sq_size, qid);
+        cq.Init(cq_region, cq_size, 4);
+    }
+
+    inline void Attach(queue_pair_ptr &ptr, void *region) {
+        sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region));
+        cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
+    }
+
+    inline uint32_t GetQid() {
+        return sq.GetQid();
+    }
+
+    inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq) {
+        return sq.Enqueue(rq);
+    }
+
+    inline void Complete(labstor::ipc::request *rq, labstor::ipc::request *msg) {
+        msg->qtok_ = rq->qtok_;
+        cq.Set(msg);
+    }
+
+    inline labstor::ipc::request* Wait(uint32_t qtok) {
         labstor::ipc::request *ret;
         while(!cq.Find(qtok, ret)) {}
         cq.Remove(qtok);
+        return ret;
     }
 
     static inline uint64_t GetStreamQueuePairID(uint32_t flags, uint32_t hash, uint32_t num_qps, int pid) {

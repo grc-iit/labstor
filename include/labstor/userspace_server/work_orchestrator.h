@@ -10,22 +10,25 @@
 #include <unordered_map>
 #include <vector>
 
-#include <labstor/util/singleton.h>
 #include <labstor/userspace_server/worker.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
 
 namespace labstor::Server {
 
 class WorkOrchestrator {
 private:
+    int pid_;
     int n_cpu_;
     pthread_t mapper_;
-    std::unordered_map<pid_t, std::vector<labstor::Worker>> worker_pool_;
+    std::unordered_map<pid_t, std::vector<std::shared_ptr<labstor::Daemon>>> worker_pool_;
 public:
     WorkOrchestrator() {
+        pid_ = getpid();
         n_cpu_ = get_nprocs_conf();
     }
 
     void CreateWorkers();
+    void AssignQueuePair(labstor::ipc::queue_pair &qp, int worker_id=-1);
 };
 
 }

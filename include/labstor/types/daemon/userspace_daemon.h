@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    static void daemon_thread(DaemonWorker *worker, std::future<bool>& future) {
+    static void daemon_thread(std::shared_ptr<DaemonWorker> worker, std::future<bool>& future) {
         while(future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
             worker->DoWork();
         }

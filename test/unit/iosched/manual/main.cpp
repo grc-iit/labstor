@@ -5,7 +5,7 @@
 #include <iosched/manual/client.h>
 
 int main() {
-    labstor::Client::iosched::Manual manual;
+    labstor::iosched::Manual::Manual manual;
 
     manual.Init();
 }

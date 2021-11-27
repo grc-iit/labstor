@@ -6,15 +6,20 @@
 #define LABSTOR_SERVER_MODULE_MANAGER_H
 
 #include <labstor/types/module.h>
+#include <labstor/userspace_server/macros.h>
+#include <labstor/userspace_server/server.h>
 
 namespace labstor::Server {
 
 class ModuleManager : public ModuleTable {
 private:
-    std::atomic_uint32_t cur_runtime_id;
+    LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
     std::unordered_map<labstor::id, labstor::ModulePath> paths_;
-    std::unordered_map<uint32_t, labstor::Module*> module_pool_;
 public:
+    ModuleManager() {
+        labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
+    }
+    void LoadDefaultModules();
     void UpdateModule(std::string path);
     void AddModulePaths(labstor::id module_id, labstor::ModulePath paths);
     std::string GetModulePath(labstor::id module_id, ModulePathType type);

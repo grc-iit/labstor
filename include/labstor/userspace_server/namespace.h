@@ -8,7 +8,6 @@
 #include <vector>
 #include <queue>
 
-#include <secure_shmem/netlink_client/shmem_user_netlink.h>
 #include <labstor/constants/macros.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/module.h>
@@ -17,15 +16,19 @@
 #include <labstor/types/data_structures/shmem_string_map.h>
 #include <labstor/types/data_structures/shmem_array.h>
 #include <labstor/types/data_structures/shmem_string.h>
+
 #include "macros.h"
 #include "server.h"
+
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 namespace labstor::Server {
 
 class Namespace {
 private:
-    labstor::GenericAllocator *alloc_;
+    labstor::GenericAllocator *shmem_alloc_;
     int region_id_;
+    uint32_t region_size_;
     void *region_;
     labstor::ipc::SpinLock lock_;
     ShmemNetlinkClient shmem_;
@@ -36,43 +39,10 @@ private:
     labstor::ipc::array<uint32_t> shared_state_;
     std::vector<labstor::Module*> private_state_;
 public:
-    Namespace() {
-        LABSTOR_CONFIGURATION_MANAGER_T labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
-        uint32_t max_entries = labstor_config_->config_["namespace"]["max_entries"].as<uint32_t>();
-        uint32_t max_collisions = labstor_config_->config_["namespace"]["max_collisions"].as<uint32_t>();
-        uint32_t shmem_size = labstor_config_->config_["namespace"]["shmem_kb"].as<uint32_t>() * 1024;
-        uint32_t request_unit = labstor_config_->config_["namespace"]["shmem_request_unit"].as<uint32_t>();
-
-        //Create a shared memory region
-        region_id_ = shmem_.CreateShmem(shmem_size, true);
-        if(region_id_ < 0) {
-            throw SHMEM_CREATE_FAILED.format();
-        }
-        shmem_.GrantPidShmem(getpid(), region_id_);
-        region_ = (char*)shmem_.MapShmem(region_id_, shmem_size);
-        if(!region_) {
-            throw MMAP_FAILED.format(strerror(errno));
-        }
-
-        //Initialize the shared memory space
-        uint32_t remainder = shmem_size;
-        void *section = region_;
-        key_to_ns_id_.Init(section, labstor::ipc::string_map::GetSize(max_entries, max_collisions), max_collisions);
-        remainder -= key_to_ns_id_.GetSize();
-        section = key_to_ns_id_.GetNextSection();
-        shared_state_.Init(section, labstor::ipc::array<uint32_t>::GetSize(max_entries));
-        remainder -= shared_state_.GetSize();
-        section = shared_state_.GetNextSection();
-
-        //Create memory allocator on remaining memory
-        labstor::ipc::shmem_allocator *alloc;
-        alloc = new labstor::ipc::shmem_allocator();
-        alloc->Init(section, remainder, request_unit);
-        alloc_ = alloc;
-    }
+    Namespace();
 
     ~Namespace() {
-        if(alloc_) { delete alloc_; }
+        if(shmem_alloc_) { delete shmem_alloc_; }
         for(auto module : private_state_) {
             delete module;
         }
@@ -83,7 +53,7 @@ public:
         return nullptr;
     }
 
-    void AddKey(labstor::ipc::string key, labstor::Module *module) {
+    uint32_t AddKey(labstor::ipc::string key, labstor::Module *module) {
         lock_.Lock();
         uint32_t ns_id;
         if(ns_ids_.Dequeue(ns_id)) {
@@ -95,6 +65,7 @@ public:
         key_to_ns_id_.Set(key, ns_id);
         module_id_to_instance_[module->GetModuleID()].push(module);
         lock_.UnLock();
+        return ns_id;
     }
 
     inline void DeleteKey(labstor::ipc::string key) {
@@ -107,7 +78,12 @@ public:
         if(module == nullptr) { return; }
         AddKey(new_key, module);
     }
-    labstor::Module *Get(uint32_t ns_id) { return private_state_[ns_id]; }
+    inline void GetNamespaceRegion(uint32_t &region_id, uint32_t &region_size) {
+        region_id = region_id_;
+        region_size = region_size_;
+    }
+    inline uint32_t Get(labstor::ipc::string key) { return key_to_ns_id_[key]; }
+    inline labstor::Module *Get(uint32_t ns_id) { return private_state_[ns_id]; }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {
         return module_id_to_instance_[module_id];

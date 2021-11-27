@@ -23,8 +23,8 @@ int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
     rq.rq.op = RESERVE_SHMEM;
     rq.rq.reserve.size = region_size;
     rq.rq.reserve.user_owned = user_owned;
-    kernel_context_->SendMSG(&rq, sizeof(rq));
-    kernel_context_->RecvMSG(&region_id, sizeof(region_id));
+    kernel_client_->SendMSG(&rq, sizeof(rq));
+    kernel_client_->RecvMSG(&region_id, sizeof(region_id));
     return region_id;
 }
 
@@ -35,8 +35,8 @@ int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
     rq.rq.op = GRANT_PID_SHMEM;
     rq.rq.grant.region_id = region_id;
     rq.rq.grant.pid = pid;
-    kernel_context_->SendMSG(&rq, sizeof(rq));
-    kernel_context_->RecvMSG(&code, sizeof(code));
+    kernel_client_->SendMSG(&rq, sizeof(rq));
+    kernel_client_->RecvMSG(&code, sizeof(code));
     return code;
 }
 
@@ -46,8 +46,8 @@ int ShmemNetlinkClient::FreeShmem(int region_id) {
     strcpy(rq.header.module_id.key, SHMEM_ID);
     rq.rq.op = FREE_SHMEM;
     rq.rq.free.region_id = region_id;
-    kernel_context_->SendMSG(&rq, sizeof(rq));
-    kernel_context_->RecvMSG(&code, sizeof(code));
+    kernel_client_->SendMSG(&rq, sizeof(rq));
+    kernel_client_->RecvMSG(&code, sizeof(code));
     return code;
 }
 

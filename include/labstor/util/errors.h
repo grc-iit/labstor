@@ -34,6 +34,8 @@ namespace labstor {
     const Error SHMEM_CREATE_FAILED(400, "Failed to allocate SHMEM");
 
     const Error INVALID_NAMESPACE_ENTRY(500, "Failed to find namespace entry");
+
+    const Error NOT_YET_IMPLEMENTED(1000, "{} is not yet implemented");
 }
 
 

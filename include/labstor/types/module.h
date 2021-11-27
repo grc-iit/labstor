@@ -51,14 +51,20 @@ enum class ModulePathType {
     SERVER
 };
 
+struct ModuleHandle {
+    create_module_fn constructor_;
+    void *handle_;
+};
+
 class ModuleTable {
 private:
     std::mutex mutex_;
-    std::unordered_map<labstor::id, create_module_fn> pkg_pool_;
+    std::unordered_map<labstor::id, ModuleHandle> pkg_pool_;
 public:
     ModuleTable() = default;
 
-    create_module_fn OpenModule(std::string path, labstor::id &module_id) {
+    ModuleHandle OpenModule(std::string path, labstor::id &module_id) {
+        ModuleHandle module_info;
         void *handle = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
         if(handle == NULL) {
             throw DLSYM_MODULE_NOT_FOUND.format(path);
@@ -68,21 +74,26 @@ public:
             throw DLSYM_MODULE_NO_CONSTRUCTOR.format(path);
         }
         module_id = create_module()->GetModuleID();
-        return create_module;
+        module_info.constructor_ = create_module;
+        module_info.handle_ = handle;
+        return module_info;
     }
 
-    void SetModuleConstructor(labstor::id module_id, labstor::create_module_fn create_fn) {
+    void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle module_info) {
         mutex_.lock();
-        pkg_pool_[module_id] = create_fn;
+        if(pkg_pool_.find(module_id) != pkg_pool_.end()) {
+            dlclose(pkg_pool_[module_id].handle_);
+        }
+        pkg_pool_[module_id] = module_info;
         mutex_.unlock();
     }
 
     create_module_fn GetModuleConstructor(labstor::id module_id) {
-        create_module_fn create_fn;
+        ModuleHandle module_info;
         mutex_.lock();
-        create_fn = pkg_pool_[module_id];
+        module_info = pkg_pool_[module_id];
         mutex_.unlock();
-        return create_fn;
+        return module_info.constructor_;
     }
 };
 

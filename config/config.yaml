@@ -8,8 +8,15 @@ work_orchestrator:
     - {worker_id: 1, cpu_id: 3}
     - {worker_id: 2, cpu_id: 4}
 ipc_manager:
+  pid_to_ipc_size_mb: 2
+  qps_by_id_size_mb: 2
+  max_collisions: 64
+  allocator_unit_bytes: 128
   kernel_shmem_mb: 1
-  internal_shmem_mb: 16
   process_shmem_kb: 16
-  allocator_unit_bytes: 256
+namespace:
+  max_entries: 1024
+  max_collisions: 16
+  shmem_request_unit: 128
+  shmem_kb: 1024
 admin_thread: 0

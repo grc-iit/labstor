@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.10)
+project(labstor)
+
+set(CMAKE_CXX_STANDARD 17)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+add_library(registrar_client client/registrar_client.cpp)
+add_dependencies(registrar_client labstor_client_library)
+target_link_libraries(registrar_client labstor_client_library)
+
+add_library(registrar_server server/registrar_server.cpp)
+add_dependencies(registrar_server labstor_server_library)
+target_link_libraries(registrar_server labstor_server_library)

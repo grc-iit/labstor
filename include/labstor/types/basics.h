@@ -7,13 +7,14 @@
 
 #ifdef __cplusplus
 
+#include <string>
 #include <cstring>
 #include <unordered_map>
 
 namespace labstor {
 
 struct id {
-    char key[256];
+    char key[64];
     id() = default;
     ~id() = default;
     id(std::string key_str) {
@@ -24,6 +25,10 @@ struct id {
     }
     bool operator==(const id &other) const {
         return strcmp(key, other.key);
+    }
+    void copy(const std::string &str) {
+        memcpy(key, str.c_str(), str.size());
+        key[str.size()] = 0;
     }
 };
 
@@ -46,7 +51,7 @@ struct std::hash<labstor::id> {
 #endif
 
 struct labstor_id {
-    char key[256];
+    char key[64];
 };
 
 struct labstor_netlink_header {

@@ -32,6 +32,9 @@ struct string_map_bucket {
         key.Attach(LABSTOR_REGION_ADD(off_, region));
         return key;
     }
+    inline uint32_t& GetAtomicValue() {
+        return value_;
+    }
     inline uint32_t& GetAtomicKey() {
         return off_;
     }

@@ -6,7 +6,7 @@
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/util/singleton.h>
-#include <secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 struct simple_request {
     struct labstor::ipc::request header;

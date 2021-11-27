@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include modules/kernel)
+include_directories(include ${CMAKE_SOURCE_DIR})
 
 #set(CMAKE_C_FLAGS "-g -O3")
 #set(CMAKE_CXX_FLAGS "-g -O3")
@@ -11,7 +11,6 @@ option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static on
 
 
 ######KERNEL SERVER
-set(KPKG_DEVKIT_INCLUDE )
 add_custom_target(build_labstor_kernel_server ALL COMMAND
         cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make
         CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
@@ -27,7 +26,9 @@ add_library(labstor_server_library
         src/userspace_server/worker.cpp
         src/userspace_server/module_manager.cpp
         src/userspace_server/ipc_manager.cpp
-        src/userspace_server/work_orchestrator.cpp)
+        src/userspace_server/work_orchestrator.cpp
+        src/userspace_server/namespace.cpp
+        modules/registrar/server/registrar_server.cpp)
 add_dependencies(labstor_server_library
         labstor_kernel_client
         secure_shmem_client_netlink
@@ -40,7 +41,7 @@ target_link_libraries(labstor_server_library
         worker_client_netlink)
 
 ######LABSTOR USERSPACE SERVER
-add_executable(labstor_trusted_server src/userspace_server/iosched.cpp)
+add_executable(labstor_trusted_server src/userspace_server/server.cpp)
 add_dependencies(labstor_trusted_server labstor_server_library)
 target_link_libraries(labstor_trusted_server labstor_server_library)
 

@@ -8,7 +8,7 @@
 
 int main() {
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
-    labstor::Client::iosched::Manual iosched;
+    labstor::iosched::Manual::Manual iosched;
 
     iosched.Init();
 }

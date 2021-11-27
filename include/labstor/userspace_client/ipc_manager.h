@@ -63,16 +63,36 @@ public:
             qp = private_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
         }
     }
-    void Wait(labstor::ipc::qtok_t &qtok) {
+    inline labstor::ipc::request* AllocRequest(uint32_t qid, uint32_t size) {
+        if(LABSTOR_QP_IS_PRIVATE(qid)) {
+            return (labstor::ipc::request*)shmem_alloc_->Alloc(size);
+        } else {
+            return (labstor::ipc::request*)private_alloc_->Alloc(size);
+        }
+    }
+    inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair &qp, uint32_t size) {
+        return AllocRequest(qp.GetQid(), size);
+    }
+    inline void FreeRequest(uint32_t qid, labstor::ipc::request *rq) {
+        if(LABSTOR_QP_IS_PRIVATE(qid)) {
+            shmem_alloc_->Free(rq);
+        } else {
+            private_alloc_->Free(rq);
+        }
+    }
+    inline void FreeRequest(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
+        return FreeRequest(qtok.qid, rq);
+    }
+    labstor::ipc::request* Wait(labstor::ipc::qtok_t &qtok) {
         labstor::ipc::request *rq;
         labstor::ipc::queue_pair qp;
         GetQueuePair(qp, qtok);
         rq = qp.Wait(qtok.req_id);
-
+        return rq;
     }
     void Wait(labstor::ipc::qtok_set &qtoks) {
         for(int i = 0; i < qtoks.GetLength(); ++i) {
-            Wait(qtoks[i]);
+            FreeRequest(qtoks[i], Wait(qtoks[i]));
         }
     }
 

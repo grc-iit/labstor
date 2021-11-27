@@ -6,7 +6,7 @@
 #include <labstor/util/singleton.h>
 #include <labstor/kernel_client/kernel_client.h>
 #include <secure_shmem/secure_shmem.h>
-#include <secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 int main() {
     int region_id;

@@ -9,6 +9,7 @@ include_directories(include kernel io_systems)
 add_subdirectory(kernel/secure_shmem)
 add_subdirectory(kernel/workers)
 add_subdirectory(kernel/kpkg_devkit)
+add_subdirectory(registrar)
 add_custom_target(clean_source COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&
         cd ${CMAKE_BINARY_DIR} && make clean_labstor_kernel_server &&
