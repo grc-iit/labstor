@@ -41,25 +41,25 @@ struct posix_request : public struct request {
 
 struct posix_ops {
     int (*open)(const char *pathname, int flags, mode_t mode);
-    off_t (*lseek)(int fd, off_t offset, int whence);
+    labstor::off_t (*lseek)(int fd, labstor::off_t offset, int whence);
     int (*close)(int fd);
 
     ssize_t (*read)(int fd, void *buf, ssize_t count);
     ssize_t (*readv)(int fd, const struct iovec *iov, int iovcnt);
-    ssize_t (*pread)(int fd, void *buf, size_t count, off_t offset);
+    ssize_t (*pread)(int fd, void *buf, size_t count, labstor::off_t offset);
     ssize_t (*pread64)(int fd, void *buf, size_t count, off64_t offset);
-    ssize_t (*preadv)(int fd, const struct iovec *iov, int iovcnt, off_t offset);
+    ssize_t (*preadv)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset);
     ssize_t (*preadv64)(int fd, const struct iovec *iov, int iovcnt, off64_t offset);
-    ssize_t (*preadv2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags);
+    ssize_t (*preadv2)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags);
     ssize_t (*preadv64v2)(int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags);
 
     ssize_t (*write)(int fd, void *buf, ssize_t count);
-    ssize_t (*pwrite)(int fd, void *buf, size_t count, off_t offset);
+    ssize_t (*pwrite)(int fd, void *buf, size_t count, labstor::off_t offset);
     ssize_t (*pwrite64)(int fd, void *buf, size_t count, off64_t offset);
     ssize_t (*writev)(int fd, const struct iovec *iov, int iovcnt);
-    ssize_t (*pwritev)(int fd, const struct iovec *iov, int iovcnt, off_t offset);
+    ssize_t (*pwritev)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset);
     ssize_t (*pwritev64)(int fd, const struct iovec *iov, int iovcnt, off64_t offset);
-    ssize_t (*pwritev2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags);
+    ssize_t (*pwritev2)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags);
     ssize_t (*pwritev64v2)(int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags);
 
     int (*aio_read)(struct aiocb *aiocbp);

@@ -9,13 +9,13 @@
 #include "shmem_request_map.h"
 #include <string>
 
-//qid: [flags (5-bit)][cnt (12-bit)][pid (15-bit)]
+//qid: [flags (10-bit)][cnt (32-bit)][pid (22-bit)]
 
-#define LABSTOR_QP_INTERMEDIATE 0x08000000
-#define LABSTOR_QP_UNORDERED 0x10000000
-#define LABSTOR_QP_BATCH 0x20000000
-#define LABSTOR_QP_HIGH_LATENCY 0x40000000
-#define LABSTOR_QP_PRIVATE 0x80000000
+#define LABSTOR_QP_INTERMEDIATE (1ul << 63)
+#define LABSTOR_QP_UNORDERED (1ul << 62)
+#define LABSTOR_QP_BATCH (1ul << 61)
+#define LABSTOR_QP_HIGH_LATENCY (1ul << 60)
+#define LABSTOR_QP_PRIVATE (1ul << 59)
 
 #define LABSTOR_QP_PRIMARY 0
 #define LABSTOR_QP_ORDERED 0
@@ -35,23 +35,31 @@
 #define LABSTOR_QP_IS_LOW_LATENCY(flags) (!(flags & LABSTOR_QP_HIGH_LATENCY))
 #define LABSTOR_QP_IS_SHMEM(flags) (!(flags & LABSTOR_QP_PRIVATE))
 
-#define LABSTOR_GET_QP_IDX(qid) ((qid >> 15) & 0xFFF)
-#define LABSTOR_GET_QP_PID(qid) (qid & 0x7FFF)
+#define LABSTOR_QP_PID_BITS 22
+#define LABSTOR_QP_COUNT_BITS 32
+#define LABSTOR_QP_FLAG_BITS 10
+
+#define LABSTOR_GET_QP_IDX(qid) ((qid >> LABSTOR_QP_PID_BITS) & 0xFFFFFFFF)
+#define LABSTOR_GET_QP_PID(qid) (qid & 0x3FFFFF)
 
 namespace labstor::ipc {
 
 struct queue_pair_ptr {
-    uint32_t sq_off;
-    uint32_t cq_off;
+    labstor::off_t sq_off;
+    labstor::off_t cq_off;
+    uint32_t pid;
 
     queue_pair_ptr() = default;
-    queue_pair_ptr(void *sq_region, void *cq_region, void *region) {
-        Init(sq_region, cq_region, region);
+    queue_pair_ptr(qid_t qid, void *sq_region, void *cq_region, void *region) {
+        Init(qid, sq_region, cq_region, region);
     }
-
-    void Init(void *sq_region, void *cq_region, void *region) {
+    void Init(qid_t qid, void *sq_region, void *cq_region, void *region) {
         sq_off = LABSTOR_REGION_SUB(sq_region, region);
         cq_off = LABSTOR_REGION_SUB(cq_region, region);
+        pid = LABSTOR_GET_QP_PID(qid);
+    }
+    uint32_t GetPID() {
+        return pid;
     }
 };
 
@@ -60,7 +68,7 @@ struct queue_pair {
     request_map cq;
 
     queue_pair() = default;
-    queue_pair(uint32_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+    queue_pair(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
         Init(qid, sq_region, sq_size, cq_region, cq_size);
     }
     queue_pair(queue_pair_ptr &ptr, void *region) {
@@ -68,7 +76,11 @@ struct queue_pair {
         cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
     }
 
-    inline void Init(uint32_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+    inline void GetPointer(queue_pair_ptr &ptr, void *region) {
+        ptr.Init(sq.GetQid(), sq.GetRegion(), cq.GetRegion(), region);
+    }
+
+    inline void Init(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
         sq.Init(sq_region, sq_size, qid);
         cq.Init(cq_region, cq_size, 4);
     }
@@ -78,7 +90,7 @@ struct queue_pair {
         cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
     }
 
-    inline uint32_t GetQid() {
+    inline qid_t GetQid() {
         return sq.GetQid();
     }
 
@@ -98,11 +110,11 @@ struct queue_pair {
         return ret;
     }
 
-    static inline uint64_t GetStreamQueuePairID(uint32_t flags, uint32_t hash, uint32_t num_qps, int pid) {
+    static inline uint64_t GetStreamQueuePairID(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid) {
         uint32_t idx = hash % num_qps;
-        return flags | ((idx << 15) + pid);
+        return flags | ((idx << LABSTOR_QP_PID_BITS) + pid);
     }
-    static inline uint64_t GetStreamQueuePairID(uint32_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
+    static inline uint64_t GetStreamQueuePairID(labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
         uint32_t hash = 0;
         for(int i = 0; i < str.size(); ++i) {
             hash += str[i] << 4*(i%4);
@@ -110,10 +122,10 @@ struct queue_pair {
         hash *= ns_id;
         return GetStreamQueuePairID(flags, hash, num_qps, pid);
     }
-    static inline uint64_t GetStreamQueuePairOff(uint32_t flags, uint32_t hash, uint32_t num_qps, int pid) {
+    static inline uint64_t GetStreamQueuePairOff(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid) {
         return GetStreamQueuePairID(flags, hash, num_qps, pid) % num_qps;
     }
-    static inline uint64_t GetStreamQueuePairOff(uint32_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
+    static inline uint64_t GetStreamQueuePairOff(labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
         return GetStreamQueuePairID(flags, str, ns_id, num_qps, pid) % num_qps;
     }
 };

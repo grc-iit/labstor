@@ -9,6 +9,7 @@
 #include <labstor/userspace_server/macros.h>
 #include <labstor/userspace_server/module_manager.h>
 #include <labstor/userspace_server/ipc_manager.h>
+#include <labstor/userspace_server/namespace.h>
 
 namespace labstor::Registrar {
 

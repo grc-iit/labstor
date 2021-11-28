@@ -15,7 +15,7 @@
 namespace labstor::ipc {
 
 struct string_map_bucket {
-    uint32_t off_;
+    labstor::off_t off_;
     uint32_t value_;
 
     string_map_bucket() = default;
@@ -35,7 +35,7 @@ struct string_map_bucket {
     inline uint32_t& GetAtomicValue() {
         return value_;
     }
-    inline uint32_t& GetAtomicKey() {
+    inline labstor::off_t& GetAtomicKey() {
         return off_;
     }
     inline static uint32_t hash(const labstor::ipc::string &key, void *region) {

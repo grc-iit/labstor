@@ -11,8 +11,10 @@
 
 namespace labstor::ipc {
 
+typedef uint64_t qid_t;
+
 struct qtok_t {
-    uint32_t qid;
+    labstor::ipc::qid_t qid;
     uint32_t req_id;
 };
 

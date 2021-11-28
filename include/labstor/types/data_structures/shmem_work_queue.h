@@ -21,19 +21,27 @@
 #include <labstor/types/data_structures/shmem_queue_pair.h>
 #include "labstor/types/shmem_type.h"
 
+#include <labstor/userspace_server/macros.h>
+#include <labstor/userspace_server/ipc_manager.h>
+
 namespace labstor::ipc {
 
 class work_queue : public shmem_type {
 private:
+    void *queue_region_;
     ring_buffer<queue_pair_ptr> queue_;
+    LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
+    work_queue() {
+        ipc_manager_ = LABSTOR_IPC_MANAGER;
+    }
+
     static uint32_t GetSize(uint32_t num_buckets) {
         return ring_buffer<queue_pair_ptr>::GetSize(num_buckets);
     }
     inline uint32_t GetSize() {
         return queue_.GetSize();
     }
-
 
     void Init(void *region, uint32_t region_size) {
         region_ = region;
@@ -45,20 +53,19 @@ public:
         queue_.Attach(region);
     }
 
-    bool Enqueue(queue_pair &qp) {
+    bool Enqueue(queue_pair &qp, void *base) {
         queue_pair_ptr ptr;
-        ptr.sq_off = LABSTOR_REGION_SUB(qp.sq.GetRegion(), region_);
-        ptr.cq_off = LABSTOR_REGION_SUB(qp.cq.GetRegion(), region_);
+        qp.GetPointer(ptr, base);
         return queue_.Enqueue(ptr);
     }
 
-    bool Dequeue(queue_pair &qp) {
+    bool Dequeue(queue_pair &qp, void *&base) {
         queue_pair_ptr ptr;
         if(!queue_.Dequeue(ptr)) {
             return false;
         }
-        qp.sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region_));
-        qp.cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region_));
+        base = ipc_manager_->GetRegion(ptr);
+        qp.Attach(ptr, base);
         return true;
     }
 

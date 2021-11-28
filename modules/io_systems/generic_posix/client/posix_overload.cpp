@@ -52,19 +52,19 @@
 
 FORWARD_DECL(ssize_t, read, int fd, void *buf, size_t count)
 FORWARD_DECL(ssize_t, write, int fd, const void *buf, size_t count)
-FORWARD_DECL(ssize_t, pread, int fd, void *buf, size_t count, off_t offset)
-FORWARD_DECL(ssize_t, pwrite, int fd, const void *buf, size_t count, off_t offset)
+FORWARD_DECL(ssize_t, pread, int fd, void *buf, size_t count, labstor::off_t offset)
+FORWARD_DECL(ssize_t, pwrite, int fd, const void *buf, size_t count, labstor::off_t offset)
 FORWARD_DECL(ssize_t, pread64, int fd, void *buf, size_t count, off64_t offset)
 FORWARD_DECL(ssize_t, pwrite64, int fd, const void *buf, size_t count, off64_t offset)
 FORWARD_DECL(ssize_t, readv, int fd, const struct iovec *iov, int iovcnt)
-FORWARD_DECL(ssize_t, preadv, int fd, const struct iovec *iov, int iovcnt, off_t offset)
+FORWARD_DECL(ssize_t, preadv, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset)
 FORWARD_DECL(ssize_t, preadv64, int fd, const struct iovec *iov, int iovcnt, off64_t offset)
-FORWARD_DECL(ssize_t, preadv2, int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags)
+FORWARD_DECL(ssize_t, preadv2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 FORWARD_DECL(ssize_t, preadv64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
 FORWARD_DECL(ssize_t, writev, int fd, const struct iovec *iov, int iovcnt)
-FORWARD_DECL(ssize_t, pwritev, int fd, const struct iovec *iov, int iovcnt, off_t offset)
+FORWARD_DECL(ssize_t, pwritev, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset)
 FORWARD_DECL(ssize_t, pwritev64, int fd, const struct iovec *iov, int iovcnt, off64_t offset)
-FORWARD_DECL(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags)
+FORWARD_DECL(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 FORWARD_DECL(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
 FORWARD_DECL(int, aio_read, struct aiocb *aiocbp)
 FORWARD_DECL(int, aio_write, struct aiocb *aiocbp)
@@ -98,12 +98,12 @@ ssize_t WRAPPER_FUN(write)(int fd, const void *buf, size_t count)
     return REAL_FUN(write)(fd, buf, count);
 }
 
-ssize_t WRAPPER_FUN(pread)(int fd, void *buf, size_t count, off_t offset)
+ssize_t WRAPPER_FUN(pread)(int fd, void *buf, size_t count, labstor::off_t offset)
 {
     return REAL_FUN(pread)(fd, buf, count, offset);
 }
 
-ssize_t WRAPPER_FUN(pwrite)(int fd, const void *buf, size_t count, off_t offset)
+ssize_t WRAPPER_FUN(pwrite)(int fd, const void *buf, size_t count, labstor::off_t offset)
 {
     return REAL_FUN(pwrite)(fd, buf, count, offset);
 }
@@ -123,7 +123,7 @@ ssize_t WRAPPER_FUN(readv)(int fd, const struct iovec *iov, int iovcnt)
     return REAL_FUN(readv)(fd, iov, iovcnt);
 }
 
-ssize_t WRAPPER_FUN(preadv)(int fd, const struct iovec *iov, int iovcnt, off_t offset)
+ssize_t WRAPPER_FUN(preadv)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset)
 {
     return REAL_FUN(preadv)(fd, iov, iovcnt, offset);
 }
@@ -133,7 +133,7 @@ ssize_t WRAPPER_FUN(preadv64)(int fd, const struct iovec *iov, int iovcnt, off64
     return REAL_FUN(preadv64)(fd, iov, iovcnt, offset);
 }
 
-ssize_t WRAPPER_FUN(preadv2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags)
+ssize_t WRAPPER_FUN(preadv2)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 {
     return REAL_FUN(preadv2)(fd, iov, iovcnt, offset, flags);
 }
@@ -148,7 +148,7 @@ ssize_t WRAPPER_FUN(writev)(int fd, const struct iovec *iov, int iovcnt)
     return REAL_FUN(writev)(fd, iov, iovcnt);
 }
 
-ssize_t WRAPPER_FUN(pwritev)(int fd, const struct iovec *iov, int iovcnt, off_t offset)
+ssize_t WRAPPER_FUN(pwritev)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset)
 {
     return REAL_FUN(pwritev)(fd, iov, iovcnt, offset);
 }
@@ -158,7 +158,7 @@ ssize_t WRAPPER_FUN(pwritev64)(int fd, const struct iovec *iov, int iovcnt, off6
     return REAL_FUN(pwritev64)(fd, iov, iovcnt, offset);
 }
 
-ssize_t WRAPPER_FUN(pwritev2)(int fd, const struct iovec *iov, int iovcnt, off_t offset, int flags)
+ssize_t WRAPPER_FUN(pwritev2)(int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 {
     return REAL_FUN(pwritev2)(fd, iov, iovcnt, offset, flags);
 }

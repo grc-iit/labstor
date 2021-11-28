@@ -18,3 +18,4 @@ add_dependencies(integration_exec dummy_client)
 target_link_libraries(integration_exec dummy_client)
 
 add_custom_target(start_labstor_server_integration COMMAND ${CMAKE_BINARY_DIR}/labstor_trusted_server ${CMAKE_CURRENT_SOURCE_DIR}/config/config.yaml)
+add_custom_target(start_integration_client COMMAND ${CMAKE_CURRENT_BINARY_DIR}/integration_exec)

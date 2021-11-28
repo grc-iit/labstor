@@ -26,7 +26,7 @@
 namespace labstor::ipc {
 
 struct request_queue_header {
-    uint32_t qid_;
+    labstor::ipc::qid_t qid_;
     labstor::credentials creds_;
     AtomicBusy update_lock_;
 };
@@ -34,7 +34,7 @@ struct request_queue_header {
 class request_queue : public shmem_type {
 private:
     request_queue_header *header_;
-    ring_buffer<uint32_t> queue_;
+    ring_buffer<int32_t> queue_;
     AtomicBusy *update_lock_;
 public:
     inline static uint32_t GetSize(uint32_t max_depth) {
@@ -44,7 +44,7 @@ public:
         return GetSize(queue_.GetMaxDepth());
     }
 
-    inline void Init(void *region, uint32_t region_size, uint32_t qid) {
+    inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid) {
         region_ = region;
         header_ = (request_queue_header*)region;
         header_->qid_ = qid;
@@ -52,7 +52,7 @@ public:
         update_lock_ = &header_->update_lock_;
         queue_.Init(header_+1, region_size - sizeof(request_queue_header));
     }
-    inline void Init(void *region, uint32_t region_size, uint32_t qid, labstor::credentials creds) {
+    inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid, labstor::credentials &creds) {
         Init(region, region_size, qid);
         header_->creds_ = creds;
     }
@@ -67,7 +67,7 @@ public:
         return &header_->creds_;
     }
 
-    inline uint32_t GetQid() {
+    inline qid_t GetQid() {
         return header_->qid_;
     }
 
@@ -78,7 +78,7 @@ public:
         return qtok;
     }
     inline bool Dequeue(request *&rq) {
-        uint32_t off;
+        labstor::off_t off;
         if(!queue_.Dequeue(off)) { return false; }
         rq = (request*)LABSTOR_REGION_ADD(off, region_);
         return true;

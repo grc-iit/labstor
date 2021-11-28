@@ -27,6 +27,8 @@ public:
         n_cpu_ = get_nprocs_conf();
     }
 
+    inline int GetPid() { return pid_; }
+    inline int GetNumCPU() { return n_cpu_; }
     void CreateWorkers();
     void AssignQueuePair(labstor::ipc::queue_pair &qp, int worker_id=-1);
 };

@@ -10,40 +10,46 @@
 #include <labstor/types/socket.h>
 #include <labstor/userspace_server/server.h>
 #include <labstor/userspace_server/ipc_manager.h>
+#include <labstor/userspace_server/work_orchestrator.h>
 #include <labstor/kernel_client/kernel_client.h>
 #include <labstor/types/messages.h>
+
+LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
     AUTO_TRACE("labstor::Server::IPCManager::RegisterClient", client_fd)
     //Create new IPC
     pid_to_ipc_.Set(creds.pid, new PerProcessIPC(client_fd, creds));
-    PerProcessIPC *ipc = pid_to_ipc_[creds.pid];
+    PerProcessIPC *client_ipc = pid_to_ipc_[creds.pid];
 
     //Create shared memory
-    ipc->region_id_ = shmem_client_.CreateShmem(per_process_shmem_, true);
-    if(ipc->region_id_ < 0) {
+    client_ipc->region_id_ = shmem_client_.CreateShmem(per_process_shmem_, true);
+    if(client_ipc->region_id_ < 0) {
         throw SHMEM_CREATE_FAILED.format();
     }
-    shmem_client_.GrantPidShmem(getpid(), ipc->region_id_);
-    shmem_client_.GrantPidShmem(creds.pid, ipc->region_id_);
-    ipc->shmem_region_ = shmem_client_.MapShmem(ipc->region_id_, per_process_shmem_);
-    if(!ipc->shmem_region_) {
+    shmem_client_.GrantPidShmem(getpid(), client_ipc->region_id_);
+    shmem_client_.GrantPidShmem(creds.pid, client_ipc->region_id_);
+    client_ipc->shmem_region_ = shmem_client_.MapShmem(client_ipc->region_id_, per_process_shmem_);
+    if(!client_ipc->shmem_region_) {
         throw MMAP_FAILED.format(strerror(errno));
     }
 
     //Create SHMEM allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
-    alloc->Init(ipc->shmem_region_, per_process_shmem_, allocator_unit_);
-    ipc->alloc_ = alloc;
+    alloc->Init(client_ipc->shmem_region_, per_process_shmem_, allocator_unit_);
+    client_ipc->alloc_ = alloc;
 
     //Send shared memory to client
     labstor::ipc::setup_reply reply;
-    reply.region_id = ipc->region_id_;
+    reply.region_id = client_ipc->region_id_;
     reply.region_size = per_process_shmem_;
-    ipc->GetSocket().SendMSG(&reply, sizeof(reply));
+    reply.request_unit = allocator_unit_;
+    reply.concurrency = work_orchestrator_->GetNumCPU();
+    reply.queue_size = allocator_unit_;
+    client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
 
     //Receive and register client QPs
-    RegisterQP(ipc);
+    RegisterQP(client_ipc);
 }
 
 void labstor::Server::IPCManager::RegisterQP(PerProcessIPC *client_ipc) {
@@ -53,7 +59,7 @@ void labstor::Server::IPCManager::RegisterQP(PerProcessIPC *client_ipc) {
     client_ipc->GetSocket().RecvMSG((void*)&request, sizeof(labstor::ipc::register_qp_request));
 
     //Receive the SHMEM queue pointers
-    uint32_t size = request.count_*sizeof(labstor::ipc::queue_pair_ptr);
+    uint32_t size = request.GetQueueArrayLength();
     labstor::ipc::queue_pair_ptr *ptrs = (labstor::ipc::queue_pair_ptr*)malloc(size);
     client_ipc->GetSocket().RecvMSG((void*)ptrs, size);
     for(int i = 0; i < request.count_; ++i) {

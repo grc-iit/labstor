@@ -67,6 +67,7 @@ public:
         for(int i = 0; i < overflow_.GetLength(); ++i) { overflow_[i].GetAtomicKey() = bucket_t::Null(); }
     }
     inline void Attach(void *region) {
+        region_ = region;
         buckets_.Attach(region);
         region = buckets_.GetNextSection();
         overflow_.Attach(region);

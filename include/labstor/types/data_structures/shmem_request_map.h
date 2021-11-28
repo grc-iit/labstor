@@ -12,7 +12,7 @@
 namespace labstor::ipc {
 
 struct request_map_bucket {
-    uint32_t off_;
+    labstor::off_t off_;
 
     request_map_bucket() = default;
     request_map_bucket(labstor::ipc::request *rq, void *region) {
@@ -30,10 +30,10 @@ struct request_map_bucket {
         labstor::ipc::request *rq = (labstor::ipc::request *)LABSTOR_REGION_ADD(off_, region);
         return rq->qtok_;
     }
-    inline uint32_t& GetAtomicValue() {
+    inline labstor::off_t& GetAtomicValue() {
         return off_;
     }
-    inline uint32_t& GetAtomicKey() {
+    inline labstor::off_t& GetAtomicKey() {
         return off_;
     }
     inline static uint32_t hash(const uint32_t &qtok, void *region) {

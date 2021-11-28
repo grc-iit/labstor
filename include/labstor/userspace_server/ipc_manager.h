@@ -17,10 +17,10 @@
 #include <labstor/types/allocator/allocator.h>
 #include <labstor/types/data_structures/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_int_map.h>
+#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 #include "macros.h"
 #include "server.h"
-#include "work_orchestrator.h"
 
 namespace labstor::Server {
 
@@ -40,7 +40,8 @@ struct PerProcessIPC {
         shmem_region_ = old_ipc.shmem_region_;
         alloc_ = old_ipc.alloc_;
     }
-    UnixSocket& GetSocket() { return clisock_; };
+    inline UnixSocket& GetSocket() { return clisock_; };
+    inline void* GetRegion() { return shmem_region_; }
 };
 
 class IPCManager {
@@ -56,13 +57,10 @@ private:
     ShmemNetlinkClient shmem_client_;
     uint32_t per_process_shmem_, allocator_unit_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
-    LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_;
 public:
     IPCManager() {
         pid_ = getpid();
         labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
-        work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
-
         uint32_t pid_to_ipc_size = labstor_config_->config_["ipc_manager"]["pid_to_ipc_size_mb"].as<uint32_t>()*SizeType::MB;
         uint32_t qps_by_id_size = labstor_config_->config_["ipc_manager"]["qps_by_id_size_mb"].as<uint32_t>()*SizeType::MB;
         uint32_t max_collisions = labstor_config_->config_["ipc_manager"]["max_collisions"].as<uint32_t>();
@@ -86,6 +84,16 @@ public:
     void PauseQueues();
     void WaitForPause();
     void ResumeQueues();
+
+    inline void* GetRegion(int pid) {
+        return pid_to_ipc_[pid]->GetRegion();
+    }
+    inline void* GetRegion(labstor::ipc::queue_pair_ptr &qp_ptr) {
+        return pid_to_ipc_[qp_ptr.GetPID()]->GetRegion();
+    }
+    inline void* GetRegion(labstor::ipc::queue_pair &qp) {
+        return pid_to_ipc_[LABSTOR_GET_QP_PID(qp.GetQid())]->GetRegion();
+    }
 
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -125,14 +133,14 @@ public:
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qtok_t &qtok) {
         qp = qps_by_id_[qtok.qid];
     }
-    inline labstor::ipc::request* AllocRequest(uint32_t qid, uint32_t size) {
+    inline labstor::ipc::request* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
         return (labstor::ipc::request*)alloc->Alloc(size);
     }
     inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair &qp, uint32_t size) {
         return AllocRequest(qp.GetQid(), size);
     }
-    inline void FreeRequest(uint32_t qid, labstor::ipc::request *rq) {
+    inline void FreeRequest(labstor::ipc::qid_t qid, labstor::ipc::request *rq) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
         alloc->Free((void*)rq);
     }

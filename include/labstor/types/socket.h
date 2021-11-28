@@ -29,10 +29,10 @@ public:
     inline int GetFd() { return fd_; }
 
     bool RecvMSG(void *buf, int size, bool do_wait = true) {
-        int ret, net = 0;
-        ret = safe_recv(buf, size, 0);
-        if (!do_wait && ret == 0) { return false; }
-        net += ret;
+        int cnt, net = 0;
+        cnt = safe_recv(buf, size, 0);
+        if (!do_wait && cnt == 0) { return false; }
+        net += cnt;
         while (net < size) {
             net += safe_recv((char *) buf + net, size - net, 0);
         }
@@ -40,10 +40,10 @@ public:
     }
 
     bool RecvMSGPeek(void *buf, int size, bool do_wait = true) {
-        int ret, net = 0;
-        ret = safe_recv(buf, size, MSG_PEEK);
-        if (!do_wait && ret == 0) { return false; }
-        net = ret;
+        int cnt, net = 0;
+        cnt = safe_recv(buf, size, MSG_PEEK);
+        if (!do_wait && cnt == 0) { return false; }
+        net = cnt;
         while (net < size) {
             net = safe_recv((char *) buf + net, size - net, MSG_PEEK);
         }
@@ -51,10 +51,10 @@ public:
     }
 
     bool SendMSG(void *buf, int size, bool do_wait = true) {
-        int ret, net = 0;
-        ret = safe_send(buf, size, 0);
-        if (!do_wait && ret == 0) { return false; }
-        net += ret;
+        int cnt, net = 0;
+        cnt = safe_send(buf, size, 0);
+        if (!do_wait && cnt == 0) { return false; }
+        net += cnt;
         while (net < size) {
             net += safe_send((char *) buf + net, size - net, 0);
         }
@@ -69,9 +69,9 @@ private:
         throw labstor::UNIX_RECVMSG_FAILED.format(strerror(errno));
     }
 
-    inline bool safe_send(void *buf, int size, int flags) {
+    inline int safe_send(void *buf, int size, int flags) {
         int ret = send(fd_, buf, size, flags);
-        if (ret > 0) { return ret; }
+        if (ret > 0) { return ret;  }
         if (errno == EAGAIN || errno == EWOULDBLOCK) { return 0; }
         throw labstor::UNIX_SENDMSG_FAILED.format(strerror(errno));
     }

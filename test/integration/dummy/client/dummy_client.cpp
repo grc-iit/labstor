@@ -2,17 +2,20 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
+#include <labstor/util/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "dummy.h"
 #include "dummy_client.h"
 
 void labstor::test::Dummy::Client::Register() {
+    AUTO_TRACE("labstor::test::Dummy::Client::Register")
     auto registrar = labstor::Registrar::Client();
     ns_id_ = registrar.RegisterInstance("Dummy", "DummyExample");
 }
 
 void labstor::test::Dummy::Client::GetValue() {
+    AUTO_TRACE("labstor::test::Dummy::Client::GetValue")
     labstor::ipc::queue_pair qp;
     labstor::ipc::qtok_t qtok;
     dummy_submit_request *rq_submit;

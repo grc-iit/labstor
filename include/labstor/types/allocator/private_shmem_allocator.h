@@ -25,7 +25,7 @@ class private_shmem_allocator : public GenericAllocator {
 private:
     uint32_t region_size_;
     private_shmem_allocator_header *header_;
-    labstor::ipc::ring_buffer<uint32_t> objs_;
+    labstor::ipc::ring_buffer<labstor::off_t> objs_;
 public:
     private_shmem_allocator() = default;
 
@@ -62,7 +62,7 @@ public:
     }
 
     inline void* Alloc(uint32_t size, uint32_t core) override {
-        uint32_t off;
+        labstor::off_t off;
         if(!objs_.Dequeue(off)) { return nullptr; }
         return LABSTOR_REGION_ADD(off, region_);
     }

@@ -7,6 +7,7 @@
 
 #include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
 
 namespace labstor::ipc {
 
@@ -38,6 +39,10 @@ struct register_qp_request : public labstor::ipc::admin_request {
     int count_;
     register_qp_request() {}
     register_qp_request(int count) : count_(count), labstor::ipc::admin_request(LABSTOR_ADMIN_REGISTER_QP) {}
+
+    uint32_t GetQueueArrayLength() {
+        return count_ * sizeof(labstor::ipc::queue_pair_ptr);
+    }
 };
 typedef admin_reply register_qp_reply;
 

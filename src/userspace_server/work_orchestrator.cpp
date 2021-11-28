@@ -9,6 +9,7 @@
 #include <labstor/userspace_server/macros.h>
 #include <labstor/userspace_server/work_orchestrator.h>
 #include <labstor/userspace_server/worker.h>
+#include <labstor/userspace_server/ipc_manager.h>
 #include <labstor/userspace_server/server.h>
 #include <labstor/kernel_client/kernel_client.h>
 
@@ -26,7 +27,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     //Server worker threads
     nworkers = config["server_workers"].size();
     worker_pool_.emplace(pid_, nworkers);
-    auto &server_workers_ = worker_pool_[pid_];
+    auto &server_workers = worker_pool_[pid_];
     for (const auto &worker_conf : config["server_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
@@ -35,16 +36,19 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
         worker_daemon->SetWorker(worker);
         worker_daemon->Start();
         worker_daemon->SetAffinity(cpu_id);
-        server_workers_.emplace_back(worker_daemon);
+        server_workers[worker_id] = worker_daemon;
     }
 }
 
 void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair &qp, int worker_id) {
     AUTO_TRACE("labstor::Server::WorkOrchestrator::AssignQueuePair")
+    LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     auto &server_workers = worker_pool_[pid_];
     if(worker_id < 0) {
         throw NOT_YET_IMPLEMENTED.format("Dynamic work orchestration");
     }
     worker_id = worker_id % server_workers.size();
+    TRACEPOINT("labstor::Server::WorkOrchestrator::AssignQueuePair", worker_id)
     std::shared_ptr<labstor::Server::Worker> worker = std::dynamic_pointer_cast<labstor::Server::Worker>(server_workers[worker_id]->GetWorker());
+    worker->AssignQP(qp, ipc_manager_->GetRegion(qp));
 }

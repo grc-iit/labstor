@@ -39,6 +39,8 @@ struct credentials {
     int priority;
 };
 
+typedef int32_t off_t;
+
 }
 
 template <>

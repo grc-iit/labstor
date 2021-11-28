@@ -10,7 +10,7 @@ struct posix_ops {
     int (*open)(const char *pathname, int flags, mode_t mode);
     ssize_t (*read)(int fd, void *buf, ssize_t count);
     ssize_t (*write)(int fd, void *buf, ssize_t count);
-    off_t (*lseek)(int fd, off_t offset, int whence);
+    labstor::off_t (*lseek)(int fd, labstor::off_t offset, int whence);
     int (*close)(int fd);
 };
 
