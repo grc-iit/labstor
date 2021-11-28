@@ -1,7 +1,7 @@
 modules:
   Dummy:
-    client: test/integration/libdummy_client.so
-    server: test/integration/libdummy_server.so
+    client: /home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_client.so
+    server: /home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_server.so
 work_orchestrator:
   time_slice_us: 1000
   policy: round-robin

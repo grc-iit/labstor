@@ -51,6 +51,8 @@ public:
         socklen_t clilen, len;
         int client_fd_;
 
+        LABSTOR_ERROR_HANDLE_START()
+
         //Accept client connection
         client_fd_ = accept(server_fd_, (struct sockaddr *) &client_addr_, &clilen);
         if (client_fd_ < 0) {
@@ -67,6 +69,8 @@ public:
         memcpy(&creds, &ucred, sizeof(ucred));
         printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
         ipc_manager_->RegisterClient(client_fd_, creds);
+
+        LABSTOR_ERROR_HANDLE_END()
     }
 };
 
@@ -112,15 +116,30 @@ int main(int argc, char **argv) {
         printf("USAGE: ./server [config.yaml]\n");
         exit(1);
     }
-    auto labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
-    auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
-    auto module_manager_ = LABSTOR_MODULE_MANAGER;
-    auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 
+    LABSTOR_ERROR_HANDLE_START()
+
+    //Initialize labstor configuration
+    auto labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
     labstor_config_->LoadConfig(argv[1]);
+
+    //Connect to kernel server
+    auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     netlink_client_->Connect();
+
+    //Load modules
+    auto module_manager_ = LABSTOR_MODULE_MANAGER;
     module_manager_->LoadDefaultModules();
+
+    //Initialize namespace
+    auto namespace_ = LABSTOR_NAMESPACE;
+    namespace_->Init();
+
+    //Initialize workers
+    auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
     work_orchestrator_->CreateWorkers();
+
+    //Initialize server
     server_init();
 
     //Create the thread for accepting connections
@@ -141,4 +160,6 @@ int main(int argc, char **argv) {
     printf("LabStor server has started\n");
     accept_daemon->Wait();
     admin_daemon->Wait();
+
+    LABSTOR_ERROR_HANDLE_END()
 }

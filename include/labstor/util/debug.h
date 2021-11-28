@@ -35,7 +35,8 @@ public:
             buffer[off++] = ';';
         }
         base_text_ = std::string(buffer, off);
-        printf("%s\n", (base_text_ + "start").c_str());
+        if(!tracepoint) { printf("%s\n", (base_text_ + "start").c_str()); }
+        else { printf("%s\n", (base_text_).c_str()); }
     }
 
     ~AutoTrace() {

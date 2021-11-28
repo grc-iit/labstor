@@ -20,6 +20,10 @@ struct string {
     char *data_;
     uint32_t length_;
 
+    inline void *GetRegion() {
+        return (void*)header_;
+    }
+
     string() : header_(nullptr), data_(nullptr), length_(0) {}
 
     string(const std::string &str, labstor::GenericAllocator *alloc) {
@@ -28,6 +32,7 @@ struct string {
         length_ = header_->length_;
         data_ = (char*)(header_ + 1);
         memcpy(data_, str.c_str(), str.size());
+        data_[length_] = 0;
     }
 
     string(char *str) {
@@ -39,6 +44,12 @@ struct string {
         header_ = nullptr;
         data_ = (char*)key.key;
         length_ = strlen(data_);
+    }
+
+    string(const string &old_str) {
+        header_ = old_str.header_;
+        data_ = old_str.data_;
+        length_ = old_str.length_;
     }
 
     inline void Init(void *region_, std::string str) {

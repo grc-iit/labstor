@@ -26,8 +26,8 @@ public:
         for(int pid : ipc_manager_->GetConnectedProcesses()) {
             LABSTOR_ERROR_HANDLE_TRY {
                 labstor::ipc::admin_request header;
-                PerProcessIPC ipc = ipc_manager_->GetIPC(pid);
-                if(!ipc.GetSocket().RecvMSGPeek(&header, sizeof(header), false)) {
+                PerProcessIPC *ipc = ipc_manager_->GetIPC(pid);
+                if(!ipc->GetSocket().RecvMSGPeek(&header, sizeof(header), false)) {
                     continue;
                 }
             } LABSTOR_ERROR_HANDLE_CATCH {

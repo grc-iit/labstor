@@ -36,10 +36,12 @@ public:
 
 
     void Init(void *region, uint32_t region_size) {
+        region_ = region;
         queue_.Init(region_, region_size);
     }
 
     void Attach(void *region) {
+        region_ = region;
         queue_.Attach(region);
     }
 

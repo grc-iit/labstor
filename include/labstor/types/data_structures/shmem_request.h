@@ -7,6 +7,8 @@
 
 #ifdef __cplusplus
 
+#include <stdint.h>
+
 namespace labstor::ipc {
 
 struct request {

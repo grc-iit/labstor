@@ -40,6 +40,7 @@ private:
     std::vector<labstor::Module*> private_state_;
 public:
     Namespace();
+    void Init();
 
     ~Namespace() {
         if(shmem_alloc_) { delete shmem_alloc_; }
@@ -54,7 +55,6 @@ public:
     }
 
     uint32_t AddKey(labstor::ipc::string key, labstor::Module *module) {
-        lock_.Lock();
         uint32_t ns_id;
         if(ns_ids_.Dequeue(ns_id)) {
             private_state_[ns_id] = module;
@@ -64,7 +64,6 @@ public:
         }
         key_to_ns_id_.Set(key, ns_id);
         module_id_to_instance_[module->GetModuleID()].push(module);
-        lock_.UnLock();
         return ns_id;
     }
 

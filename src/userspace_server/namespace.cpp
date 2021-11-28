@@ -34,6 +34,9 @@ labstor::Server::Namespace::Namespace() {
     TRACEPOINT("labstor::Server::Namespace::Namespace", "NamespaceTables")
     uint32_t remainder = shmem_size;
     void *section = region_;
+    ns_ids_.Init(section, labstor::ipc::ring_buffer<uint32_t>::GetSize(max_entries));
+    remainder -= ns_ids_.GetSize();
+    section = ns_ids_.GetNextSection();
     key_to_ns_id_.Init(section, labstor::ipc::string_map::GetSize(max_entries, max_collisions), max_collisions);
     remainder -= key_to_ns_id_.GetSize();
     section = key_to_ns_id_.GetNextSection();
@@ -49,10 +52,11 @@ labstor::Server::Namespace::Namespace() {
     alloc->Init(section, remainder, request_unit);
     shmem_alloc_ = alloc;
     TRACEPOINT("labstor::Server::Namespace::Namespace", "Allocator")
+}
 
+void labstor::Server::Namespace::Init() {
     //Add the registration module
     TRACEPOINT("labstor::Server::Namespace::Namespace", "AddKey")
     AddKey(labstor::ipc::string("Registrar", shmem_alloc_), new labstor::Registrar::Server());
     TRACEPOINT("labstor::Server::Namespace::Namespace", "AddKey")
-
 }

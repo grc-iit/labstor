@@ -73,9 +73,13 @@ namespace labstor {
     class Arg : Serializeable {
     private:
         union {
+            char d8;
+            short int d16;
             int d32;
             long d64;
             long long d128;
+            unsigned char u8;
+            unsigned short int u16;
             unsigned u32;
             unsigned long u64;
             unsigned long long u128;
@@ -88,9 +92,13 @@ namespace labstor {
         std::shared_ptr<Serializeable> obj_shared_;
         int type_;
     public:
+        Arg(char num) : type_(0) { num_.d8 = num; }
+        Arg(short int num) : type_(0) { num_.d16 = num; }
         Arg(int num) : type_(0) { num_.d32 = num; }
         Arg(long num) : type_(1) { num_.d64 = num; }
         Arg(long long num) : type_(2) { num_.d128 = num; }
+        Arg(unsigned char num) : type_(3) { num_.u8 = num; }
+        Arg(unsigned short int num) : type_(3) { num_.u16 = num; }
         Arg(unsigned int num) : type_(3) { num_.u32 = num; }
         Arg(unsigned long num) : type_(4) { num_.u64 = num; }
         Arg(unsigned long long num) : type_(5) { num_.u128 = num; }

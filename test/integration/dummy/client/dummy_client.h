@@ -28,6 +28,7 @@ public:
     void Register();
     void GetValue();
 };
+LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Client)
 
 }
 

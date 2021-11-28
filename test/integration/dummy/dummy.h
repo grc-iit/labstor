@@ -22,6 +22,10 @@ struct dummy_submit_request : public labstor::ipc::request {
 
 struct dummy_complete_request : public labstor::ipc::request {
     int num_;
+
+    void Init(int num) {
+        num_ = num;
+    }
 };
 
 }

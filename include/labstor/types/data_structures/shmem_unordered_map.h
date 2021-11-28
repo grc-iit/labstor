@@ -55,6 +55,7 @@ public:
     }
 
     inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+        region_ = region;
         uint32_t overflow_region_size = array<bucket_t>::GetSize(max_collisions);
         uint32_t bucket_region_size = region_size - overflow_region_size;
         buckets_.Init(region, bucket_region_size);

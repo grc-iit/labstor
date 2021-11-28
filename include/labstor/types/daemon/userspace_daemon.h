@@ -22,8 +22,11 @@ private:
     std::future<bool> future_;
 public:
     void Start() override {
+        std::promise<bool> is_started;
+        std::future<bool> is_started_future = is_started.get_future();
         future_ = promise_.get_future();
-        thread_ = std::thread(daemon_thread, worker_, std::ref(future_));
+        thread_ = std::thread(daemon_thread, worker_, std::ref(is_started), std::ref(future_));
+        while(is_started_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {}
     }
 
     void Pause() override {
@@ -55,7 +58,8 @@ public:
     }
 
 private:
-    static void daemon_thread(std::shared_ptr<DaemonWorker> worker, std::future<bool>& future) {
+    static void daemon_thread(std::shared_ptr<DaemonWorker> worker, std::promise<bool>& is_started, std::future<bool>& future) {
+        is_started.set_value(true);
         while(future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
             worker->DoWork();
         }

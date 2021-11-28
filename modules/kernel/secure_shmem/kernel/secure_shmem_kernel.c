@@ -149,11 +149,11 @@ void free_all_regions_nolock(void) {
     list_for_each_entry_safe(region_pos, region_pos_temp, &region_map, node) {
         list_del(&region_pos->node);
         vfree(region_pos->vmalloc_ptr);
-        vfree(region_pos);
+        kvfree(region_pos);
     }
     list_for_each_entry_safe(pid_pos, pid_pos_temp, &pid_regions, node) {
         list_del(&pid_pos->node);
-        vfree(pid_pos);
+        kvfree(pid_pos);
     }
 }
 
@@ -165,7 +165,7 @@ int labstor_mmap_nolock(struct file *filp, struct vm_area_struct *vma) {
     int region_id = (int)filp->private_data;
 
     //Acquire shared memory region
-    pid = current->pid;
+    pid =  task_tgid_vnr(current);
     size = vma->vm_end - vma->vm_start;
     pid_region = find_pid_region_nolock(pid, region_id);
     if(pid_region == NULL) {

@@ -33,6 +33,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
         std::shared_ptr<labstor::UserspaceDaemon> worker_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
         std::shared_ptr<labstor::Server::Worker> worker = std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth));
         worker_daemon->SetWorker(worker);
+        worker_daemon->Start();
         worker_daemon->SetAffinity(cpu_id);
         server_workers_.emplace_back(worker_daemon);
     }

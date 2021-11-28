@@ -20,7 +20,7 @@ struct string_map_bucket {
 
     string_map_bucket() = default;
     string_map_bucket(labstor::ipc::string key, uint32_t value, void *region) {
-        off_ = LABSTOR_REGION_SUB(key.c_str(), region);
+        off_ = LABSTOR_REGION_SUB(key.GetRegion(), region);
         value_ = value;
     }
     inline uint32_t GetValue(void *region) {

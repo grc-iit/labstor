@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include ${CMAKE_SOURCE_DIR})
+include_directories(include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
 
 #set(CMAKE_C_FLAGS "-g -O3")
 #set(CMAKE_CXX_FLAGS "-g -O3")
@@ -49,7 +49,8 @@ target_link_libraries(labstor_trusted_server labstor_server_library)
 add_library(labstor_client_library
         src/userspace_client/client.cpp
         src/userspace_client/ipc_manager.cpp
-        src/userspace_client/module_manager.cpp)
+        src/userspace_client/module_manager.cpp
+        modules/registrar/client/registrar_client.cpp)
 add_dependencies(labstor_client_library
         labstor_kernel_client
         secure_shmem_client_netlink)

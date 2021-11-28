@@ -51,7 +51,7 @@ private:
     std::mutex lock_;
     labstor::GenericAllocator *private_alloc_;
     std::vector<int> pids_;
-    labstor::ipc::int_map<int, PerProcessIPC> pid_to_ipc_;
+    labstor::ipc::int_map<int, PerProcessIPC*> pid_to_ipc_;
     labstor::ipc::int_map<uint32_t, labstor::ipc::queue_pair> qps_by_id_;
     ShmemNetlinkClient shmem_client_;
     uint32_t per_process_shmem_, allocator_unit_;
@@ -71,7 +71,7 @@ public:
 
         pid_to_ipc_.Init(malloc(pid_to_ipc_size), pid_to_ipc_size, max_collisions);
         qps_by_id_.Init(malloc(qps_by_id_size), qps_by_id_size, max_collisions);
-        pid_to_ipc_.Set(pid_, PerProcessIPC());
+        pid_to_ipc_.Set(pid_, new PerProcessIPC());
     }
     ~IPCManager() {
         free(pid_to_ipc_.GetRegion());
@@ -82,35 +82,35 @@ public:
     inline int GetServerFd() { return server_fd_; }
 
     void RegisterClient(int client_fd, labstor::credentials &creds);
-    void RegisterQP(PerProcessIPC &client_ipc);
+    void RegisterQP(PerProcessIPC *client_ipc);
     void PauseQueues();
     void WaitForPause();
     void ResumeQueues();
 
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_].num_stream_qps_;
+            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];
             return;
         }
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_].num_stream_qps_;
+            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid_)];
             return;
         }
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_].num_stream_qps_;
+            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, pid_)];
             return;
         }
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, uint32_t depth=0, int pid=-1) {
         if(pid >= 0) {
-            uint32_t num_qps = pid_to_ipc_[pid_].num_stream_qps_;
+            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];
             return;
         }
@@ -126,14 +126,14 @@ public:
         qp = qps_by_id_[qtok.qid];
     }
     inline labstor::ipc::request* AllocRequest(uint32_t qid, uint32_t size) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)].alloc_;
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
         return (labstor::ipc::request*)alloc->Alloc(size);
     }
     inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair &qp, uint32_t size) {
         return AllocRequest(qp.GetQid(), size);
     }
     inline void FreeRequest(uint32_t qid, labstor::ipc::request *rq) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)].alloc_;
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
         alloc->Free((void*)rq);
     }
     inline void FreeRequest(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
@@ -156,7 +156,7 @@ public:
         return pids_;
     }
 
-    inline PerProcessIPC GetIPC(int pid) {
+    inline PerProcessIPC* GetIPC(int pid) {
         return pid_to_ipc_[pid];
     }
 };
