@@ -50,11 +50,11 @@ public:
         shmem_.FreeShmem(region_id_);
     }
 
-    void *AllocateShmem(uint32_t size, uint32_t ns_id) {
+    inline void *AllocateShmem(uint32_t size, uint32_t ns_id) {
         return nullptr;
     }
 
-    uint32_t AddKey(labstor::ipc::string key, labstor::Module *module) {
+    inline uint32_t AddKey(labstor::ipc::string key, labstor::Module *module) {
         uint32_t ns_id;
         if(ns_ids_.Dequeue(ns_id)) {
             private_state_[ns_id] = module;
@@ -62,9 +62,18 @@ public:
             ns_id = private_state_.size();
             private_state_.emplace_back(module);
         }
+        TRACEPOINT("labstor::Server::AddKey", key.data_, ns_id);
         key_to_ns_id_.Set(key, ns_id);
         module_id_to_instance_[module->GetModuleID()].push(module);
         return ns_id;
+    }
+
+    inline uint32_t AddKey(labstor::id key, labstor::Module *module) {
+        return AddKey(labstor::ipc::string(key.key, shmem_alloc_), module);
+    }
+
+    inline uint32_t AddKey(std::string key, labstor::Module *module) {
+        return AddKey(labstor::ipc::string(key, shmem_alloc_), module);
     }
 
     inline void DeleteKey(labstor::ipc::string key) {

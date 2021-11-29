@@ -10,13 +10,15 @@
 namespace labstor::test::Dummy {
 
 enum class Ops {
-    kRegister,
-    kGetValue
+    kGetValue=4
 };
 
 struct dummy_submit_request : public labstor::ipc::request {
     int value_;
-    dummy_submit_request() : labstor::ipc::request() {
+    dummy_submit_request() {}
+    void Init(uint32_t ns_id) {
+        ns_id_ = ns_id;
+        op_ = static_cast<int>(Ops::kGetValue);
     }
 };
 

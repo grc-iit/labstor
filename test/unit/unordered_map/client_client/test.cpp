@@ -1,26 +1,21 @@
 //
-// Created by lukemartinlogan on 9/21/21.
+// Created by lukemartinlogan on 11/25/21.
 //
 
 #include <mpi.h>
-#include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/shmem_request_queue.h>
-#include <labstor/util/singleton.h>
+#include <labstor/kernel_client/macros.h>
+#include <labstor/kernel_client/kernel_client.h>
 #include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
-
-struct simple_request : public labstor::ipc::request {
-    int hi;
-};
+#include <labstor/types/data_structures/shmem_int_map.h>
+#include <cstdio>
 
 int main(int argc, char **argv) {
     int rank, region_id;
     MPI_Init(&argc, &argv);
     uint32_t region_size = (1<<20);
-    uint32_t alloc_region_size = (1<<19);
-    uint32_t queue_region_size = (1<<19);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::ipc::request_queue q;
-    labstor::ipc::shmem_allocator alloc;
+    labstor::ipc::int_map<uint32_t, uint32_t> map;
+
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     ShmemNetlinkClient shmem_netlink;
 
@@ -55,25 +50,20 @@ int main(int argc, char **argv) {
 
     //Initialize memory allocator and queue
     if(rank == 0) {
-        alloc.Init(region, alloc_region_size, 256);
-        region = alloc.GetNextSection();
-        q.Init(region, queue_region_size, 1);
+        map.Init(region, region_size, 16);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
-        alloc.Attach(region);
-        region = alloc.GetNextSection();
-        q.Attach(region);
+        map.Attach(region);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
     //Place requests in the queue
     if(rank == 0) {
-        for(int i = 0; i < 10; ++i) {
-            simple_request* rq = (simple_request*)alloc.Alloc(sizeof(simple_request), 0);
-            rq->hi = 12341 + i;
-            printf("ENQUEUEING REQUEST: %d\n", rq->hi);
-            q.Enqueue(rq);
+        for(int i = 0; i < 10000; ++i) {
+            if(map.Set(i, i)) {
+                printf("ENQUEUEING REQUEST: %d\n", i);
+            }
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -81,13 +71,11 @@ int main(int argc, char **argv) {
 
     //Dequeue request and print its value
     if(rank == 1) {
-        int i = 0;
-        while(i < 10) {
-            labstor::ipc::request *rq_uncast;
-            simple_request *rq;
-            if(!q.Dequeue(rq_uncast)) { continue; }
-            rq = (simple_request*)rq_uncast;
-            printf("RECEIVED REQUEST: %d\n", rq->hi);
+        uint32_t i = 0, v;
+        while(i < 10000) {
+            if(!map.Find(i, v)) { continue; }
+            map.Remove(i);
+            printf("RECEIVED REQUEST[%d]: %d\n", i, v);
             ++i;
         }
     }

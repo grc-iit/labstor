@@ -17,7 +17,9 @@ class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
-    Server() : labstor::Module("Dummy") {}
+    Server() : labstor::Module("Dummy") {
+        ipc_manager_ = LABSTOR_IPC_MANAGER;
+    }
 
     void ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds);
 };

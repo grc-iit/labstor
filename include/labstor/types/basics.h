@@ -26,11 +26,14 @@ struct id {
         strcpy(key, key_str);
     }
     bool operator==(const id &other) const {
-        return strcmp(key, other.key);
+        return strncmp(key, other.key, MODULE_KEY_SIZE) == 0;
     }
     void copy(const std::string &str) {
         memcpy(key, str.c_str(), str.size());
         key[str.size()] = 0;
+    }
+    const char& operator [](int i) {
+        return key[i];
     }
 };
 
@@ -45,12 +48,19 @@ typedef int32_t off_t;
 
 }
 
-template <>
-struct std::hash<labstor::id> {
-    std::size_t operator()(const labstor::id& id) const {
-        return std::hash<char*>{}((char*)id.key);
-    }
-};
+namespace std {
+    template<>
+    struct hash<labstor::id> {
+        std::size_t operator()(const labstor::id &id) const {
+            size_t sum = 0;
+            for (int i = 0; i < MODULE_KEY_SIZE; ++i) {
+                if (id.key[i] == 0) { break; }
+                sum += id.key[i] << (i % 8);
+            }
+            return sum;
+        }
+    };
+}
 
 #endif
 

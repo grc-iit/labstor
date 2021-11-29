@@ -28,6 +28,9 @@ struct register_submit_request : labstor::ipc::request {
 };
 
 struct register_complete_request : labstor::ipc::request {
+    void Init(uint32_t value) {
+        ns_id_ = value;
+    }
 };
 
 struct namespace_id_submit_request : labstor::ipc::request {

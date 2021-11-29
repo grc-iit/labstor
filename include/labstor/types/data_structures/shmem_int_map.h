@@ -37,8 +37,8 @@ struct int_map_bucket {
         return key;
     }
 
-    inline S IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<S>::mark; }
-    inline S IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<S>::null; }
+    inline bool IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<S>::mark; }
+    inline bool IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<S>::null; }
     inline S GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null1<S>::mark; }
     inline static S Null() { return unordered_map_atomics_null1<S>::null; }
 };

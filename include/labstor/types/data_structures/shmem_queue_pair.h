@@ -100,14 +100,16 @@ struct queue_pair {
     }
 
     inline void Complete(labstor::ipc::request *rq, labstor::ipc::request *msg) {
-        msg->qtok_ = rq->qtok_;
+        msg->req_id_ = rq->req_id_;
+        TRACEPOINT("labstor::ipc::queue_pair::Complete", GetQid(), msg->req_id_)
         cq.Set(msg);
     }
 
-    inline labstor::ipc::request* Wait(uint32_t qtok) {
-        labstor::ipc::request *ret;
-        while(!cq.Find(qtok, ret)) {}
-        cq.Remove(qtok);
+    inline labstor::ipc::request* Wait(uint32_t req_id) {
+        labstor::ipc::request *ret = nullptr;
+        while(!cq.Find(req_id, ret)) {}
+        TRACEPOINT("labstor::ipc::queue_pair::Wait", GetQid(), req_id, (size_t)ret)
+        cq.Remove(req_id);
         return ret;
     }
 

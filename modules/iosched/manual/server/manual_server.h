@@ -61,7 +61,7 @@ public:
         labstor::ipc::poll_request *poll_rq = (labstor::ipc::poll_request*)ipc_manager_->Alloc(sizeof(labstor::ipc::poll_request));
         poll_rq->ns_id_ = ns_id_;
         poll_rq->op_ = kPoll;
-        poll_rq->qtok_ = qtok;
+        poll_rq->req_id_ = qtok;
         poll_qp.sq.Enqueue(poll_rq);
     }
 

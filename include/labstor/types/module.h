@@ -76,8 +76,9 @@ public:
         return module_info;
     }
 
-    void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle module_info) {
+    void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle &module_info) {
         mutex_.lock();
+        TRACEPOINT("Adding module", module_id.key, std::hash<labstor::id>()(module_id))
         if(pkg_pool_.find(module_id) != pkg_pool_.end()) {
             dlclose(pkg_pool_[module_id].handle_);
         }
@@ -87,7 +88,12 @@ public:
 
     create_module_fn GetModuleConstructor(labstor::id module_id) {
         ModuleHandle module_info;
+        TRACEPOINT("Finding module", module_id.key, std::hash<labstor::id>()(module_id))
         mutex_.lock();
+        if(pkg_pool_.find(module_id) == pkg_pool_.end()) {
+            mutex_.unlock();
+            throw labstor::INVALID_MODULE_ID.format(module_id.key);
+        }
         module_info = pkg_pool_[module_id];
         mutex_.unlock();
         return module_info.constructor_;

@@ -6,7 +6,7 @@
 #include "registrar_server.h"
 
 void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds) {
-    TRACEPOINT("Dequeuing request in worker", request->ns_id_, request->op_, request->qtok_);
+    AUTO_TRACE("labstor::Registrar::Server::ProcessRequest", request->ns_id_, request->op_, request->req_id_, creds->pid);
 
     switch(static_cast<Ops>(request->op_)) {
         case Ops::kRegister : {
@@ -14,7 +14,8 @@ void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair &qp, la
             register_complete_request *register_complete =
                     reinterpret_cast<register_complete_request*>(ipc_manager_->AllocRequest(qp, sizeof(register_complete_request)));
             labstor::Module *module = module_manager_->GetModuleConstructor(register_rq->module_id_)();
-            register_complete->ns_id_ = namespace_->AddKey(register_rq->key_, module);
+            register_complete->Init(namespace_->AddKey(register_rq->key_, module));
+            TRACEPOINT("labstor::Registrar::Server::ProcessRequest", "NamespaceID", register_complete->ns_id_);
             qp.Complete(register_rq, register_complete);
             break;
         }

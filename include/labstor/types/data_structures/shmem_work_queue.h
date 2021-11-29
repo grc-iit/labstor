@@ -57,12 +57,12 @@ public:
         return queue_.Enqueue(ptr);
     }
 
-    bool Dequeue(queue_pair &qp, void *&base) {
+    bool Dequeue(queue_pair &qp, void *&base, labstor::credentials *&creds) {
         queue_pair_ptr ptr;
         if(!queue_.Dequeue(ptr)) {
             return false;
         }
-        base = ipc_manager_->GetRegion(ptr);
+        base = ipc_manager_->GetRegion(ptr, creds);
         qp.Attach(ptr, base);
         return true;
     }

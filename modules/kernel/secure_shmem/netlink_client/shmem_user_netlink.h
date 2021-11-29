@@ -16,7 +16,7 @@ private:
     int PAGE_SIZE;
 public:
     ShmemNetlinkClient() {
-        kernel_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+        kernel_client_ = LABSTOR_KERNEL_CLIENT;
         PAGE_SIZE = getpagesize();
     }
     int CreateShmem(size_t region_size, bool user_owned);

@@ -5,6 +5,7 @@
 #include "dummy_server.h"
 
 void labstor::test::Dummy::Server::ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    AUTO_TRACE("labstor::test::Dummy::Server::ProcessRequest", request->op_, request->req_id_)
     switch(static_cast<Ops>(request->op_)) {
         case Ops::kGetValue: {
             dummy_submit_request *rq_submit;

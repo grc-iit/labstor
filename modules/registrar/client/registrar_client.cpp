@@ -17,7 +17,8 @@ uint32_t labstor::Registrar::Client::RegisterInstance(std::string module_id, std
     qtok = qp.Enqueue(rq_submit);
     rq_complete = reinterpret_cast<register_complete_request*>(ipc_manager_->Wait(qtok));
     uint32_t ns_id = rq_complete->ns_id_;
-    ipc_manager_->FreeRequest(qtok, rq_complete);
+    TRACEPOINT("labstor::Registrar::Client::RegisterInstance", ns_id)
+    //ipc_manager_->FreeRequest(qtok, rq_complete);
     return ns_id;
 }
 
@@ -34,6 +35,6 @@ uint32_t labstor::Registrar::Client::GetNamespaceID(std::string key) {
     qtok = qp.Enqueue(rq_submit);
     rq_complete = reinterpret_cast<namespace_id_complete_request*>(ipc_manager_->Wait(qtok));
     ns_id = rq_complete->ns_id_;
-    ipc_manager_->FreeRequest(qtok, rq_complete);
+    //ipc_manager_->FreeRequest(qtok, rq_complete);
     return ns_id;
 }

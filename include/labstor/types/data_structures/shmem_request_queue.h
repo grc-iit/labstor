@@ -28,7 +28,6 @@ namespace labstor::ipc {
 
 struct request_queue_header {
     labstor::ipc::qid_t qid_;
-    labstor::credentials creds_;
     AtomicBusy update_lock_;
 };
 
@@ -53,18 +52,10 @@ public:
         update_lock_ = &header_->update_lock_;
         queue_.Init(header_+1, region_size - sizeof(request_queue_header));
     }
-    inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid, labstor::credentials &creds) {
-        Init(region, region_size, qid);
-        header_->creds_ = creds;
-    }
     inline void Attach(void *region) {
         header_ = (request_queue_header*)region;
         update_lock_ = &header_->update_lock_;
         queue_.Attach(header_ + 1);
-    }
-
-    inline labstor::credentials* GetCredentials() {
-        return &header_->creds_;
     }
 
     inline qid_t GetQid() {
@@ -74,13 +65,16 @@ public:
     inline qtok_t Enqueue(request *rq) {
         qtok_t qtok;
         qtok.qid = header_->qid_;
-        while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, header_), qtok.req_id)) {}
+        while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, header_), rq->req_id_)) {}
+        qtok.req_id = rq->req_id_;
+        TRACEPOINT("labstor::ipc::request_queue::Enqueue", qtok.qid, qtok.req_id)
         return qtok;
     }
     inline bool Dequeue(request *&rq) {
         labstor::off_t off;
         if(!queue_.Dequeue(off)) { return false; }
         rq = reinterpret_cast<request*>(LABSTOR_REGION_ADD(off, header_));
+        TRACEPOINT("labstor::ipc::request_queue::Dequeue", header_->qid_, rq->req_id_)
         return true;
     }
 

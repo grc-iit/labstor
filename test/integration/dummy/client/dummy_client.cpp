@@ -12,10 +12,11 @@ void labstor::test::Dummy::Client::Register() {
     AUTO_TRACE("labstor::test::Dummy::Client::Register")
     auto registrar = labstor::Registrar::Client();
     ns_id_ = registrar.RegisterInstance("Dummy", "DummyExample");
+    TRACEPOINT("labstor::test::Dummy::Client::Register::NamespaceID", ns_id_)
 }
 
 void labstor::test::Dummy::Client::GetValue() {
-    AUTO_TRACE("labstor::test::Dummy::Client::GetValue")
+    AUTO_TRACE("labstor::test::Dummy::Client::GetValue", ns_id_)
     labstor::ipc::queue_pair qp;
     labstor::ipc::qtok_t qtok;
     dummy_submit_request *rq_submit;
@@ -23,6 +24,7 @@ void labstor::test::Dummy::Client::GetValue() {
 
     ipc_manager_->GetQueuePair(qp, 0);
     rq_submit = reinterpret_cast<dummy_submit_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_submit_request)));
+    rq_submit->Init(ns_id_);
     qtok = qp.Enqueue(rq_submit);
     rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->Wait(qtok));
     printf("COMPLETE: %d\n", rq_complete->num_);

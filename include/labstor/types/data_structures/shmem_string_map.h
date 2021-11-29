@@ -42,10 +42,11 @@ struct string_map_bucket {
         return labstor::ipc::string::hash(key.c_str(), key.size());
     }
 
-    inline uint32_t IsMarked() { return GetAtomicKey() & unordered_map_atomics_null0<uint32_t>::mark; }
-    inline uint32_t IsNull() { return GetAtomicKey() == unordered_map_atomics_null0<uint32_t>::null; }
+    inline bool IsMarked() { return GetAtomicKey() & unordered_map_atomics_null0<uint32_t>::mark; }
+    inline bool IsNull() { return GetAtomicKey() == unordered_map_atomics_null0<uint32_t>::null; }
     inline uint32_t GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null0<uint32_t>::mark; }
     inline static uint32_t Null() { return unordered_map_atomics_null0<uint32_t>::null; }
+    inline static bool IsNullValue(labstor::ipc::string &value) { return value == nullptr; }
 };
 
 class string_map : public unordered_map<labstor::ipc::string, uint32_t, uint32_t, string_map_bucket> {

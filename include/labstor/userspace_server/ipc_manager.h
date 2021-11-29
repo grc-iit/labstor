@@ -88,8 +88,10 @@ public:
     inline void* GetRegion(int pid) {
         return pid_to_ipc_[pid]->GetRegion();
     }
-    inline void* GetRegion(labstor::ipc::queue_pair_ptr &qp_ptr) {
-        return pid_to_ipc_[qp_ptr.GetPID()]->GetRegion();
+    inline void* GetRegion(labstor::ipc::queue_pair_ptr &qp_ptr, labstor::credentials *&creds) {
+        PerProcessIPC *ipc = pid_to_ipc_[qp_ptr.GetPID()];
+        creds = &ipc->creds_;
+        return ipc->GetRegion();
     }
     inline void* GetRegion(labstor::ipc::queue_pair &qp) {
         return pid_to_ipc_[LABSTOR_GET_QP_PID(qp.GetQid())]->GetRegion();

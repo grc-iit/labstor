@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include ${CMAKE_SOURCE_DIR}/modules/kernel)
 
+######BASICS
+add_executable(test_strings strings/test.cpp)
+
 ######CLIENT -> TRUSTED SERVER (SOCKET)
 add_executable(client_to_trusted_server_exec sockets/client_to_trusted_server/test_client.cpp)
 add_dependencies(client_to_trusted_server_exec labstor_client_library)
@@ -29,7 +32,11 @@ target_link_libraries(test_shmem_exec labstor_kernel_client secure_shmem_client_
 add_custom_target(test_shmem ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_exec)
 
 ######UNORDERED MAP
-add_executable(test_shmem_unordered_map unordered_map/test.cpp)
+add_executable(test_shmem_unordered_map_exec unordered_map/client/test.cpp)
+add_executable(test_shmem_unordered_map2_exec unordered_map/client_client/test.cpp)
+add_dependencies(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink)
+target_link_libraries(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink mpi)
+add_custom_target(test_multicore_map mpirun -n 2 ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_unordered_map2_exec)
 
 ######IN-MEMORY REQUEST QUEUE
 #add_executable(request_queue_exec request_queue/single/request_queue.cpp)

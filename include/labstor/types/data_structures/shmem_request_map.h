@@ -22,13 +22,16 @@ struct request_map_bucket {
         off_ = old.off_;
     }
     inline labstor::ipc::request* GetValue(void *region) {
-        if(IsMarked() || IsNull()) { return nullptr; }
+        if(IsNull()) {
+            TRACEPOINT("For some reason, the passed key is equal to this", off_)
+            return nullptr;
+        }
         return (labstor::ipc::request*)LABSTOR_REGION_ADD(off_, region);
     }
     inline uint32_t GetKey(void *region) {
         if(IsNull()) { return Null(); }
         labstor::ipc::request *rq = (labstor::ipc::request *)LABSTOR_REGION_ADD(off_, region);
-        return rq->qtok_;
+        return rq->req_id_;
     }
     inline labstor::off_t& GetAtomicValue() {
         return off_;
@@ -40,10 +43,11 @@ struct request_map_bucket {
         return qtok;
     }
 
-    inline uint32_t IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<uint32_t>::mark; }
-    inline uint32_t IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<uint32_t>::null; }
+    inline bool IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<uint32_t>::mark; }
+    inline bool IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<uint32_t>::null; }
     inline uint32_t GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null1<uint32_t>::mark; }
     inline static uint32_t Null() { return unordered_map_atomics_null1<uint32_t>::null; }
+    inline static bool IsNullValue(labstor::ipc::request *value) { return value == nullptr; }
 };
 
 class request_map : public unordered_map<uint32_t, labstor::ipc::request*, uint32_t, request_map_bucket> {

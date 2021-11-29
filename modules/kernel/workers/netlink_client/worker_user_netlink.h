@@ -13,7 +13,7 @@ private:
     LABSTOR_KERNEL_CLIENT_T kernel_client_;
 public:
     WorkerNetlinkClient() {
-        kernel_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
+        kernel_client_ = LABSTOR_KERNEL_CLIENT;
     }
     int CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us);
     int SetAffinity(int worker_id, int cpu_id);

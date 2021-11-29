@@ -12,14 +12,15 @@ void labstor::Server::Worker::DoWork() {
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     labstor::ipc::queue_pair qp;
     labstor::ipc::request *rq;
+    labstor::credentials *creds;
     uint32_t length = work_queue_.GetLength();
     void *base;
     for(uint32_t i = 0; i < length; ++i) {
-        if(!work_queue_.Dequeue(qp, base)) { break; }
+        if(!work_queue_.Dequeue(qp, base, creds)) { break; }
         while(qp.sq.Dequeue(rq)) {
-            TRACEPOINT("Dequeuing request in worker", rq->ns_id_, rq->op_, rq->qtok_);
+            TRACEPOINT("labstor::Server::Worker::DoWork", rq->ns_id_, rq->op_, rq->req_id_, creds->pid);
             labstor::Module *module = namespace_->Get(rq->ns_id_);
-            module->ProcessRequest(qp, rq, qp.sq.GetCredentials());
+            module->ProcessRequest(qp, rq, creds);
         }
         work_queue_.Enqueue(qp, base);
     }

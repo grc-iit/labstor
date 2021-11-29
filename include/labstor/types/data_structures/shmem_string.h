@@ -52,8 +52,8 @@ struct string {
         length_ = old_str.length_;
     }
 
-    inline void Init(void *region_, std::string str) {
-        header_ = (string_header*)region_;
+    inline void Init(void *region, std::string str) {
+        header_ = (string_header*)region;
         data_ = (char*)(header_ + 1);
         memcpy(data_, str.c_str(), str.size());
         header_->length_ = str.size();
@@ -61,8 +61,8 @@ struct string {
         data_[header_->length_] = 0;
     }
 
-    inline void Attach(void *region_) {
-        header_ = (string_header*)region_;
+    inline void Attach(void *region) {
+        header_ = (string_header*)region;
         data_ = (char*)(header_ + 1);
         length_ = header_->length_;
     }
@@ -77,6 +77,9 @@ struct string {
     inline bool operator ==(const std::string &str) const {
         if(str.size() != size()) { return false; }
         return memcmp(data_, str.c_str(), size()) == 0;
+    }
+    inline bool operator ==(std::nullptr_t null) const {
+        return length_ == 0;
     }
     inline bool operator !=(labstor::ipc::string str) const {
         if(str.size() != size()) { return false; }
