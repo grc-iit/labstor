@@ -101,6 +101,7 @@ public:
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -108,6 +109,7 @@ public:
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid_)];
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -115,6 +117,7 @@ public:
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, pid_)];
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, uint32_t depth=0, int pid=-1) {
         if(pid >= 0) {
@@ -129,6 +132,7 @@ public:
             qp.cq.Init(private_alloc_->Alloc(cq_sz), cq_sz, 4);
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qtok_t &qtok) {
         qp = qps_by_id_[qtok.qid];

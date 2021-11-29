@@ -27,7 +27,7 @@ public:
         region_ = malloc(region_size);
         work_queue_.Init(region_, region_size);
     }
-    void AssignQP(labstor::ipc::queue_pair qp, void *base) {
+    void AssignQP(labstor::ipc::queue_pair &qp, void *base) {
         work_queue_.Enqueue(qp, base);
     }
     void DoWork();
@@ -35,9 +35,6 @@ public:
 
 }
 
-#endif
-
-#ifndef __cplusplus
 #endif
 
 #endif //LABSTOR_SERVER_WORKER_H

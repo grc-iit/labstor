@@ -35,6 +35,7 @@ public:
             }
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -45,6 +46,7 @@ public:
             }
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -55,6 +57,7 @@ public:
             }
             return;
         }
+        throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qtok_t &qtok) {
         if(LABSTOR_QP_IS_SHMEM(qtok.qid)) {

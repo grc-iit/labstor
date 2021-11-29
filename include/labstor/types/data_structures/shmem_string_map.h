@@ -28,7 +28,7 @@ struct string_map_bucket {
     }
     inline labstor::ipc::string GetKey(void *region) {
         labstor::ipc::string key;
-        if(off_ == 0) { return key; }
+        if(IsNull()) { return key; }
         key.Attach(LABSTOR_REGION_ADD(off_, region));
         return key;
     }

@@ -33,6 +33,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     if(!client_ipc->shmem_region_) {
         throw MMAP_FAILED.format(strerror(errno));
     }
+    TRACEPOINT("IPCManager: The shared memory region for PID queue pairs", (size_t)client_ipc->shmem_region_);
 
     //Create SHMEM allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();

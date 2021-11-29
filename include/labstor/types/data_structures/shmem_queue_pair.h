@@ -8,6 +8,7 @@
 #include "shmem_request_queue.h"
 #include "shmem_request_map.h"
 #include <string>
+#include <labstor/util/debug.h>
 
 //qid: [flags (10-bit)][cnt (32-bit)][pid (22-bit)]
 
@@ -85,9 +86,10 @@ struct queue_pair {
         cq.Init(cq_region, cq_size, 4);
     }
 
-    inline void Attach(queue_pair_ptr &ptr, void *region) {
-        sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region));
-        cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
+    inline void Attach(queue_pair_ptr &ptr, void *base) {
+        TRACEPOINT("")
+        sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, base));
+        cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, base));
     }
 
     inline qid_t GetQid() {

@@ -26,7 +26,7 @@ struct request_map_bucket {
         return (labstor::ipc::request*)LABSTOR_REGION_ADD(off_, region);
     }
     inline uint32_t GetKey(void *region) {
-        if(off_ == 0) { return 0; }
+        if(IsNull()) { return Null(); }
         labstor::ipc::request *rq = (labstor::ipc::request *)LABSTOR_REGION_ADD(off_, region);
         return rq->qtok_;
     }
