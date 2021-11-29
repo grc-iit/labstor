@@ -6,8 +6,7 @@
 #define LABSTOR_MODULE_REGISTRAR_KERNEL_H
 
 #include <labstor/types/basics.h>
-#include <linux/types.h>
-#include "request_queue.h"
+#include "modules/kernel/kpkg_devkit/template/data_structures/labstor_request_queue.h"
 
 //typedef void (*process_request_fn_type)(struct labstor_queue_pair qp, void *rq);
 typedef void (*process_request_fn_type)(void);

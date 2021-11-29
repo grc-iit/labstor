@@ -43,6 +43,8 @@
 #define LABSTOR_GET_QP_IDX(qid) ((qid >> LABSTOR_QP_PID_BITS) & 0xFFFFFFFF)
 #define LABSTOR_GET_QP_PID(qid) (qid & 0x3FFFFF)
 
+#ifdef __cplusplus
+
 namespace labstor::ipc {
 
 struct queue_pair_ptr {
@@ -68,11 +70,11 @@ struct queue_pair {
     request_queue sq;
     request_map cq;
 
-    queue_pair() = default;
-    queue_pair(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+    inline queue_pair() = default;
+    inline queue_pair(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
         Init(qid, sq_region, sq_size, cq_region, cq_size);
     }
-    queue_pair(queue_pair_ptr &ptr, void *region) {
+    inline queue_pair(queue_pair_ptr &ptr, void *region) {
         sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, region));
         cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, region));
     }
@@ -134,5 +136,7 @@ struct queue_pair {
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_SHMEM_QUEUE_PAIR_H

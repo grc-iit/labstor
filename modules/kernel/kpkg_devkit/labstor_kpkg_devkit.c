@@ -10,9 +10,11 @@
 #include <linux/kernel.h>
 #include <linux/kobject.h>
 
-#include "request_queue.h"
-#include "unordered_map.h"
-#include "module_registrar.h"
+#include "template/data_structures/labstor_array.h"
+#include "template/data_structures/labstor_ring_buffer.h"
+#include "template/data_structures/labstor_request_queue.h"
+#include "template/data_structures/labstor_unordered_map.h"
+#include "labstor_module_registrar.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("The labstor kernel module devkit");

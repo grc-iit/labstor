@@ -24,9 +24,9 @@ struct string {
         return (void*)header_;
     }
 
-    string() : header_(nullptr), data_(nullptr), length_(0) {}
+    inline string() : header_(nullptr), data_(nullptr), length_(0) {}
 
-    string(const std::string &str, labstor::GenericAllocator *alloc) {
+    inline string(const std::string &str, labstor::GenericAllocator *alloc) {
         header_ = (string_header*)alloc->Alloc(str.size());
         header_->length_ = str.size();
         length_ = header_->length_;
@@ -35,18 +35,18 @@ struct string {
         data_[length_] = 0;
     }
 
-    string(char *str) {
+    inline string(char *str) {
         data_ = str;
         length_ = strlen(str);
     }
 
-    string(labstor::id key) {
+    inline string(labstor::id key) {
         header_ = nullptr;
         data_ = (char*)key.key;
         length_ = strlen(data_);
     }
 
-    string(const string &old_str) {
+    inline string(const string &old_str) {
         header_ = old_str.header_;
         data_ = old_str.data_;
         length_ = old_str.length_;

@@ -95,10 +95,6 @@ public:
 
 #endif
 
-#ifdef KERNEL_BUILD
 
-#include <linux/types.h>
-
-#endif
 
 #endif //LABSTOR_SHMEM_RING_BUFFER_H

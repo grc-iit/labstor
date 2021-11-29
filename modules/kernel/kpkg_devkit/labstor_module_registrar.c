@@ -8,7 +8,7 @@
 #include <linux/kernel.h>
 #include <linux/kobject.h>
 
-#include "module_registrar.h"
+#include "labstor_module_registrar.h"
 #include "unordered_map.h"
 
 struct unordered_map modules;

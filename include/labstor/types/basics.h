@@ -64,6 +64,12 @@ namespace std {
 
 #endif
 
+#ifdef KERNEL_BUILD
+#include <linux/types.h>
+#endif
+
+typedef int32_t labstor_off_t;
+
 struct labstor_id {
     char key[MODULE_KEY_SIZE];
 };

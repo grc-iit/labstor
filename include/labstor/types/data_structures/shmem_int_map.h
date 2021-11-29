@@ -16,8 +16,8 @@ struct int_map_bucket {
     S key_;
     T value_;
 
-    int_map_bucket() = default;
-    int_map_bucket(S key, T value) {
+    inline int_map_bucket() = default;
+    inline int_map_bucket(S key, T value) {
         key_ = key;
         value_ = value;
     }

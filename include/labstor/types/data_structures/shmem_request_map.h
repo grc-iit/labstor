@@ -14,11 +14,11 @@ namespace labstor::ipc {
 struct request_map_bucket {
     labstor::off_t off_;
 
-    request_map_bucket() = default;
-    request_map_bucket(labstor::ipc::request *rq, void *region) {
+    inline request_map_bucket() = default;
+    inline request_map_bucket(labstor::ipc::request *rq, void *region) {
         off_ = LABSTOR_REGION_SUB(rq, region);
     }
-    request_map_bucket(const request_map_bucket &old) {
+    inline request_map_bucket(const request_map_bucket &old) {
         off_ = old.off_;
     }
     inline labstor::ipc::request* GetValue(void *region) {
@@ -50,11 +50,11 @@ struct request_map_bucket {
     inline static bool IsNullValue(labstor::ipc::request *value) { return value == nullptr; }
 };
 
-class request_map : public unordered_map<uint32_t, labstor::ipc::request*, uint32_t, request_map_bucket> {
+class request_map : public unordered_map<uint32_t, labstor::ipc::request*, labstor::off_t, request_map_bucket> {
 public:
     inline bool Set(labstor::ipc::request *rq) {
         request_map_bucket bucket(rq, GetRegion());
-        return unordered_map<uint32_t, labstor::ipc::request*, uint32_t, request_map_bucket>::Set(bucket);
+        return unordered_map<uint32_t, labstor::ipc::request*, labstor::off_t, request_map_bucket>::Set(bucket);
     }
 };
 

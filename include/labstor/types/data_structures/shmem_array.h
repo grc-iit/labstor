@@ -32,7 +32,7 @@ public:
     }
     inline void* GetRegion() { return header_; }
 
-    void Init(void *region, uint32_t region_size, uint32_t length = 0) {
+    inline void Init(void *region, uint32_t region_size, uint32_t length = 0) {
         header_ = (array_header*)region;
         if(length) {
             header_->length_ = length;
@@ -42,12 +42,12 @@ public:
         arr_ = (T*)(header_ + 1);
     }
 
-    void Attach(void *region) {
+    inline void Attach(void *region) {
         header_ = (array_header*)region;
         arr_ = (T*)(header_ + 1);
     }
 
-    T& operator [] (int i) { return arr_[i]; }
+    inline T& operator [] (int i) { return arr_[i]; }
 };
 
 }

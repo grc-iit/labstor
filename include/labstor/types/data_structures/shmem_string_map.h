@@ -18,8 +18,8 @@ struct string_map_bucket {
     labstor::off_t off_;
     uint32_t value_;
 
-    string_map_bucket() = default;
-    string_map_bucket(labstor::ipc::string key, uint32_t value, void *region) {
+    inline string_map_bucket() = default;
+    inline string_map_bucket(labstor::ipc::string key, uint32_t value, void *region) {
         off_ = LABSTOR_REGION_SUB(key.GetRegion(), region);
         value_ = value;
     }

@@ -22,27 +22,33 @@ class qtok_set {
 private:
     array<qtok_t> arr_;
 public:
-    uint32_t GetLength() {
+    inline uint32_t GetLength() {
         return arr_.GetLength();
     }
 
-    void Init(void *region, uint32_t region_size) {
+    inline void Init(void *region, uint32_t region_size) {
         arr_.Init(region, region_size);
     }
-    void Attach(void *region) {
+    inline void Attach(void *region) {
         arr_.Attach(region);
     }
 
-    void Remove(int i) {
+    inline void Remove(int i) {
         arr_[i].qid = -1;
         arr_[i].req_id = -1;
     }
 
-    qtok_t& operator [] (int i) { return arr_[i]; }
+    inline qtok_t& operator [] (int i) { return arr_[i]; }
 };
 
 }
 
 #endif
+
+typedef uint64_t labstor_qid_t;
+struct labstor_qtok_t {
+    labstor_qid_t qid;
+    uint32_t req_id;
+};
 
 #endif //LABSTOR_SHMEM_QTOK_H

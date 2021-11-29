@@ -1,30 +1,9 @@
 //
-// Created by lukemartinlogan on 11/12/21.
+// Created by lukemartinlogan on 11/29/21.
 //
 
-#ifndef LABSTOR_SHMEM_WORK_QUEUE_H
-#define LABSTOR_SHMEM_WORK_QUEUE_H
-
-#include <labstor/types/basics.h>
-
-#ifdef KERNEL_BUILD
-#include <linux/types.h>
-#endif
-
-//#ifdef __cplusplus
-
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-#include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/shmem_ring_buffer.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
-#include "labstor/types/shmem_type.h"
-
-#include <labstor/userspace_server/macros.h>
-#include <labstor/userspace_server/ipc_manager.h>
-
-namespace labstor::ipc {
+#ifndef LABSTOR_WORK_QUEUE_H
+#define LABSTOR_WORK_QUEUE_H
 
 class work_queue : public shmem_type {
 private:
@@ -72,6 +51,4 @@ public:
     }
 };
 
-}
-
-#endif //LABSTOR_SHMEM_WORK_QUEUE_H
+#endif //LABSTOR_WORK_QUEUE_H
