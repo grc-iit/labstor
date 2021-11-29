@@ -60,6 +60,7 @@ void labstor::Client::IPCManager::Connect() {
     shmem_alloc = new labstor::ipc::shmem_allocator();
     shmem_alloc->Attach(region);
     shmem_alloc_ = shmem_alloc;
+    TRACEPOINT("SHMEM allocator", (size_t)shmem_alloc->GetRegion())
 
     //Initialize internal allocator
     TRACEPOINT("Initialize internal allocator")
@@ -67,6 +68,7 @@ void labstor::Client::IPCManager::Connect() {
     internal_alloc = new labstor::ipc::shmem_allocator();
     internal_alloc->Init(malloc(reply.region_size), reply.region_size, reply.request_unit);
     private_alloc_ = internal_alloc;
+    TRACEPOINT("Internal allocator", (size_t)internal_alloc->GetRegion())
 
     //Create the SHMEM queues
     TRACEPOINT("Create SHMEM queues")

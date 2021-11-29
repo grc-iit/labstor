@@ -67,7 +67,7 @@ public:
         }
     }
     inline labstor::ipc::request* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
-        if(LABSTOR_QP_IS_PRIVATE(qid)) {
+        if(LABSTOR_QP_IS_SHMEM(qid)) {
             return (labstor::ipc::request*)shmem_alloc_->Alloc(size);
         } else {
             return (labstor::ipc::request*)private_alloc_->Alloc(size);
@@ -77,7 +77,7 @@ public:
         return AllocRequest(qp.GetQid(), size);
     }
     inline void FreeRequest(labstor::ipc::qid_t qid, labstor::ipc::request *rq) {
-        if(LABSTOR_QP_IS_PRIVATE(qid)) {
+        if(LABSTOR_QP_IS_SHMEM(qid)) {
             shmem_alloc_->Free(rq);
         } else {
             private_alloc_->Free(rq);

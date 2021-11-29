@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <labstor/util/debug.h>
 #include "labstor/types/shmem_type.h"
 
 namespace labstor::ipc {
@@ -34,7 +35,7 @@ struct request_queue_header {
 class request_queue : public shmem_type {
 private:
     request_queue_header *header_;
-    ring_buffer<int32_t> queue_;
+    ring_buffer<labstor::off_t> queue_;
     AtomicBusy *update_lock_;
 public:
     inline static uint32_t GetSize(uint32_t max_depth) {
@@ -74,12 +75,14 @@ public:
         qtok_t qtok;
         qtok.qid = header_->qid_;
         while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, header_), qtok.req_id)) {}
+        printf("ENQUEUING OFF: %lu %lu %d\n", (size_t)rq, (size_t)header_, LABSTOR_REGION_SUB(rq, header_));
         return qtok;
     }
     inline bool Dequeue(request *&rq) {
         labstor::off_t off;
         if(!queue_.Dequeue(off)) { return false; }
         rq = (request*)LABSTOR_REGION_ADD(off, header_);
+        TRACEPOINT("DEQUEUING OFFSET", off);
         return true;
     }
 
