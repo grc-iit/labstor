@@ -5,8 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
 
-#set(CMAKE_C_FLAGS "-g -O3")
-#set(CMAKE_CXX_FLAGS "-g -O3")
+set(CMAKE_C_FLAGS "-g -fPIC")
+set(CMAKE_CXX_FLAGS "-g -fPIC")
+#set(CMAKE_C_FLAGS "-g -fPIC -O3")
+#set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 
@@ -19,10 +21,13 @@ add_dependencies(build_labstor_kernel_server build_kpkg_devkit)
 add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make clean)
 
 ######KERNEL CLIENT
-add_library(labstor_kernel_client ${CMAKE_SOURCE_DIR}/src/kernel_client/kernel_client.cpp)
+add_library(labstor_kernel_client
+        src/kernel_client/singleton.cpp
+        src/kernel_client/kernel_client.cpp)
 
 ######LABSTOR USERSPACE SERVER LIB
 add_library(labstor_server_library
+        src/userspace_server/singleton.cpp
         src/userspace_server/worker.cpp
         src/userspace_server/module_manager.cpp
         src/userspace_server/ipc_manager.cpp
@@ -47,6 +52,7 @@ target_link_libraries(labstor_trusted_server labstor_server_library)
 
 ######LABSTOR USERSPACE CLIENT
 add_library(labstor_client_library
+        src/userspace_client/singleton.cpp
         src/userspace_client/client.cpp
         src/userspace_client/ipc_manager.cpp
         src/userspace_client/module_manager.cpp

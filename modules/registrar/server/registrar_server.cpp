@@ -6,6 +6,8 @@
 #include "registrar_server.h"
 
 void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    TRACEPOINT("Dequeuing request in worker", request->ns_id_, request->op_, request->qtok_);
+
     switch(static_cast<Ops>(request->op_)) {
         case Ops::kRegister : {
             register_submit_request *register_rq = reinterpret_cast<register_submit_request*>(request);

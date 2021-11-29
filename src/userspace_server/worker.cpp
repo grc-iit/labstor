@@ -16,9 +16,8 @@ void labstor::Server::Worker::DoWork() {
     void *base;
     for(uint32_t i = 0; i < length; ++i) {
         if(!work_queue_.Dequeue(qp, base)) { break; }
-        TRACEPOINT("Worker: The shared memory region for PID queue pairs", LABSTOR_GET_QP_PID(qp.GetQid()), (size_t)base, qp.sq.GetDepth());
         while(qp.sq.Dequeue(rq)) {
-            TRACEPOINT("Dequeuing request in worker", rq->ns_id_, rq->op_);
+            TRACEPOINT("Dequeuing request in worker", rq->ns_id_, rq->op_, rq->qtok_);
             labstor::Module *module = namespace_->Get(rq->ns_id_);
             module->ProcessRequest(qp, rq, qp.sq.GetCredentials());
         }

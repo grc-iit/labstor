@@ -26,12 +26,9 @@ namespace labstor {
 class Module {
 protected:
     labstor::id module_id_;
-    uint32_t runtime_id_;
 public:
     Module(labstor::id module_id) : module_id_(module_id) {}
     inline labstor::id GetModuleID() { return module_id_; }
-    inline uint32_t GetRuntimeID() { return runtime_id_; }
-    inline void SetRuntimeID(uint32_t runtime_id) { runtime_id_ = runtime_id; }
 
     virtual void ReinforceRequestStats(labstor::ipc::request *request, size_t time_measure_ns) {};
     virtual size_t EstRequestTime(labstor::ipc::request *request){ return 1; };

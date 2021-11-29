@@ -25,6 +25,7 @@ private:
     std::vector<labstor::ipc::queue_pair> shmem_qps_;
     std::vector<labstor::ipc::queue_pair> private_qps_;
 public:
+    IPCManager() = default;
     void Connect();
     inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {

@@ -16,12 +16,12 @@ ipc_manager:
   pid_to_ipc_size_mb: 2
   qps_by_id_size_mb: 2
   max_collisions: 64
-  allocator_unit_bytes: 128
+  allocator_unit_bytes: 256
   kernel_shmem_mb: 1
   process_shmem_kb: 16
 namespace:
   max_entries: 1024
   max_collisions: 16
-  shmem_request_unit: 128
+  shmem_request_unit: 256
   shmem_kb: 1024
 admin_thread: 0

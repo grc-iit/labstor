@@ -5,14 +5,14 @@
 #ifndef LABSTOR_SHMEM_USER_NETLINK_H
 #define LABSTOR_SHMEM_USER_NETLINK_H
 
-#include <labstor/util/singleton.h>
+#include <labstor/kernel_client/macros.h>
 #include <labstor/kernel_client/kernel_client.h>
 
 #define SHMEM_CHRDEV "/dev/labstor_shared_shmem0"
 
 class ShmemNetlinkClient {
 private:
-    std::shared_ptr<labstor::Kernel::NetlinkClient> kernel_client_;
+    LABSTOR_KERNEL_CLIENT_T kernel_client_;
     int PAGE_SIZE;
 public:
     ShmemNetlinkClient() {

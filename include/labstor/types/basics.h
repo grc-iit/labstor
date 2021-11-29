@@ -5,6 +5,8 @@
 #ifndef LABSTOR_BASICS_H
 #define LABSTOR_BASICS_H
 
+#define MODULE_KEY_SIZE 64
+
 #ifdef __cplusplus
 
 #include <string>
@@ -14,7 +16,7 @@
 namespace labstor {
 
 struct id {
-    char key[64];
+    char key[MODULE_KEY_SIZE];
     id() = default;
     ~id() = default;
     id(std::string key_str) {
@@ -53,7 +55,7 @@ struct std::hash<labstor::id> {
 #endif
 
 struct labstor_id {
-    char key[64];
+    char key[MODULE_KEY_SIZE];
 };
 
 struct labstor_netlink_header {

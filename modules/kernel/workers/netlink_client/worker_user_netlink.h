@@ -5,12 +5,12 @@
 #ifndef LABSTOR_WORKER_USER_NETLINK_H
 #define LABSTOR_WORKER_USER_NETLINK_H
 
-#include <labstor/util/singleton.h>
+#include <labstor/kernel_client/macros.h>
 #include <labstor/kernel_client/kernel_client.h>
 
 class WorkerNetlinkClient {
 private:
-    std::shared_ptr<labstor::Kernel::NetlinkClient> kernel_client_;
+    LABSTOR_KERNEL_CLIENT_T kernel_client_;
 public:
     WorkerNetlinkClient() {
         kernel_client_ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();

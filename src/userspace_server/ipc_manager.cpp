@@ -47,6 +47,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     reply.request_unit = allocator_unit_;
     reply.concurrency = work_orchestrator_->GetNumCPU();
     reply.queue_size = allocator_unit_;
+    TRACEPOINT("Registering", reply.region_id, reply.region_size, reply.request_unit, reply.concurrency, reply.queue_size)
     client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
 
     //Receive and register client QPs

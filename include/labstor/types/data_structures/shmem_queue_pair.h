@@ -87,7 +87,6 @@ struct queue_pair {
     }
 
     inline void Attach(queue_pair_ptr &ptr, void *base) {
-        TRACEPOINT("")
         sq.Attach(LABSTOR_REGION_ADD(ptr.sq_off, base));
         cq.Attach(LABSTOR_REGION_ADD(ptr.cq_off, base));
     }

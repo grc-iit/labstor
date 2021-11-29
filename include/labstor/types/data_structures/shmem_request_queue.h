@@ -75,14 +75,12 @@ public:
         qtok_t qtok;
         qtok.qid = header_->qid_;
         while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, header_), qtok.req_id)) {}
-        printf("ENQUEUING OFF: %lu %lu %d\n", (size_t)rq, (size_t)header_, LABSTOR_REGION_SUB(rq, header_));
         return qtok;
     }
     inline bool Dequeue(request *&rq) {
         labstor::off_t off;
         if(!queue_.Dequeue(off)) { return false; }
-        rq = (request*)LABSTOR_REGION_ADD(off, header_);
-        TRACEPOINT("DEQUEUING OFFSET", off);
+        rq = reinterpret_cast<request*>(LABSTOR_REGION_ADD(off, header_));
         return true;
     }
 
