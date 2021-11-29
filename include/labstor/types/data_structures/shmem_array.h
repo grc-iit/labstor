@@ -30,10 +30,10 @@ public:
     inline uint32_t GetLength() {
         return header_->length_;
     }
+    inline void* GetRegion() { return header_; }
 
     void Init(void *region, uint32_t region_size, uint32_t length = 0) {
-        region_ = region;
-        header_ = (array_header*)region_;
+        header_ = (array_header*)region;
         if(length) {
             header_->length_ = length;
         } else {
@@ -43,8 +43,7 @@ public:
     }
 
     void Attach(void *region) {
-        region_ = region;
-        header_ = (array_header*)region_;
+        header_ = (array_header*)region;
         arr_ = (T*)(header_ + 1);
     }
 

@@ -12,11 +12,10 @@
 namespace labstor {
 
 class shmem_type {
-protected:
-    void *region_;
 public:
-    inline void *GetRegion() { return region_; }
-    inline void* GetNextSection() { return (void*)((char*)region_ + GetSize()); }
+    inline void* GetNextSection() { return (void*)((char*)GetRegion() + GetSize()); }
+
+    inline virtual void *GetRegion() = 0;
     inline virtual uint32_t GetSize() = 0;
 };
 

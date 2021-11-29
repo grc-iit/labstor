@@ -43,9 +43,9 @@ public:
     inline uint32_t GetSize() {
         return GetSize(queue_.GetMaxDepth());
     }
+    inline void* GetRegion() { return header_; }
 
     inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid) {
-        region_ = region;
         header_ = (request_queue_header*)region;
         header_->qid_ = qid;
         header_->update_lock_.Init();
@@ -57,7 +57,6 @@ public:
         header_->creds_ = creds;
     }
     inline void Attach(void *region) {
-        region_ = region;
         header_ = (request_queue_header*)region;
         update_lock_ = &header_->update_lock_;
         queue_.Attach(header_ + 1);
@@ -74,13 +73,13 @@ public:
     inline qtok_t Enqueue(request *rq) {
         qtok_t qtok;
         qtok.qid = header_->qid_;
-        while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, region_), qtok.req_id)) {}
+        while(!queue_.Enqueue(LABSTOR_REGION_SUB(rq, header_), qtok.req_id)) {}
         return qtok;
     }
     inline bool Dequeue(request *&rq) {
         labstor::off_t off;
         if(!queue_.Dequeue(off)) { return false; }
-        rq = (request*)LABSTOR_REGION_ADD(off, region_);
+        rq = (request*)LABSTOR_REGION_ADD(off, header_);
         return true;
     }
 

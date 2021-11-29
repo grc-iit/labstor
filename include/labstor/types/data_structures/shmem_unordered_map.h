@@ -47,6 +47,7 @@ public:
     inline uint32_t GetSize() {
         return buckets_.GetSize() + overflow_.GetSize();
     }
+    inline void* GetRegion() { return buckets_.GetRegion(); }
     inline uint32_t GetNumBuckets() {
         return buckets_.GetLength();
     }
@@ -55,7 +56,6 @@ public:
     }
 
     inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
-        region_ = region;
         uint32_t overflow_region_size = array<bucket_t>::GetSize(max_collisions);
         uint32_t bucket_region_size = region_size - overflow_region_size;
         buckets_.Init(region, bucket_region_size);
@@ -67,14 +67,13 @@ public:
         for(int i = 0; i < overflow_.GetLength(); ++i) { overflow_[i].GetAtomicKey() = bucket_t::Null(); }
     }
     inline void Attach(void *region) {
-        region_ = region;
         buckets_.Attach(region);
         region = buckets_.GetNextSection();
         overflow_.Attach(region);
     }
 
     inline bool Set(bucket_t &bucket) {
-        uint32_t b = bucket_t::hash(bucket.GetKey(region_), region_) % buckets_.GetLength();
+        uint32_t b = bucket_t::hash(bucket.GetKey(buckets_.GetRegion()), buckets_.GetRegion()) % buckets_.GetLength();
         if(AtomicSetKeyValue(buckets_, b, bucket)) {
             return true;
         }
@@ -87,7 +86,7 @@ public:
     }
 
     inline bool Find(S key, T &value) {
-        uint32_t b = bucket_t::hash(key, region_) % buckets_.GetLength();
+        uint32_t b = bucket_t::hash(key, buckets_.GetRegion()) % buckets_.GetLength();
 
         //Check the primary map first
         if(AtomicGetValueByKey(buckets_, b, key, value)) { return true; }
@@ -102,7 +101,7 @@ public:
 
 
     inline bool Remove(S key) {
-        uint32_t b = bucket_t::hash(key, region_) % buckets_.GetLength();
+        uint32_t b = bucket_t::hash(key, buckets_.GetRegion()) % buckets_.GetLength();
 
         //Check the primary map first
         if(AtomicNullifyKey(buckets_, b, key)) { return true;}
@@ -136,8 +135,8 @@ private:
         bucket_t tmp;
         do {
             tmp = arr[i];
-            if (tmp.GetKey(region_) != key) { return false; }
-            value = tmp.GetValue(region_);
+            if (tmp.GetKey(buckets_.GetRegion()) != key) { return false; }
+            value = tmp.GetValue(buckets_.GetRegion());
         } while(!__atomic_compare_exchange_n(&arr[i].GetAtomicKey(), &tmp.GetAtomicKey(), tmp.GetAtomicKey(), false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
         return true;
     }
@@ -146,7 +145,7 @@ private:
         bucket_t tmp;
         do {
             tmp = arr[i];
-            if (tmp.GetKey(region_) != key) { return false; }
+            if (tmp.GetKey(buckets_.GetRegion()) != key) { return false; }
         } while(!__atomic_compare_exchange_n(&arr[i].GetAtomicKey(), &tmp.GetAtomicKey(), null, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
         return true;
     }

@@ -33,6 +33,8 @@ private:
 public:
     shmem_allocator() = default;
 
+    inline void* GetRegion() { return header_; }
+
     uint32_t GetSize() {
         return region_size_;
     }
@@ -45,7 +47,6 @@ public:
             concurrency = get_nprocs_conf();
         }
 
-        region_ = region;
         region_size_ = region_size;
         header_ = (shmem_allocator_header *)region;
         header_->region_size_ = region_size;
@@ -65,7 +66,6 @@ public:
         uint32_t per_core_region_size;
         void *core_region;
 
-        region_ = region;
         header_ = (shmem_allocator_header *)region;
         region_size_ = header_->region_size_;
         concurrency_ = header_->concurrency_;

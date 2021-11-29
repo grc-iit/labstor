@@ -28,7 +28,6 @@ namespace labstor::ipc {
 
 class work_queue : public shmem_type {
 private:
-    void *queue_region_;
     ring_buffer<queue_pair_ptr> queue_;
     LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
@@ -36,20 +35,19 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
 
+    inline void* GetRegion() override { return queue_.GetRegion(); }
     static uint32_t GetSize(uint32_t num_buckets) {
         return ring_buffer<queue_pair_ptr>::GetSize(num_buckets);
     }
-    inline uint32_t GetSize() {
+    inline uint32_t GetSize() override {
         return queue_.GetSize();
     }
 
     void Init(void *region, uint32_t region_size) {
-        region_ = region;
-        queue_.Init(region_, region_size);
+        queue_.Init(region, region_size);
     }
 
     void Attach(void *region) {
-        region_ = region;
         queue_.Attach(region);
     }
 

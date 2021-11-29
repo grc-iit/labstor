@@ -31,10 +31,10 @@ public:
     inline uint32_t GetSize() {
         return GetSize(header_->max_depth_);
     }
+    inline void* GetRegion() { return header_; }
 
     inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0) {
         uint32_t min_region_size;
-        region_ = region;
         header_ = (ring_buffer_header*)region;
         queue_ = (T*)(header_ + 1);
         header_->enqueued_ = 0;
@@ -51,7 +51,6 @@ public:
     }
 
     inline void Attach(void *region) {
-        region_ = region;
         header_ = (ring_buffer_header*)region;
         queue_ = (T*)(header_ + 1);
     }

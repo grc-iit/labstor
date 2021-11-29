@@ -49,7 +49,7 @@ struct request_map_bucket {
 class request_map : public unordered_map<uint32_t, labstor::ipc::request*, uint32_t, request_map_bucket> {
 public:
     inline bool Set(labstor::ipc::request *rq) {
-        request_map_bucket bucket(rq, region_);
+        request_map_bucket bucket(rq, GetRegion());
         return unordered_map<uint32_t, labstor::ipc::request*, uint32_t, request_map_bucket>::Set(bucket);
     }
 };

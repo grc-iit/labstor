@@ -8,17 +8,19 @@
 #include <labstor/util/singleton.h>
 #include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
-struct simple_request {
-    struct labstor::ipc::request header;
+struct simple_request : public labstor::ipc::request {
     int hi;
 };
 
 int main(int argc, char **argv) {
-    /*int rank, region_id;
+    int rank, region_id;
     MPI_Init(&argc, &argv);
-    size_t region_size = 4096;
+    uint32_t region_size = (1<<20);
+    uint32_t alloc_region_size = (1<<19);
+    uint32_t queue_region_size = (1<<19);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::ipc::request_map q;
+    labstor::ipc::request_queue q;
+    labstor::ipc::shmem_allocator alloc;
     auto netlink_client__ = scs::Singleton<labstor::Kernel::NetlinkClient>::GetInstance();
     ShmemNetlinkClient shmem_netlink;
 
@@ -51,14 +53,27 @@ int main(int argc, char **argv) {
     }
     printf("Mapped Region ID (rank=%d): %d %p\n", rank, region_id, region);
 
-    //Initialize request queue and place request in the queue
+    //Initialize memory allocator and queue
     if(rank == 0) {
-        q.Init(region, region_size, sizeof(simple_request));
+        alloc.Init(region, alloc_region_size, 256);
+        region = alloc.GetNextSection();
+        q.Init(region, queue_region_size, 1);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank != 0) {
+        alloc.Attach(region);
+        region = alloc.GetNextSection();
+        q.Attach(region);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    //Place requests in the queue
+    if(rank == 0) {
         for(int i = 0; i < 10; ++i) {
-            struct simple_request* rq = (struct simple_request*)q.Allocate(sizeof(struct simple_request));
-            rq->hi = 12341;
+            simple_request* rq = (simple_request*)alloc.Alloc(sizeof(simple_request), 0);
+            rq->hi = 12341 + i;
             printf("ENQUEUEING REQUEST: %d\n", rq->hi);
-            q.Enqueue(&rq->header);
+            q.Enqueue(rq);
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -66,11 +81,12 @@ int main(int argc, char **argv) {
 
     //Dequeue request and print its value
     if(rank == 1) {
-        q.Attach(region);
         int i = 0;
         while(i < 10) {
-            struct simple_request *rq = (struct simple_request *) q.Dequeue();
-            if(!rq) { continue; }
+            labstor::ipc::request *rq_uncast;
+            simple_request *rq;
+            if(!q.Dequeue(rq_uncast)) { continue; }
+            rq = (simple_request*)rq_uncast;
             printf("RECEIVED REQUEST: %d\n", rq->hi);
             ++i;
         }
@@ -79,5 +95,5 @@ int main(int argc, char **argv) {
     //Delete SHMEM region
     shmem_netlink.FreeShmem(region_id);
 
-    MPI_Finalize();*/
+    MPI_Finalize();
 }

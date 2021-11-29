@@ -23,12 +23,11 @@ struct private_shmem_allocator_header {
 
 class private_shmem_allocator : public GenericAllocator {
 private:
-    uint32_t region_size_;
     private_shmem_allocator_header *header_;
     labstor::ipc::ring_buffer<labstor::off_t> objs_;
 public:
     private_shmem_allocator() = default;
-
+    inline void* GetRegion() { return header_; }
     uint32_t GetSize() {
         return sizeof(private_shmem_allocator_header) + objs_.GetSize();
     }
@@ -38,8 +37,6 @@ public:
         void *remainder;
         uint32_t remainder_size, remainder_objs;
 
-        region_ = region;
-        region_size_ = region_size;
         header_ = (private_shmem_allocator_header*)region;
         header_->region_size_ = region_size;
         header_->request_unit_ = request_unit;
@@ -49,26 +46,24 @@ public:
         remainder_size = (uint32_t)((size_t)region + region_size - (size_t)remainder);
         remainder_objs = remainder_size / request_unit;
         for(int i = 0; i < remainder_objs; ++i) {
-            objs_.Enqueue(LABSTOR_REGION_SUB(remainder, region_));
+            objs_.Enqueue(LABSTOR_REGION_SUB(remainder, header_));
             remainder = LABSTOR_REGION_ADD(request_unit, remainder);
         }
     }
 
     inline void Attach(void *region) override {
-        region_ = region;
         header_ = (private_shmem_allocator_header*)region;
-        region_size_ = header_->region_size_;
         objs_.Attach(header_ + 1);
     }
 
     inline void* Alloc(uint32_t size, uint32_t core) override {
         labstor::off_t off;
         if(!objs_.Dequeue(off)) { return nullptr; }
-        return LABSTOR_REGION_ADD(off, region_);
+        return LABSTOR_REGION_ADD(off, header_);
     }
 
     inline void Free(void *data) override {
-        objs_.Enqueue(LABSTOR_REGION_SUB(data, region_));
+        objs_.Enqueue(LABSTOR_REGION_SUB(data, header_));
     }
 };
 

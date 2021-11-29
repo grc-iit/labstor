@@ -51,7 +51,7 @@ struct string_map_bucket {
 class string_map : public unordered_map<labstor::ipc::string, uint32_t, uint32_t, string_map_bucket> {
 public:
     inline bool Set(labstor::ipc::string key, uint32_t value) {
-        string_map_bucket bucket(key, value, region_);
+        string_map_bucket bucket(key, value, GetRegion());
         return unordered_map<labstor::ipc::string, uint32_t, uint32_t, string_map_bucket>::Set(bucket);
     }
 };
