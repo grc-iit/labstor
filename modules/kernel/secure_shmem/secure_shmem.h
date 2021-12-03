@@ -42,18 +42,13 @@ struct free_shmem_request {
     int region_id;
 };
 
-struct shmem_request {
+struct secure_shmem_request {
     struct labstor_request header;
     union {
         struct shmem_reserve_request reserve;
         struct shmem_grant_pid_shmem_request grant;
         struct shmem_grant_pid_shmem_request free;
     };
-};
-
-struct shmem_request_netlink {
-    struct labstor_netlink_header header;
-    struct shmem_request rq;
 };
 
 struct shmem_ops {

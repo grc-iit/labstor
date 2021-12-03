@@ -47,9 +47,4 @@ struct kernel_worker_request {
     };
 };
 
-struct kernel_worker_request_netlink {
-    struct labstor_netlink_header header;
-    struct kernel_worker_request rq;
-};
-
 #endif //LABSTOR_WORKER_KERNEL_H

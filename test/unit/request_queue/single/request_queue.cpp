@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     for(int i = 0; i < 10; ++i) {
         req_region[i].ns_id_ = i;
         q.Enqueue(req_region + i);
-        printf("ENQUEUED REQUEST[%lu]: %d\n", req_region + i, i);
+        printf("ENQUEUED REQUEST[%lu]: %d\n", (size_t)(req_region + i), i);
     }
     printf("\n");
 
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         if(!rq) {
             continue;
         }
-        printf("DEQUEUED REQUEST[%lu]: %d\n", rq, rq->ns_id_);
+        printf("DEQUEUED REQUEST[%lu]: %d\n", (size_t)(rq), rq->ns_id_);
         ++i;
     }
 }

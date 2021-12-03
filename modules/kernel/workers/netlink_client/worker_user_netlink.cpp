@@ -17,25 +17,25 @@
 #include "worker_user_netlink.h"
 
 int WorkerNetlinkClient::CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
-    struct kernel_worker_request_netlink rq;
-    rq.header.runtime_id_ = WORKER_MODULE_RUNTIME_ID;
-    rq.rq.header.op_ = SPAWN_WORKERS;
-    rq.rq.spawn.num_workers = num_workers;
-    rq.rq.spawn.region_id = region_id;
-    rq.rq.spawn.region_size = region_size;
-    rq.rq.spawn.time_slice_us = time_slice_us;
+    struct kernel_worker_request rq;
+    rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
+    rq.header.op_ = SPAWN_WORKERS;
+    rq.spawn.num_workers = num_workers;
+    rq.spawn.region_id = region_id;
+    rq.spawn.region_size = region_size;
+    rq.spawn.time_slice_us = time_slice_us;
     kernel_client_->SendMSG(&rq, sizeof(rq));
     kernel_client_->RecvMSG(&region_id, sizeof(region_id));
     return region_id;
 }
 
 int WorkerNetlinkClient::SetAffinity(int worker_id, int cpu_id) {
-    struct kernel_worker_request_netlink rq;
+    struct kernel_worker_request rq;
     int code;
-    rq.header.runtime_id_ = WORKER_MODULE_RUNTIME_ID;
-    rq.rq.header.op_ = SET_WORKER_AFFINITY;
-    rq.rq.affinity.worker_id = worker_id;
-    rq.rq.affinity.cpu_id = cpu_id;
+    rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
+    rq.header.op_ = SET_WORKER_AFFINITY;
+    rq.affinity.worker_id = worker_id;
+    rq.affinity.cpu_id = cpu_id;
     kernel_client_->SendMSG(&rq, sizeof(rq));
     kernel_client_->RecvMSG(&code, sizeof(code));
     return code;

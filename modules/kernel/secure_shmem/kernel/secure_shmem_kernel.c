@@ -253,7 +253,7 @@ static loff_t labstor_lseek(struct file *file, loff_t offset, int orig) {
 
 
 
-void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
+void shmem_process_request_fn_netlink(int pid, struct secure_shmem_request *rq) {
     int code = 0;
     switch(rq->header.op_) {
         case RESERVE_SHMEM: {
@@ -277,6 +277,12 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
             free_shmem_region_by_id(rq->free.region_id);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
+        }
+
+        default: {
+            pr_warn("Invalid request id: %d\n", rq->header.op_);
+            code = -1;
+            labstor_msg_trusted_server(&code, sizeof(code), pid);
         }
     }
 }

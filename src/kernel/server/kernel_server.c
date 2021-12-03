@@ -15,8 +15,8 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
+#include <labstor/types/data_structures/shmem_request.h>
 #include <labstor/kernel/server/module_manager.h>
-#include <labstor/kernel/server/kernel_server.h>
 #include <labstor/kernel/server/kernel_server.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
@@ -50,25 +50,24 @@ static int start_server(void) {
 
 static void server_loop(struct sk_buff *skb) {
     struct nlmsghdr *nlh;
-    struct labstor_netlink_header *km_rq;
+    struct labstor_request *rq;
     struct labstor_module *pkg;
     int code;
-    void *rq;
     int pid;
 
     nlh=(struct nlmsghdr*)skb->data;
-    km_rq = (struct labstor_netlink_header*)nlmsg_data(nlh);
+    rq = (struct labstor_request*)nlmsg_data(nlh);
     pid = nlh->nlmsg_pid;
 
     //Load labstor module
-    pkg = get_labstor_module_by_runtime_id(km_rq->runtime_id_);
+    pr_info("Received a request: %d\n", rq->ns_id_);
+    pkg = get_labstor_module_by_runtime_id(rq->ns_id_);
     if(pkg == NULL) {
-        pr_err("Could not find module %d\n", km_rq->runtime_id_);
+        pr_err("Could not find module %d\n", rq->ns_id_);
         code = -1;
         labstor_msg_trusted_server(&code, sizeof(code), pid);
         return;
     }
-    rq = (void*)(km_rq + 1);
 
     //Process command
     if(pkg->process_request_fn_netlink == NULL) {

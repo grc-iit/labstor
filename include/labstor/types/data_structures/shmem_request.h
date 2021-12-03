@@ -7,10 +7,6 @@
 
 #include <labstor/types/basics.h>
 
-struct labstor_netlink_header {
-    labstor_runtime_id_t runtime_id_;
-};
-
 struct labstor_request {
     uint32_t req_id_;
     uint32_t ns_id_;
