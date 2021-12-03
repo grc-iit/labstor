@@ -92,7 +92,7 @@ static inline bool labstor_queue_pair_Dequeue(struct labstor_queue_pair *qp, str
 static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
     struct labstor_request_map_bucket b;
     msg->req_id_ = rq->req_id_;
-    labstor_request_map_bucket_Init(&b, rq, labstor_unordered_map_uint32_t_request_GetRegion(&qp->cq));
+    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetRegion(&qp->cq));
     labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b);
 }
 
