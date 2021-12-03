@@ -5,7 +5,7 @@
 #ifndef LABSTOR_SHMEM_ARRAY_H
 #define LABSTOR_SHMEM_ARRAY_H
 
-#include <labstor/userspace/types/shmem_type.h>
+#include <labstor/types/shmem_type.h>
 
 #ifdef __cplusplus
 

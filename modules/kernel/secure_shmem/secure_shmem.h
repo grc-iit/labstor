@@ -6,7 +6,7 @@
 #define LABSTOR_SECURE_SHMEM_H
 
 #include <labstor/types/basics.h>
-#include <labstor/kernel/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_request.h>
 
 #define SHMEM_ID "SHMEM_ID"
 

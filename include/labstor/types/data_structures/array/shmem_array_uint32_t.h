@@ -61,7 +61,7 @@ static inline uint32_t* labstor_array_uint32_t_GetPtr(struct labstor_array_uint3
 
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
 
 struct array_uint32_t_header {
@@ -89,7 +89,7 @@ public:
         labstor_array_uint32_t_Attach(this, region);
     }
 
-    inline T& operator [] (int i) { return arr_[i]; }
+    inline uint32_t& operator [] (int i) { return arr_[i]; }
 };
 
 }

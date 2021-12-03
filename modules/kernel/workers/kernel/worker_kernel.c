@@ -16,10 +16,10 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
-#include <labstor/kernel/constants/runtime_ids.h>
-#include <labstor/kernel/types/data_structures/shmem_request.h>
-#include <labstor/kernel/types/data_structures/shmem_queue_pair.h>
-#include <labstor/kernel/types/data_structures/shmem_work_queue.h>
+#include <labstor/constants/constants.h>
+#include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/shmem_work_queue.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <workers/worker_kernel.h>
@@ -52,7 +52,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
 
     pr_info("Worker: %p\n", worker);
     while(true) {
-        work_depth = labstor_work_queue_GetDepth(&worker->worker_queue);
+       /* work_depth = labstor_work_queue_GetDepth(&worker->worker_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->worker_queue, &qp, shmem_region)) {
                 break;
@@ -69,7 +69,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 }
                 module->process_request_fn(&qp, rq);
             }
-        }
+        }*/
     }
     return 0;
 }

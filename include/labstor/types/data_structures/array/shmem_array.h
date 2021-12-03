@@ -61,7 +61,7 @@ static inline {T}* labstor_array_{T_NAME}_GetPtr(struct labstor_array_{T_NAME} *
 
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
 
 struct array_{T_NAME}_header {
@@ -89,7 +89,7 @@ public:
         labstor_array_{T_NAME}_Attach(this, region);
     }
 
-    inline T& operator [] (int i) { return arr_[i]; }
+    inline {T}& operator [] (int i) { return arr_[i]; }
 };
 
 }

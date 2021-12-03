@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/types/shmem_type.h>
+#include <labstor/types/shmem_type.h>
 
 namespace labstor::ipc {
 

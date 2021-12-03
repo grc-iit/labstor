@@ -28,7 +28,9 @@ public:
         work_queue_.Init(region_, region_size);
     }
     void AssignQP(labstor::ipc::queue_pair &qp, void *base) {
-        work_queue_.Enqueue(qp, base);
+        labstor::ipc::queue_pair_ptr ptr;
+        qp.GetPointer(ptr, base);
+        work_queue_.Enqueue(ptr);
     }
     void DoWork();
 };

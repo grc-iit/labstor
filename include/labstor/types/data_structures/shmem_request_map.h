@@ -6,7 +6,7 @@
 #define LABSTOR_LABSTOR_REQUEST_MAP_H
 
 #include <labstor/types/data_structures/shmem_qtok.h>
-#include <labstor/kernel/constants/macros.h>
+#include <labstor/constants/macros.h>
 
 #include <labstor/types/data_structures/unordered_map/constants.h>
 
@@ -79,17 +79,17 @@ static inline bool labstor_request_map_bucket_KeyCompare(uint32_t req_id1, uint3
     return req_id1 == req_id2;
 }
 
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_request_request_impl.h>
+#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_uint32_t_request_impl.h>
 
 #ifdef __cplusplus
 namespace labstor::ipc {
 
-class request_map : public unordered_map_request {
+class request_map : public unordered_map_uint32_t_request {
 public:
     inline bool Set(labstor::ipc::request *rq) {
         labstor_request_map_bucket bucket;
         labstor_request_map_bucket_Init(&bucket, rq, GetRegion());
-        return unordered_map_request::Set(bucket);
+        return unordered_map_uint32_t_request::Set(bucket);
     }
 };
 

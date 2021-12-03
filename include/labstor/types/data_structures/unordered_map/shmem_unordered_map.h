@@ -15,7 +15,7 @@
 #ifndef LABSTOR_UNORDERED_MAP_{S_NAME}_{T_NAME}
 #define LABSTOR_UNORDERED_MAP_{S_NAME}_{T_NAME}
 
-#include <labstor/kernel/types/data_structures/shmem_array_{BUCKET_T_NAME}.h>
+#include <labstor/types/data_structures/array/shmem_array_{BUCKET_T_NAME}.h>
 
 struct labstor_unordered_map_{S_NAME}_{T_NAME} {
     struct labstor_array_{BUCKET_T_NAME} buckets_;
@@ -30,7 +30,7 @@ static inline uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(ui
     return labstor_array_{BUCKET_T_NAME}_GetSize_global(num_buckets) + labstor_array_{BUCKET_T_NAME}_GetSize_global(max_collisions);
 }
 
-static inline inline uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map) {
+static inline uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map) {
     return labstor_array_{BUCKET_T_NAME}_GetSize(&map->buckets_) + labstor_array_{BUCKET_T_NAME}_GetSize(&map->overflow_);
 }
 
@@ -168,10 +168,11 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(stru
 }
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
 namespace labstor::ipc {
 
-class unordered_map_{S_NAME}_{T_NAME}; : protected labstor_unordered_map_{S_NAME}_{T_NAME}, public shmem_type {
+class unordered_map_{S_NAME}_{T_NAME} : protected labstor_unordered_map_{S_NAME}_{T_NAME}, public shmem_type {
 public:
     static uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions) {
         return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(num_buckets, max_collisions);
@@ -208,8 +209,8 @@ public:
         return labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(this, key);
     }
 
-    inline T operator []({S} key) {
-        T value;
+    inline {T} operator []({S} key) {
+        {T} value;
         if(Find(key, value)) {
             return value;
         }
@@ -218,8 +219,6 @@ public:
 };
 
 }
-
-#endif
 
 #endif
 

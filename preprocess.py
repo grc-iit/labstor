@@ -69,7 +69,7 @@ class LabStorDataStructures:
             fp.write(text)
 
     def _create_int_map(self, S, T, T_NAME):
-        BUCKET_T_NAME = f"labstor_{S}_{T_NAME}_map_bucket"
+        BUCKET_T_NAME = f"labstor_{S}_{T_NAME}_bucket"
         S_NAME = S
         S_ATOMIC = S
         self._create_unordered_map(S, S_NAME, S_ATOMIC, T, T_NAME, BUCKET_T_NAME)
@@ -85,6 +85,9 @@ class LabStorDataStructures:
     def create_array_labstor_off_t(self):
         self._create_array("labstor_off_t")
 
+    def create_array_labstor_qtok_t(self):
+        self._create_array("labstor_qtok_t")
+
     def create_ring_buffer_labstor_off_t(self):
         self._create_ring_buffer("labstor_off_t")
 
@@ -93,12 +96,12 @@ class LabStorDataStructures:
 
     def create_request_map(self):
         self._create_unordered_map(
-            S="struct labstor_request*",
-            S_NAME="request",
-            S_ATOMIC="labstor_off_t",
+            S="uint32_t",
+            S_NAME="uint32_t",
+            S_ATOMIC="uint32_t",
             T="struct labstor_request*",
             T_NAME="request",
-            BUCKET_T_NAME="labstor_request_bucket")
+            BUCKET_T_NAME="labstor_request_map_bucket")
 
     def create_string_map(self):
         self._create_unordered_map(
@@ -112,13 +115,13 @@ class LabStorDataStructures:
     def create_pid_to_ipc_map(self):
         self._create_int_map(
             S="int",
-            T="PerProcessIPC*",
+            T="labstor::Server::PerProcessIPC*",
             T_NAME="PerProcessIPC"
         )
 
     def create_id_to_qp_map(self):
         self._create_int_map(
-            S="qid_t",
+            S="labstor_qid_t",
             T="labstor::ipc::queue_pair",
             T_NAME="qp"
         )
@@ -138,6 +141,7 @@ class LabStorDataStructures:
 
     def compile(self):
         self.create_array_labstor_off_t()
+        self.create_array_labstor_qtok_t()
         self.create_ring_buffer_labstor_off_t()
         self.create_request_queue()
         self.create_request_map()
@@ -146,6 +150,7 @@ class LabStorDataStructures:
         self.create_id_to_qp_map()
         self.create_array_uint32_t()
         self.create_ring_buffer_uint32_t()
+        self.create_int_map_uint32_t()
 
 print("PREPROCESSING!")
 CMAKE_SOURCE_DIR=sys.argv[1]

@@ -7,7 +7,7 @@
 
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/types/messages.h>
-#include <labstor/userspace/constants/macros.h>
+#include <labstor/constants/macros.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>

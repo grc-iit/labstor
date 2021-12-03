@@ -5,7 +5,7 @@
 #ifndef LABSTOR_CLIENT_MACROS_H
 #define LABSTOR_CLIENT_MACROS_H
 
-#include <labstor/userspace/constants/macros.h>
+#include <labstor/constants/macros.h>
 #include <labstor/userspace/util/singleton.h>
 #define LABSTOR_CONFIGURATION_MANAGER_CLASS labstor::Client::ConfigurationManager
 #define LABSTOR_IPC_MANAGER_CLASS labstor::Client::IPCManager

@@ -18,8 +18,8 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 
-#include <labstor/kernel/constants/runtime_ids.h>
-#include <labstor/kernel/types/data_structures/shmem_request_queue.h>
+#include <labstor/constants/constants.h>
+#include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <secure_shmem/secure_shmem.h>

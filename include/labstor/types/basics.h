@@ -7,12 +7,24 @@
 
 #define MODULE_KEY_SIZE 64
 
-#ifdef __cplusplus
 
+#ifdef KERNEL_BUILD
+#include <linux/types.h>
+#elif __cplusplus
 #include <stdint.h>
 #include <string>
 #include <cstring>
 #include <unordered_map>
+#endif
+
+typedef uint32_t labstor_runtime_id_t;
+typedef int32_t labstor_off_t;
+
+struct labstor_id {
+    char key[MODULE_KEY_SIZE];
+};
+
+#ifdef __cplusplus
 
 namespace labstor {
 
@@ -63,18 +75,6 @@ namespace std {
     };
 }
 #endif
-
-
-#ifdef KERNEL_BUILD
-#include <linux/types.h>
-#endif
-
-typedef uint32_t labstor_runtime_id_t;
-typedef int32_t labstor_off_t;
-
-struct labstor_id {
-    char key[MODULE_KEY_SIZE];
-};
 
 
 

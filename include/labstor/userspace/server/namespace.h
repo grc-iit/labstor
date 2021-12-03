@@ -8,14 +8,14 @@
 #include <vector>
 #include <queue>
 
-#include <labstor/userspace/constants/macros.h>
+#include <labstor/constants/macros.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/types/shmem_spinlock.h>
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/data_structures/shmem_string_map.h>
-#include <labstor/types/data_structures/array/array_uint32_t.h>
-#include <labstor/types/data_structures/ring_buffer/ring_buffer_uint32_t.h>
+#include <labstor/types/data_structures/array/shmem_array_uint32_t.h>
+#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
 #include <labstor/types/data_structures/shmem_string.h>
 
 #include "macros.h"

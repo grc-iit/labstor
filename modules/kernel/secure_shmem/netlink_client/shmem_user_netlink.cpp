@@ -10,7 +10,7 @@
 #include <memory>
 #include <sys/mman.h>
 
-#include <labstor/kernel/constants/runtime_ids.h>
+#include <labstor/constants/constants.h>
 #include <labstor/kernel/client/kernel_client.h>
 
 #include <secure_shmem/secure_shmem.h>

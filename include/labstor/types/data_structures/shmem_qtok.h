@@ -15,20 +15,17 @@ struct labstor_qtok_t {
 
 #ifdef __cplusplus
 
-#include "shmem_array.h"
+#include <labstor/types/data_structures/array/shmem_array_labstor_qtok_t.h>
 
 namespace labstor::ipc {
 
 typedef uint64_t qid_t;
 
-struct qtok_t {
-    labstor::ipc::qid_t qid;
-    uint32_t req_id;
-};
+typedef labstor_qtok_t qtok_t;
 
 class qtok_set {
 private:
-    array_qtok_t arr_;
+    array_labstor_qtok_t arr_;
 public:
     inline uint32_t GetLength() {
         return arr_.GetLength();

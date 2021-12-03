@@ -6,8 +6,8 @@
 #define LABSTOR_MODULE_KERNEL_H
 
 #include <labstor/types/basics.h>
-#include <labstor/kernel/types/data_structures/shmem_queue_pair.h>
-#include <labstor/kernel/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/shmem_request.h>
 
 typedef void (*process_request_fn_type)(struct labstor_queue_pair *qp, struct labstor_request *rq);
 typedef void (*process_request_fn_netlink_type)(int pid, void *rq);

@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 11/9/21.
 //
 
+#include <vector>
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/allocator/private_shmem_allocator.h>
 

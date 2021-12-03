@@ -32,6 +32,10 @@ static inline void* labstor_ring_buffer_{T_NAME}_GetRegion(struct labstor_ring_b
     return rbuf->header_;
 }
 
+static inline void* labstor_ring_buffer_{T_NAME}_GetNextSection(struct labstor_ring_buffer_{T_NAME} *rbuf) {
+    return (char*)rbuf->header_ + labstor_ring_buffer_{T_NAME}_GetSize(rbuf);
+}
+
 static inline uint32_t labstor_ring_buffer_{T_NAME}_GetDepth(struct labstor_ring_buffer_{T_NAME} *rbuf) {
     return (uint32_t)(rbuf->header_->enqueued_ - rbuf->header_->dequeued_);
 }
@@ -93,6 +97,7 @@ static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buff
 }
 
 #ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
 
 namespace labstor::ipc {
 
@@ -119,15 +124,15 @@ public:
         labstor_ring_buffer_{T_NAME}_Attach(this, region);
     }
 
-    inline bool Enqueue(T data) {
+    inline bool Enqueue({T} data) {
         return labstor_ring_buffer_{T_NAME}_Enqueue_simple(this, data);
     }
 
-    inline bool Enqueue(T data, uint32_t &req_id) {
+    inline bool Enqueue({T} data, uint32_t &req_id) {
         return labstor_ring_buffer_{T_NAME}_Enqueue(this, data, &req_id);
     }
 
-    inline bool Dequeue(T &data) {
+    inline bool Dequeue({T} &data) {
         return labstor_ring_buffer_{T_NAME}_Dequeue(this, &data);
     }
 

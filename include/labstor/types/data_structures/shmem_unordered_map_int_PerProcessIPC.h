@@ -2,53 +2,68 @@
 // Created by lukemartinlogan on 11/22/21.
 //
 
-#ifndef LABSTOR_INT_MAP_H
-#define LABSTOR_INT_MAP_H
+#ifndef LABSTOR_INT_MAP_int_PerProcessIPC_H
+#define LABSTOR_INT_MAP_int_PerProcessIPC_H
 
 #include <labstor/types/data_structures/unordered_map/constants.h>
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/types/shmem_type.h>
+#include <labstor/types/shmem_type.h>
 
-struct labstor_int_PerProcessIPC_map_bucket {
+struct labstor_int_PerProcessIPC_bucket {
     int key_;
-    PerProcessIPC* value_;
+    labstor::Server::PerProcessIPC* value_;
 };
-inline labstor_int_PerProcessIPC_map_bucket_Init(int key, PerProcessIPC* value) {
-    key_ = key;
-    value_ = value;
+
+inline void labstor_int_PerProcessIPC_bucket_Init(labstor_int_PerProcessIPC_bucket *bucket, int key, labstor::Server::PerProcessIPC* value) {
+    bucket->key_ = key;
+    bucket->value_ = value;
 }
-inline PerProcessIPC* labstor_int_PerProcessIPC_map_bucket_GetValue(void *region) {
-    return value_;
+inline labstor::Server::PerProcessIPC* labstor_int_PerProcessIPC_bucket_GetValue(labstor_int_PerProcessIPC_bucket *bucket, void *region) {
+    return bucket->value_;
 }
-inline int labstor_int_PerProcessIPC_map_bucket_GetKey(void *region) {
-    return key_;
+inline int labstor_int_PerProcessIPC_bucket_GetKey(labstor_int_PerProcessIPC_bucket *bucket, void *region) {
+    return bucket->key_;
 }
-inline PerProcessIPC* labstor_int_PerProcessIPC_map_bucket_GetAtomicValue() {
-    return value_;
+inline labstor::Server::PerProcessIPC* labstor_int_PerProcessIPC_bucket_GetAtomicValue(labstor_int_PerProcessIPC_bucket *bucket) {
+    return bucket->value_;
 }
-inline int labstor_int_PerProcessIPC_map_bucket_GetAtomicKey() {
-    return key_;
+inline int labstor_int_PerProcessIPC_bucket_GetAtomicKey(labstor_int_PerProcessIPC_bucket *bucket) {
+    return bucket->key_;
 }
-inline static uint32_t labstor_int_PerProcessIPC_map_bucket_hash(const uint32_t &key, const void *region) {
+inline int* labstor_int_PerProcessIPC_bucket_GetAtomicKeyRef(labstor_int_PerProcessIPC_bucket *bucket) {
+    return &bucket->key_;
+}
+inline static uint32_t labstor_int_PerProcessIPC_bucket_hash(const int key, const void *region) {
     return key;
 }
-inline bool labstor_int_PerProcessIPC_map_bucket_IsMarked() { return GetAtomicKey() & null1_mark; }
-inline bool labstor_int_PerProcessIPC_map_bucket_IsNull() { return GetAtomicKey() == null1_null; }
-inline int labstor_int_PerProcessIPC_map_bucket_GetMarkedAtomicKey() { return GetAtomicKey() | null1_mark; }
-inline static int labstor_int_PerProcessIPC_map_bucket_Null() { return null1_null; }
+inline bool labstor_int_PerProcessIPC_bucket_IsMarked(labstor_int_PerProcessIPC_bucket *bucket) {
+    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) & null1_mark;
+}
+inline bool labstor_int_PerProcessIPC_bucket_IsNull(labstor_int_PerProcessIPC_bucket *bucket) {
+    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) == null1_null;
+}
+inline int labstor_int_PerProcessIPC_bucket_GetMarkedAtomicKey(labstor_int_PerProcessIPC_bucket *bucket) {
+    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) | null1_mark;
+}
+inline static int labstor_int_PerProcessIPC_bucket_NullKey() {
+    return null1_null;
+}
+inline bool labstor_int_PerProcessIPC_bucket_KeyCompare(int key1, int key2) {
+    return key1==key2;
+}
 
 #include <labstor/types/data_structures/unordered_map/shmem_unordered_map_int_PerProcessIPC_impl.h>
 
 namespace labstor::ipc {
-class int_PerProcessIPC_map : public unordered_map_int_PerProcessIPC {
+class int_map_int_PerProcessIPC : public unordered_map_int_PerProcessIPC {
 public:
-    inline bool Set(int key, PerProcessIPC* value) {
-        int_PerProcessIPC_map_bucket bucket;
-        labstor_int_PerProcessIPC_map_bucket_Init(&bucket, key, value);
-        return int_PerProcessIPC_map::Set(bucket);
+    inline bool Set(int key, labstor::Server::PerProcessIPC* value) {
+        labstor_int_PerProcessIPC_bucket bucket;
+        labstor_int_PerProcessIPC_bucket_Init(&bucket, key, value);
+        return unordered_map_int_PerProcessIPC::Set(bucket);
     }
 };
 
 }
 
-#endif //LABSTOR_INT_MAP_H
+#endif //LABSTOR_INT_MAP_int_PerProcessIPC_H

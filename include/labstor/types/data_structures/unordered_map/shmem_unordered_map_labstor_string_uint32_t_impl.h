@@ -15,7 +15,7 @@
 #ifndef LABSTOR_UNORDERED_MAP_labstor_string_uint32_t
 #define LABSTOR_UNORDERED_MAP_labstor_string_uint32_t
 
-#include <labstor/kernel/types/data_structures/shmem_array_labstor_string_map_bucket.h>
+#include <labstor/types/data_structures/array/shmem_array_labstor_string_map_bucket.h>
 
 struct labstor_unordered_map_labstor_string_uint32_t {
     struct labstor_array_labstor_string_map_bucket buckets_;
@@ -30,7 +30,7 @@ static inline uint32_t labstor_unordered_map_labstor_string_uint32_t_GetSize_glo
     return labstor_array_labstor_string_map_bucket_GetSize_global(num_buckets) + labstor_array_labstor_string_map_bucket_GetSize_global(max_collisions);
 }
 
-static inline inline uint32_t labstor_unordered_map_labstor_string_uint32_t_GetSize(struct labstor_unordered_map_labstor_string_uint32_t *map) {
+static inline uint32_t labstor_unordered_map_labstor_string_uint32_t_GetSize(struct labstor_unordered_map_labstor_string_uint32_t *map) {
     return labstor_array_labstor_string_map_bucket_GetSize(&map->buckets_) + labstor_array_labstor_string_map_bucket_GetSize(&map->overflow_);
 }
 
@@ -168,10 +168,11 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKe
 }
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
 namespace labstor::ipc {
 
-class unordered_map_labstor_string_uint32_t; : protected labstor_unordered_map_labstor_string_uint32_t, public shmem_type {
+class unordered_map_labstor_string_uint32_t : protected labstor_unordered_map_labstor_string_uint32_t, public shmem_type {
 public:
     static uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions) {
         return labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets, max_collisions);
@@ -208,8 +209,8 @@ public:
         return labstor_unordered_map_labstor_string_uint32_t_Remove(this, key);
     }
 
-    inline T operator [](labstor::ipc::string key) {
-        T value;
+    inline uint32_t operator [](labstor::ipc::string key) {
+        uint32_t value;
         if(Find(key, value)) {
             return value;
         }
@@ -218,8 +219,6 @@ public:
 };
 
 }
-
-#endif
 
 #endif
 

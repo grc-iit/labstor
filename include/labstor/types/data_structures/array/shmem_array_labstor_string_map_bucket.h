@@ -61,7 +61,7 @@ static inline struct labstor_string_map_bucket* labstor_array_labstor_string_map
 
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
 
 struct array_labstor_string_map_bucket_header {
@@ -89,7 +89,7 @@ public:
         labstor_array_labstor_string_map_bucket_Attach(this, region);
     }
 
-    inline T& operator [] (int i) { return arr_[i]; }
+    inline struct labstor_string_map_bucket& operator [] (int i) { return arr_[i]; }
 };
 
 }

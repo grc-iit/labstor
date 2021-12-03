@@ -11,7 +11,7 @@
 int main() {
     uint32_t region_size = 1024;
     void *region = malloc(region_size);
-    labstor::ipc::unordered_map_uint32_t_uint32_t map;
+    labstor::ipc::int_map_uint32_t_uint32_t map;
     map.Init(region, region_size, 8);
     uint32_t value;
     int num_inserts = map.GetNumBuckets() + map.GetOverflow();

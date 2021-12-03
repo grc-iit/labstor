@@ -7,7 +7,7 @@
 
 #ifdef __cplusplus
 
-#include <labstor/userspace/types/shmem_type.h>
+#include <labstor/types/shmem_type.h>
 #include <stdint.h>
 #include <sched.h>
 

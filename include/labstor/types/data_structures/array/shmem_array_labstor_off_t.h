@@ -61,7 +61,7 @@ static inline labstor_off_t* labstor_array_labstor_off_t_GetPtr(struct labstor_a
 
 
 #ifdef __cplusplus
-
+#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
 
 struct array_labstor_off_t_header {
@@ -89,7 +89,7 @@ public:
         labstor_array_labstor_off_t_Attach(this, region);
     }
 
-    inline T& operator [] (int i) { return arr_[i]; }
+    inline labstor_off_t& operator [] (int i) { return arr_[i]; }
 };
 
 }

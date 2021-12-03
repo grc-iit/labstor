@@ -14,7 +14,6 @@
 #include <linux/netlink.h>
 
 #include <labstor/types/basics.h>
-#include <labstor/userspace/types/module.h>
 
 #define NETLINK_USER 31
 

@@ -6,7 +6,7 @@
 #define LABSTOR_WORKER_KERNEL_H
 
 #include <labstor/types/basics.h>
-#include <labstor/kernel/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_request.h>
 
 #define WORKER_MODULE_ID "WORKER_ID"
 
@@ -51,27 +51,5 @@ struct kernel_worker_request_netlink {
     struct labstor_netlink_header header;
     struct kernel_worker_request rq;
 };
-
-#ifdef KERNEL_BUILD
-
-struct worker_queue {
-    int nqueues;
-    struct request_queue *queues;
-};
-
-#endif
-
-#ifdef __cplusplus
-
-namespace labstor {
-
-struct worker_queue {
-    int nqueues;
-    labstor::ipc::request_map *queues;
-};
-
-}
-
-#endif
 
 #endif //LABSTOR_WORKER_KERNEL_H

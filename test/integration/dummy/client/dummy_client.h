@@ -5,8 +5,8 @@
 #ifndef LABSTOR_DUMMY_CLIENT_H
 #define LABSTOR_DUMMY_CLIENT_H
 
-#include <labstor/userspace/constants/macros.h>
-#include <labstor/userspace/constants/constants.h>
+#include <labstor/constants/macros.h>
+#include <labstor/constants/constants.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/client.h>

@@ -9,7 +9,7 @@
 
 #include <string>
 #include <labstor/types/basics.h>
-#include <labstor/userspace/types/allocator/allocator.h>
+#include <labstor/types/allocator/allocator.h>
 
 namespace labstor::ipc {
 

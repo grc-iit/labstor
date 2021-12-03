@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include <labstor/userspace/constants/macros.h>
+#include <labstor/constants/macros.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/module_manager.h>
 #include <labstor/userspace/client/ipc_manager.h>

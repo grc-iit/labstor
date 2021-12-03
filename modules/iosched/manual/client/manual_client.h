@@ -6,7 +6,7 @@
 #define LABSTOR_IOSCHED_MANUAL_CLIENT_H
 
 #include <labstor/userspace/types/module.h>
-#include <labstor/userspace/constants/macros.h>
+#include <labstor/constants/macros.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
