@@ -1,5 +1,5 @@
 //
-// Created by lukemartinlogan on 9/12/21.
+// Created by lukemartinlogan on 11/30/21.
 //
 
 #ifndef LABSTOR_BASICS_H
@@ -9,6 +9,7 @@
 
 #ifdef __cplusplus
 
+#include <stdint.h>
 #include <string>
 #include <cstring>
 #include <unordered_map>
@@ -61,21 +62,20 @@ namespace std {
         }
     };
 }
-
 #endif
+
 
 #ifdef KERNEL_BUILD
 #include <linux/types.h>
 #endif
 
+typedef uint32_t labstor_runtime_id_t;
 typedef int32_t labstor_off_t;
 
 struct labstor_id {
     char key[MODULE_KEY_SIZE];
 };
 
-struct labstor_netlink_header {
-    struct labstor_id module_id;
-};
+
 
 #endif //LABSTOR_BASICS_H

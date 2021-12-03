@@ -18,8 +18,8 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 
-#include <kpkg_devkit/request_queue.h>
-#include <kpkg_devkit/module_registrar.h>
+#include <labstor/kernel/server/types/data_structures/request_queue.h>
+#include <labstor/kernel/server/module_manager.h>
 #include <secure_shmem/secure_shmem.h>
 #include "request_queue_test.h"
 #include "kernel_server.h"

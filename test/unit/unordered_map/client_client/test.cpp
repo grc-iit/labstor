@@ -3,8 +3,8 @@
 //
 
 #include <mpi.h>
-#include <labstor/kernel_client/macros.h>
-#include <labstor/kernel_client/kernel_client.h>
+#include <labstor/kernel/client/macros.h>
+#include <labstor/kernel/client/kernel_client.h>
 #include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 #include <labstor/types/data_structures/shmem_int_map.h>
 #include <cstdio>

@@ -1,62 +1,99 @@
 //
-// Created by lukemartinlogan on 11/20/21.
+// Created by lukemartinlogan on 11/29/21.
 //
 
-#ifndef LABSTOR_SHMEM_REQEST_MAP_H
-#define LABSTOR_SHMEM_REQEST_MAP_H
+#ifndef LABSTOR_LABSTOR_REQUEST_MAP_H
+#define LABSTOR_LABSTOR_REQUEST_MAP_H
 
-#include <labstor/constants/macros.h>
-#include <labstor/types/shmem_type.h>
-#include "shmem_unordered_map.h"
+#include <labstor/types/data_structures/shmem_qtok.h>
+#include <labstor/kernel/constants/macros.h>
 
-namespace labstor::ipc {
+#include <labstor/types/data_structures/unordered_map/constants.h>
 
-struct request_map_bucket {
-    labstor::off_t off_;
-
-    inline request_map_bucket() = default;
-    inline request_map_bucket(labstor::ipc::request *rq, void *region) {
-        off_ = LABSTOR_REGION_SUB(rq, region);
-    }
-    inline request_map_bucket(const request_map_bucket &old) {
-        off_ = old.off_;
-    }
-    inline labstor::ipc::request* GetValue(void *region) {
-        if(IsNull()) {
-            TRACEPOINT("For some reason, the passed key is equal to this", off_)
-            return nullptr;
-        }
-        return (labstor::ipc::request*)LABSTOR_REGION_ADD(off_, region);
-    }
-    inline uint32_t GetKey(void *region) {
-        if(IsNull()) { return Null(); }
-        labstor::ipc::request *rq = (labstor::ipc::request *)LABSTOR_REGION_ADD(off_, region);
-        return rq->req_id_;
-    }
-    inline labstor::off_t& GetAtomicValue() {
-        return off_;
-    }
-    inline labstor::off_t& GetAtomicKey() {
-        return off_;
-    }
-    inline static uint32_t hash(const uint32_t &qtok, void *region) {
-        return qtok;
-    }
-
-    inline bool IsMarked() { return GetAtomicKey() & unordered_map_atomics_null1<uint32_t>::mark; }
-    inline bool IsNull() { return GetAtomicKey() == unordered_map_atomics_null1<uint32_t>::null; }
-    inline uint32_t GetMarkedAtomicKey() { return GetAtomicKey() | unordered_map_atomics_null1<uint32_t>::mark; }
-    inline static uint32_t Null() { return unordered_map_atomics_null1<uint32_t>::null; }
-    inline static bool IsNullValue(labstor::ipc::request *value) { return value == nullptr; }
+struct labstor_request_map_bucket {
+    labstor_off_t off_;
 };
 
-class request_map : public unordered_map<uint32_t, labstor::ipc::request*, labstor::off_t, request_map_bucket> {
+static inline void labstor_request_map_bucket_Init(struct labstor_request_map_bucket *bucket, struct labstor_request *rq, void *region);
+static inline struct labstor_request* labstor_request_map_bucket_GetValue(struct labstor_request_map_bucket *bucket, void *region);
+static inline uint32_t labstor_request_map_bucket_GetKey(struct labstor_request_map_bucket *bucket, void *region);
+static inline labstor_off_t labstor_request_map_bucket_GetAtomicValue(struct labstor_request_map_bucket *bucket);
+static inline labstor_off_t labstor_request_map_bucket_GetAtomicKey(struct labstor_request_map_bucket *bucket);
+static inline uint32_t labstor_request_map_bucket_hash(const uint32_t qtok, void *region);
+static inline bool labstor_request_map_bucket_IsMarked(struct labstor_request_map_bucket *bucket);
+static inline bool labstor_request_map_bucket_IsNull(struct labstor_request_map_bucket *bucket);
+static inline labstor_off_t labstor_request_map_bucket_GetMarkedAtomicKey(struct labstor_request_map_bucket *bucket);
+static inline labstor_off_t labstor_request_map_bucket_NullKey(void);
+
+static inline void labstor_request_map_bucket_Init(struct labstor_request_map_bucket *bucket, struct labstor_request *rq, void *region) {
+    bucket->off_ = LABSTOR_REGION_SUB(rq, region);
+}
+
+static inline struct labstor_request* labstor_request_map_bucket_GetValue(struct labstor_request_map_bucket *bucket, void *region) {
+    if(labstor_request_map_bucket_IsNull(bucket)) {
+        return NULL;
+    }
+    return (struct labstor_request *)LABSTOR_REGION_ADD(bucket->off_, region);
+}
+
+static inline uint32_t labstor_request_map_bucket_GetKey(struct labstor_request_map_bucket *bucket, void *region) {
+    struct labstor_request *rq;
+    if(labstor_request_map_bucket_IsNull(bucket)) { return labstor_request_map_bucket_NullKey(); }
+     rq = (struct labstor_request *)LABSTOR_REGION_ADD(bucket->off_, region);
+    return rq->req_id_;
+}
+
+static inline labstor_off_t labstor_request_map_bucket_GetAtomicValue(struct labstor_request_map_bucket *bucket) {
+    return bucket->off_;
+}
+
+static inline labstor_off_t labstor_request_map_bucket_GetAtomicKey(struct labstor_request_map_bucket *bucket) {
+    return bucket->off_;
+}
+
+static inline labstor_off_t* labstor_request_map_bucket_GetAtomicKeyRef(struct labstor_request_map_bucket *bucket) {
+    return &bucket->off_;
+}
+
+static inline uint32_t labstor_request_map_bucket_hash(const uint32_t qtok, void *region) {
+    return qtok;
+}
+
+static inline bool labstor_request_map_bucket_IsMarked(struct labstor_request_map_bucket *bucket) {
+    return labstor_request_map_bucket_GetAtomicKey(bucket) & null1_mark;
+}
+
+static inline bool labstor_request_map_bucket_IsNull(struct labstor_request_map_bucket *bucket) {
+    return labstor_request_map_bucket_GetAtomicKey(bucket) == null1_null;
+}
+
+static inline labstor_off_t labstor_request_map_bucket_GetMarkedAtomicKey(struct labstor_request_map_bucket *bucket) {
+    return labstor_request_map_bucket_GetAtomicKey(bucket) | null1_mark;
+}
+
+static inline labstor_off_t labstor_request_map_bucket_NullKey() {
+    return null1_null;
+}
+
+static inline bool labstor_request_map_bucket_KeyCompare(uint32_t req_id1, uint32_t req_id2) {
+    return req_id1 == req_id2;
+}
+
+#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_request_request_impl.h>
+
+#ifdef __cplusplus
+namespace labstor::ipc {
+
+class request_map : public unordered_map_request {
 public:
     inline bool Set(labstor::ipc::request *rq) {
-        request_map_bucket bucket(rq, GetRegion());
-        return unordered_map<uint32_t, labstor::ipc::request*, labstor::off_t, request_map_bucket>::Set(bucket);
+        labstor_request_map_bucket bucket;
+        labstor_request_map_bucket_Init(&bucket, rq, GetRegion());
+        return unordered_map_request::Set(bucket);
     }
 };
 
 }
-#endif //LABSTOR_SHMEM_REQEST_MAP_H
+#endif
+
+#endif //LABSTOR_LABSTOR_REQUEST_MAP_H

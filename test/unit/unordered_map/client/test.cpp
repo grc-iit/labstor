@@ -2,13 +2,16 @@
 // Created by lukemartinlogan on 11/25/21.
 //
 
-#include <labstor/types/data_structures/shmem_int_map.h>
+#include <labstor/userspace/util/errors.h>
+#include <labstor/types/data_structures/shmem_unordered_map_uint32_t_uint32_t.h>
 #include <cstdio>
+#include <cstdlib>
+#include <cstdint>
 
 int main() {
     uint32_t region_size = 1024;
     void *region = malloc(region_size);
-    labstor::ipc::int_map<uint32_t, uint32_t> map;
+    labstor::ipc::unordered_map_uint32_t_uint32_t map;
     map.Init(region, region_size, 8);
     uint32_t value;
     int num_inserts = map.GetNumBuckets() + map.GetOverflow();

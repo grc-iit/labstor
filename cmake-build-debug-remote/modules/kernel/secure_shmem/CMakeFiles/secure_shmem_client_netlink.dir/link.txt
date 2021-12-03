@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -g -fPIC -g  -shared -Wl,-soname,libsecure_shmem_client_netlink.so -o libsecure_shmem_client_netlink.so CMakeFiles/secure_shmem_client_netlink.dir/netlink_client/shmem_user_netlink.cpp.o  -Wl,-rpath,/home/llogan/labstor/cmake-build-debug-remote ../../../liblabstor_kernel_client.so 

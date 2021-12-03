@@ -5,7 +5,7 @@
 #ifndef LABSTOR_SIMPLE_MODULE_H
 #define LABSTOR_SIMPLE_MODULE_H
 
-#include <labstor/types/module.h>
+#include <labstor/userspace/types/module.h>
 
 class SimpleModule : public labstor::Module {
 public:

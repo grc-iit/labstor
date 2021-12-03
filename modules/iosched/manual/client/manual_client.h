@@ -5,11 +5,11 @@
 #ifndef LABSTOR_IOSCHED_MANUAL_CLIENT_H
 #define LABSTOR_IOSCHED_MANUAL_CLIENT_H
 
-#include <labstor/types/module.h>
-#include <labstor/constants/macros.h>
-#include <labstor/userspace_client/macros.h>
-#include <labstor/userspace_client/ipc_manager.h>
-#include <labstor/userspace_client/namespace.h>
+#include <labstor/userspace/types/module.h>
+#include <labstor/userspace/constants/macros.h>
+#include <labstor/userspace/client/macros.h>
+#include <labstor/userspace/client/ipc_manager.h>
+#include <labstor/userspace/client/namespace.h>
 
 namespace labstor::iosched::Manual {
 

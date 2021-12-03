@@ -3,9 +3,11 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+message("MODULE")
+message("${CMAKE_SOURCE_DIR}/include")
 
-set(KERNEL_SERVER_PATH ${CMAKE_SOURCE_DIR}/src/kernel_server)
+set(KERNEL_SERVER_PATH ${CMAKE_SOURCE_DIR}/src/kernel/server)
 add_custom_target(build_secure_shmem ALL COMMAND
         cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make
         CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}

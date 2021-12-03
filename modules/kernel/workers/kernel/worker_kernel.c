@@ -16,10 +16,14 @@
 #include <linux/netlink.h>
 #include <linux/connector.h>
 
-#include <kpkg_devkit/request_queue.h>
-#include <kpkg_devkit/module_registrar.h>
+#include <labstor/kernel/constants/runtime_ids.h>
+#include <labstor/kernel/types/data_structures/shmem_request.h>
+#include <labstor/kernel/types/data_structures/shmem_queue_pair.h>
+#include <labstor/kernel/types/data_structures/shmem_work_queue.h>
+#include <labstor/kernel/server/module_manager.h>
+#include <labstor/kernel/server/kernel_server.h>
 #include <workers/worker_kernel.h>
-#include "kernel_server.h"
+
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages the scheduling of labstor kernel workers");
@@ -28,8 +32,10 @@ MODULE_ALIAS("labstor_kernel_worker");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
-    //struct labstor_request_queue worker_queue;
+    struct labstor_work_queue worker_queue;
 };
+int region_id;
+void *shmem_region;
 
 size_t time_slice_us_;
 struct sock *nl_sk = NULL;
@@ -39,9 +45,31 @@ typedef int (*kthread_fn)(void*);
 size_t time_slice_us;
 
 int worker_runtime(struct labstor_worker_struct *worker) {
+    int work_depth, qp_depth, i, j;
+    struct labstor_queue_pair qp;
+    struct labstor_request *rq;
+    struct labstor_module *module;
+
     pr_info("Worker: %p\n", worker);
     while(true) {
-        //labstor_request_queue_dequeue(&worker->worker_queue);
+        work_depth = labstor_work_queue_GetDepth(&worker->worker_queue);
+        for(i = 0; i < work_depth; ++i) {
+            if(!labstor_work_queue_Dequeue(&worker->worker_queue, &qp, shmem_region)) {
+                break;
+            }
+            qp_depth = labstor_queue_pair_GetDepth(&qp);
+            for(j = 0; j < qp_depth; ++j) {
+                if(!labstor_queue_pair_Dequeue(&qp, &rq)){
+                    break;
+                }
+                module = get_labstor_module_by_runtime_id(rq->runtime_id_);
+                if(!module) {
+                    pr_warn("No module with runtime id: %d\n", rq->runtime_id_);
+                    continue;
+                }
+                module->process_request_fn(&qp, rq);
+            }
+        }
     }
     return 0;
 }
@@ -78,7 +106,7 @@ void resume_worker(int worker_id) {
 
 void worker_process_request_fn_netlink(int pid, struct kernel_worker_request *rq) {
     int code = 0;
-    switch(rq->op) {
+    switch(rq->header.op_) {
         case SPAWN_WORKERS: {
             code = spawn_workers(rq->spawn.num_workers, rq->spawn.region_id, rq->spawn.region_size, rq->spawn.time_slice_us);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -105,9 +133,9 @@ void worker_process_request_fn_netlink(int pid, struct kernel_worker_request *rq
 
 struct labstor_module worker_module = {
         .module_id = WORKER_MODULE_ID,
+        .runtime_id = WORKER_MODULE_RUNTIME_ID,
         .process_request_fn = NULL,
         .process_request_fn_netlink = (process_request_fn_netlink_type)worker_process_request_fn_netlink,
-        .get_ops = NULL
 };
 
 static int __init init_labstor_kernel_server(void) {

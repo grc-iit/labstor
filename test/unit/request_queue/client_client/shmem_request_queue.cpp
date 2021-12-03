@@ -5,7 +5,6 @@
 #include <mpi.h>
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/data_structures/shmem_request_queue.h>
-#include <labstor/util/singleton.h>
 #include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 struct simple_request : public labstor::ipc::request {

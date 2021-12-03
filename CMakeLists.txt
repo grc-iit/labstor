@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
 
 set(CMAKE_C_FLAGS "-g -fPIC")
 set(CMAKE_CXX_FLAGS "-g -fPIC")
@@ -11,28 +11,30 @@ set(CMAKE_CXX_FLAGS "-g -fPIC")
 #set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
+######CUSTOM DATA STRUCTURES
+add_custom_target(build_data_structures ALL COMMAND
+        python3 ${CMAKE_SOURCE_DIR}/preprocess.py ${CMAKE_SOURCE_DIR})
 
 ######KERNEL SERVER
 add_custom_target(build_labstor_kernel_server ALL COMMAND
-        cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make
+        cd ${CMAKE_SOURCE_DIR}/src/kernel/server && make
         CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
         CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
-add_dependencies(build_labstor_kernel_server build_kpkg_devkit)
-add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel_server && make clean)
+add_custom_target(clean_labstor_kernel_server COMMAND cd ${CMAKE_SOURCE_DIR}/src/kernel/server && make clean)
 
 ######KERNEL CLIENT
 add_library(labstor_kernel_client
-        src/kernel_client/singleton.cpp
-        src/kernel_client/kernel_client.cpp)
+        src/kernel/client/singleton.cpp
+        src/kernel/client/kernel_client.cpp)
 
 ######LABSTOR USERSPACE SERVER LIB
 add_library(labstor_server_library
-        src/userspace_server/singleton.cpp
-        src/userspace_server/worker.cpp
-        src/userspace_server/module_manager.cpp
-        src/userspace_server/ipc_manager.cpp
-        src/userspace_server/work_orchestrator.cpp
-        src/userspace_server/namespace.cpp
+        src/userspace/server/singleton.cpp
+        src/userspace/server/worker.cpp
+        src/userspace/server/module_manager.cpp
+        src/userspace/server/ipc_manager.cpp
+        src/userspace/server/work_orchestrator.cpp
+        src/userspace/server/namespace.cpp
         modules/registrar/server/registrar_server.cpp)
 add_dependencies(labstor_server_library
         labstor_kernel_client
@@ -46,16 +48,16 @@ target_link_libraries(labstor_server_library
         worker_client_netlink)
 
 ######LABSTOR USERSPACE SERVER
-add_executable(labstor_trusted_server src/userspace_server/server.cpp)
+add_executable(labstor_trusted_server src/userspace/server/server.cpp)
 add_dependencies(labstor_trusted_server labstor_server_library)
 target_link_libraries(labstor_trusted_server labstor_server_library)
 
 ######LABSTOR USERSPACE CLIENT
 add_library(labstor_client_library
-        src/userspace_client/singleton.cpp
-        src/userspace_client/client.cpp
-        src/userspace_client/ipc_manager.cpp
-        src/userspace_client/module_manager.cpp
+        src/userspace/client/singleton.cpp
+        src/userspace/client/client.cpp
+        src/userspace/client/ipc_manager.cpp
+        src/userspace/client/module_manager.cpp
         modules/registrar/client/registrar_client.cpp)
 add_dependencies(labstor_client_library
         labstor_kernel_client

@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/labstor/userspace/util/timer.h
+chrono
+-
+
+/home/llogan/labstor/test/performance/getcpu/test.cpp
+stdio.h
+-
+stdlib.h
+-
+sched.h
+-
+sys/sysinfo.h
+-
+labstor/userspace/util/timer.h
+-
+unistd.h
+-
+

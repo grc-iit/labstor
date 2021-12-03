@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/labstor/types/basics.h
+stdint.h
+-
+string
+-
+cstring
+-
+unordered_map
+-
+linux/types.h
+-
+
+/home/llogan/labstor/test/unit/strings/test.cpp
+unordered_map
+-
+labstor/types/basics.h
+-
+

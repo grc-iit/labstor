@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -g -fPIC -g  -shared -Wl,-soname,libsimple_module.so -o libsimple_module.so CMakeFiles/simple_module.dir/module_manager/simple_module.cpp.o 

@@ -1,0 +1,1 @@
+cmd_/home/llogan/labstor/src/kernel/server/labstor_kernel_server.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /home/llogan/labstor/src/kernel/server/labstor_kernel_server.ko /home/llogan/labstor/src/kernel/server/labstor_kernel_server.o /home/llogan/labstor/src/kernel/server/labstor_kernel_server.mod.o;  true

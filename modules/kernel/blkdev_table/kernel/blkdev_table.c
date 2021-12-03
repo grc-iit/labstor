@@ -26,8 +26,6 @@
 #include <linux/timer.h>
 #include <linux/delay.h>
 
-#include "unordered_map.h"
-
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");
 MODULE_LICENSE("GPL");
@@ -37,7 +35,8 @@ MODULE_ALIAS_FS("request_layer_km");
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
 
-struct unordered_map bdev_map;
+#define MAX_MOUNTED_BDEVS 64;
+struct block_device *bdevs;
 
 void register_bdev(struct queue_pair *qp, const char *path) {
     struct block_device *bdev;
@@ -58,17 +57,17 @@ struct block_device* get_bdev(int bdev_id) {
 void process_request_fn(struct queue_pair *qp, struct request_layer_request *req) {
     switch(req->op) {
         case REGISTER_BDEV: {
+            labstor_queue_pair_dequeue(qp, )
             break;
         }
     }
 }
 
 struct module {
-    .module_id = REQEUST_LAYER_PKG_ID,
+    .module_id = BLDEV_TABLE_MODULE_ID,
+    .runtime_id = BLDEV_TABLE_MODULE_RUNTIME_ID,
     .process_request_fn = process_request_fn,
-    .request_size = sizeof(struct request_layer_request),
-    .get_ops = NULL
-} request_layer_pkg;
+} blkdev_table_pkg;
 
 /**
  * MY FUNCTIONS
@@ -77,12 +76,12 @@ struct module {
 
 static int __init init_request_layer_km(void)
 {
-    register_module(&reqest_layer_pkg);
+    register_module(&blkdev_table_pkg);
 }
 
 static void __exit exit_request_layer_km(void)
 {
-    unregister_module(&request_layer_pkg);
+    unregister_module(&blkdev_table_pkg);
 }
 
 module_init(init_request_layer_km)

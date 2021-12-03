@@ -1,0 +1,1 @@
+cmd_/home/llogan/labstor/src/kernel/server/labstor_kernel_server.mod := { echo  /home/llogan/labstor/src/kernel/server/kernel_server.o /home/llogan/labstor/src/kernel/server/module_manager.o;  echo; } > /home/llogan/labstor/src/kernel/server/labstor_kernel_server.mod

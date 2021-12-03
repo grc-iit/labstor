@@ -18,11 +18,11 @@
 #include <linux/cdev.h>
 #include <linux/device.h>
 
-
-#include <kpkg_devkit/request_queue.h>
-#include <kpkg_devkit/module_registrar.h>
+#include <labstor/kernel/constants/runtime_ids.h>
+#include <labstor/kernel/types/data_structures/shmem_request_queue.h>
+#include <labstor/kernel/server/module_manager.h>
+#include <labstor/kernel/server/kernel_server.h>
 #include <secure_shmem/secure_shmem.h>
-#include "kernel_server.h"
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that provides secure memory mapping");
@@ -255,7 +255,7 @@ static loff_t labstor_lseek(struct file *file, loff_t offset, int orig) {
 
 void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
     int code = 0;
-    switch(rq->op) {
+    switch(rq->header.op_) {
         case RESERVE_SHMEM: {
             pr_debug("Reserving shared memory of size %lu\n", rq->reserve.size);
             if(reserve_shmem(rq->reserve.size, rq->reserve.user_owned, &code)) {}
@@ -283,9 +283,9 @@ void shmem_process_request_fn_netlink(int pid, struct shmem_request *rq) {
 
 struct labstor_module shmem_module = {
     .module_id = SHMEM_ID,
+    .runtime_id = SHMEM_MODULE_RUNTIME_ID,
     .process_request_fn = NULL,
     .process_request_fn_netlink = (process_request_fn_netlink_type)shmem_process_request_fn_netlink,
-    .get_ops = NULL
 };
 
 struct file_operations shmem_fs = {

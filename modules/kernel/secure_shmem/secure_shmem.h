@@ -6,6 +6,7 @@
 #define LABSTOR_SECURE_SHMEM_H
 
 #include <labstor/types/basics.h>
+#include <labstor/kernel/types/data_structures/shmem_request.h>
 
 #define SHMEM_ID "SHMEM_ID"
 
@@ -42,7 +43,7 @@ struct free_shmem_request {
 };
 
 struct shmem_request {
-    int op;
+    struct labstor_request header;
     union {
         struct shmem_reserve_request reserve;
         struct shmem_grant_pid_shmem_request grant;

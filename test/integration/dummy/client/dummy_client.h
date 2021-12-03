@@ -5,13 +5,13 @@
 #ifndef LABSTOR_DUMMY_CLIENT_H
 #define LABSTOR_DUMMY_CLIENT_H
 
-#include <labstor/constants/macros.h>
-#include <labstor/constants/constants.h>
-#include <labstor/types/module.h>
-#include <labstor/userspace_client/macros.h>
-#include <labstor/userspace_client/client.h>
-#include <labstor/userspace_client/ipc_manager.h>
-#include <labstor/userspace_client/namespace.h>
+#include <labstor/userspace/constants/macros.h>
+#include <labstor/userspace/constants/constants.h>
+#include <labstor/userspace/types/module.h>
+#include <labstor/userspace/client/macros.h>
+#include <labstor/userspace/client/client.h>
+#include <labstor/userspace/client/ipc_manager.h>
+#include <labstor/userspace/client/namespace.h>
 
 namespace labstor::test::Dummy {
 

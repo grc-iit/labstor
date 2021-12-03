@@ -5,12 +5,12 @@
 #ifndef LABSTOR_IOSCHED_MANUAL_CLIENT_H
 #define LABSTOR_IOSCHED_MANUAL_CLIENT_H
 
-#include <labstor/types/module.h>
-#include <labstor/types/messages.h>
-#include <labstor/constants/macros.h>
-#include <labstor/userspace_server/macros.h>
-#include <labstor/userspace_server/ipc_manager.h>
-#include <labstor/userspace_server/namespace.h>
+#include <labstor/userspace/types/module.h>
+#include <labstor/userspace/types/messages.h>
+#include <labstor/userspace/constants/macros.h>
+#include <labstor/userspace/server/macros.h>
+#include <labstor/userspace/server/ipc_manager.h>
+#include <labstor/userspace/server/namespace.h>
 #include <kernel/mq_driver/request_layer.h>
 
 namespace labstor::iosched::Manual {

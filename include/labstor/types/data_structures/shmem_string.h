@@ -5,9 +5,11 @@
 #ifndef LABSTOR_STRING_H
 #define LABSTOR_STRING_H
 
+#ifdef __cplusplus
+
 #include <string>
 #include <labstor/types/basics.h>
-#include <labstor/types/allocator/allocator.h>
+#include <labstor/userspace/types/allocator/allocator.h>
 
 namespace labstor::ipc {
 
@@ -105,5 +107,7 @@ struct string {
 
 
 }
+
+#endif
 
 #endif //LABSTOR_STRING_H

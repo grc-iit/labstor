@@ -10,8 +10,8 @@
 #include <memory>
 #include <sys/mman.h>
 
-#include <labstor/types/module.h>
-#include <labstor/kernel_client/kernel_client.h>
+#include <labstor/kernel/constants/runtime_ids.h>
+#include <labstor/kernel/client/kernel_client.h>
 
 #include <secure_shmem/secure_shmem.h>
 #include "shmem_user_netlink.h"
@@ -19,8 +19,8 @@
 int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
     struct shmem_request_netlink rq;
     int region_id;
-    strcpy(rq.header.module_id.key, SHMEM_ID);
-    rq.rq.op = RESERVE_SHMEM;
+    rq.header.runtime_id_ = SHMEM_MODULE_RUNTIME_ID;
+    rq.rq.header.op_ = RESERVE_SHMEM;
     rq.rq.reserve.size = region_size;
     rq.rq.reserve.user_owned = user_owned;
     kernel_client_->SendMSG(&rq, sizeof(rq));
@@ -31,8 +31,8 @@ int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
 int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
     struct shmem_request_netlink rq;
     int code;
-    strcpy(rq.header.module_id.key, SHMEM_ID);
-    rq.rq.op = GRANT_PID_SHMEM;
+    rq.header.runtime_id_ = SHMEM_MODULE_RUNTIME_ID;
+    rq.rq.header.op_ = GRANT_PID_SHMEM;
     rq.rq.grant.region_id = region_id;
     rq.rq.grant.pid = pid;
     kernel_client_->SendMSG(&rq, sizeof(rq));
@@ -43,8 +43,8 @@ int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
 int ShmemNetlinkClient::FreeShmem(int region_id) {
     struct shmem_request_netlink rq;
     int code;
-    strcpy(rq.header.module_id.key, SHMEM_ID);
-    rq.rq.op = FREE_SHMEM;
+    rq.header.runtime_id_ = SHMEM_MODULE_RUNTIME_ID;
+    rq.rq.header.op_ = FREE_SHMEM;
     rq.rq.free.region_id = region_id;
     kernel_client_->SendMSG(&rq, sizeof(rq));
     kernel_client_->RecvMSG(&code, sizeof(code));

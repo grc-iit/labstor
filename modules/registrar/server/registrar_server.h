@@ -5,11 +5,11 @@
 #ifndef LABSTOR_REGISTRAR_SERVER_H
 #define LABSTOR_REGISTRAR_SERVER_H
 
-#include <labstor/types/module.h>
-#include <labstor/userspace_server/macros.h>
-#include <labstor/userspace_server/module_manager.h>
-#include <labstor/userspace_server/ipc_manager.h>
-#include <labstor/userspace_server/namespace.h>
+#include <labstor/userspace/types/module.h>
+#include <labstor/userspace/server/macros.h>
+#include <labstor/userspace/server/module_manager.h>
+#include <labstor/userspace/server/ipc_manager.h>
+#include <labstor/userspace/server/namespace.h>
 
 namespace labstor::Registrar {
 

@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
-#include <labstor/util/debug.h>
+#include <labstor/userspace/util/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "dummy.h"

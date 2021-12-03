@@ -5,8 +5,8 @@
 #ifndef LABSTOR_SHMEM_USER_NETLINK_H
 #define LABSTOR_SHMEM_USER_NETLINK_H
 
-#include <labstor/kernel_client/macros.h>
-#include <labstor/kernel_client/kernel_client.h>
+#include <labstor/kernel/client/macros.h>
+#include <labstor/kernel/client/kernel_client.h>
 
 #define SHMEM_CHRDEV "/dev/labstor_shared_shmem0"
 

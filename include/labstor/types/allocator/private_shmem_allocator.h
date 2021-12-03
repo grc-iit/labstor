@@ -2,76 +2,95 @@
 // Created by lukemartinlogan on 9/19/21.
 //
 
-#ifndef LABSTOR_PRIVATE_SHMEM_ALLOCATOR_H
-#define LABSTOR_PRIVATE_SHMEM_ALLOCATOR_H
+#ifndef LABSTOR_PRIVATE_SHMEM_ALLOCATOR_KERNEL_H
+#define LABSTOR_PRIVATE_SHMEM_ALLOCATOR_KERNEL_H
 
-#include "allocator.h"
-#include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/shmem_ring_buffer.h>
+#include <labstor/userspace/constants/macros.h>
+#include <labstor/types/basics.h>
+#include "../data_structures/labstor_ring_buffer_off_t.h"
 
-#ifdef __cplusplus
-
-#include "allocator.h"
-#include <stddef.h>
-
-namespace labstor::ipc {
-
-struct private_shmem_allocator_header {
+struct labstor_private_shmem_allocator_header {
     uint32_t region_size_;
     uint32_t request_unit_;
 };
 
-class private_shmem_allocator : public GenericAllocator {
-private:
-    private_shmem_allocator_header *header_;
-    labstor::ipc::ring_buffer<labstor::off_t> objs_;
+struct labstor_private_shmem_allocator {
+    struct labstor_private_shmem_allocator_header *header_;
+    struct labstor_ring_buffer_off_t objs_;
+};
+
+static inline void* labstor_private_shmem_allocator_GetRegion(struct labstor_private_shmem_allocator *alloc) { return alloc->header_; }
+
+static inline uint32_t labstor_private_shmem_allocator_GetSize(struct labstor_private_shmem_allocator *alloc, struct labstor_private_shmem_allocator *alloc) {
+    return sizeof(private_shmem_allocator_header) + labstor_ring_buffer_off_t_GetSize();
+}
+
+static inline void labstor_private_shmem_allocator_Init(struct labstor_private_shmem_allocator *alloc, void *region, uint32_t region_size, uint32_t request_unit) {
+    uint32_t max_objs = 2 * region_size / request_unit, i = 0;
+    void *remainder;
+    uint32_t remainder_size, remainder_objs;
+
+    alloc->header_ = (private_shmem_allocator_header*)region;
+    alloc->header_->region_size_ = region_size;
+    alloc->header_->request_unit_ = request_unit;
+    labstor_request_queue_Init_off_t(&alloc->objs_, alloc->header_+1, region_size - sizeof(private_shmem_allocator_header), max_objs);
+
+    remainder = labstor_ring_buffer_off_t_GetNextSection(&alloc->objs_);
+    remainder_size = (uint32_t)((size_t)region + region_size - (size_t)remainder);
+    remainder_objs = remainder_size / request_unit;
+    for(int i = 0; i < remainder_objs; ++i) {
+        labstor_ring_buffer_off_t_Enqueue(&alloc->objs_, LABSTOR_REGION_SUB(remainder, alloc->header_));
+        remainder = LABSTOR_REGION_ADD(request_unit, remainder);
+    }
+}
+
+static inline void labstor_private_shmem_allocator_Attach(struct labstor_private_shmem_allocator *alloc, void *region) override {
+    alloc->header_ = (private_shmem_allocator_header*)region;
+    labstor_ring_buffer_off_t_Attach(&alloc->objs_, alloc->header_ + 1);
+}
+
+static inline void* labstor_private_shmem_allocator_Alloc(struct labstor_private_shmem_allocator *alloc, uint32_t size, uint32_t core) override {
+    labstor_off_t off;
+    if(!labstor_ring_buffer_off_t_Dequeue(&alloc->objs_, off)) { return nullptr; }
+    return LABSTOR_REGION_ADD(off, alloc->header_);
+}
+
+static inline void labstor_private_shmem_allocator_Free(struct labstor_private_shmem_allocator *alloc, void *data) override {
+    labstor_ring_buffer_off_t_Enqueue(&alloc->objs_, LABSTOR_REGION_SUB(data, alloc->header_));
+}
+
+#ifdef __cplusplus
+
+namespace labstor::ipc {
+
+class private_shmem_allocator : private labstor_private_shmem_allocator, public GenericAllocator {
 public:
     private_shmem_allocator() = default;
-    inline void* GetRegion() { return header_; }
+    inline void* GetRegion() {
+        labstor_private_shmem_allocator_GetRegion(this);
+    }
     uint32_t GetSize() {
-        return sizeof(private_shmem_allocator_header) + objs_.GetSize();
+        return labstor_private_shmem_allocator_GetSize(this);
     }
 
     inline void Init(void *region, uint32_t region_size, uint32_t request_unit) {
-        uint32_t max_objs = 2 * region_size / request_unit, i = 0;
-        void *remainder;
-        uint32_t remainder_size, remainder_objs;
-
-        header_ = (private_shmem_allocator_header*)region;
-        header_->region_size_ = region_size;
-        header_->request_unit_ = request_unit;
-        objs_.Init(header_+1, region_size - sizeof(private_shmem_allocator_header), max_objs);
-
-        remainder = objs_.GetNextSection();
-        remainder_size = (uint32_t)((size_t)region + region_size - (size_t)remainder);
-        remainder_objs = remainder_size / request_unit;
-        for(int i = 0; i < remainder_objs; ++i) {
-            objs_.Enqueue(LABSTOR_REGION_SUB(remainder, header_));
-            remainder = LABSTOR_REGION_ADD(request_unit, remainder);
-        }
+        labstor_private_shmem_allocator_Init(this, region, region_size, request_unit);
     }
 
     inline void Attach(void *region) override {
-        header_ = (private_shmem_allocator_header*)region;
-        objs_.Attach(header_ + 1);
+        labstor_private_shmem_allocator_Attach(this, region);
     }
 
     inline void* Alloc(uint32_t size, uint32_t core) override {
-        labstor::off_t off;
-        if(!objs_.Dequeue(off)) { return nullptr; }
-        return LABSTOR_REGION_ADD(off, header_);
+        labstor_private_shmem_allocator_Alloc(this, size, core);
     }
 
     inline void Free(void *data) override {
-        objs_.Enqueue(LABSTOR_REGION_SUB(data, header_));
+        labstor_private_shmem_allocator_Free(this, data);
     }
 };
 
 }
-
-#endif
-
-#ifdef KERNEL_BUILD
 
 #endif
 

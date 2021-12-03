@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
-set(KERNEL_SERVER_PATH ${CMAKE_SOURCE_DIR}/src/kernel_server)
+set(KERNEL_SERVER_PATH ${CMAKE_SOURCE_DIR}/src/kernel/server)
 add_custom_target(build_request_queue_client_kernel ALL COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && make
         CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
         CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})

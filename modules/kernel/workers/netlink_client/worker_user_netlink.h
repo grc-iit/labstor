@@ -5,8 +5,8 @@
 #ifndef LABSTOR_WORKER_USER_NETLINK_H
 #define LABSTOR_WORKER_USER_NETLINK_H
 
-#include <labstor/kernel_client/macros.h>
-#include <labstor/kernel_client/kernel_client.h>
+#include <labstor/kernel/client/macros.h>
+#include <labstor/kernel/client/kernel_client.h>
 
 class WorkerNetlinkClient {
 private:

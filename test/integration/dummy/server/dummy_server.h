@@ -6,10 +6,10 @@
 #define LABSTOR_DUMMY_SERVER_H
 
 #include "dummy.h"
-#include <labstor/types/module.h>
+#include <labstor/userspace/types/module.h>
 
-#include <labstor/userspace_server/macros.h>
-#include <labstor/userspace_server/ipc_manager.h>
+#include <labstor/userspace/server/macros.h>
+#include <labstor/userspace/server/ipc_manager.h>
 
 namespace labstor::test::Dummy {
 

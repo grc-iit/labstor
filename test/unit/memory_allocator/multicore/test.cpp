@@ -4,8 +4,7 @@
 
 #include <mpi.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/allocator/private_shmem_allocator.h>
-#include <labstor/util/singleton.h>
+#include <labstor/userspace/types/allocator/private_shmem_allocator.h>
 #include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
 
 uint32_t ncores = 8;

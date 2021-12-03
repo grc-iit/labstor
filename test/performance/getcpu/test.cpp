@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <sched.h>
 #include <sys/sysinfo.h>
-#include <labstor/util/timer.h>
+#include <labstor/userspace/util/timer.h>
 #include <unistd.h>
 
 int regular_fun(int a, int b) {

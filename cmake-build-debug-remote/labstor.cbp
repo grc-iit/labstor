@@ -1,0 +1,2000 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="labstor"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\modules\;CMake Files\modules\kernel\;CMake Files\modules\kernel\secure_shmem\;CMake Files\modules\kernel\workers\;CMake Files\modules\registrar\;CMake Files\test\;CMake Files\test\unit\;CMake Files\test\integration\;CMake Files\test\performance\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="build_data_structures">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 build_data_structures"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="build_labstor_kernel_server">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 build_labstor_kernel_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_kernel_client">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_kernel_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_kernel_client"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_kernel_client/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_kernel_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_kernel_client/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="stop_kernel_server">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 stop_kernel_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_server_library">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_server_library.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_server_library"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_server_library/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_server_library.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_server_library/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clean_labstor_kernel_server">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean_labstor_kernel_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_trusted_server">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/labstor_trusted_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_trusted_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_trusted_server/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/labstor_trusted_server" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_trusted_server/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_client_library">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_client_library.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_client_library"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="labstor_client_library/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/liblabstor_client_library.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 labstor_client_library/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="start_kernel_server">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 start_kernel_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="start_kernel_server_test">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 start_kernel_server_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="start_trusted_server">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 start_trusted_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="stop_kernel_server_test">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 stop_kernel_server_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clean_modules">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/Makefile&quot;  VERBOSE=1 clean_modules"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="secure_shmem_client_netlink">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/libsecure_shmem_client_netlink.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 secure_shmem_client_netlink"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="secure_shmem_client_netlink/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/libsecure_shmem_client_netlink.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 secure_shmem_client_netlink/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clean_secure_shmem">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean_secure_shmem"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="build_secure_shmem">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 build_secure_shmem"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/secure_shmem/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="worker_client_netlink">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/libworker_client_netlink.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 worker_client_netlink"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="worker_client_netlink/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/libworker_client_netlink.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 worker_client_netlink/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clean_worker">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean_worker"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="build_worker">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 build_worker"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/kernel/workers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="registrar_server">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/libregistrar_server.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 registrar_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="registrar_server/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/libregistrar_server.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 registrar_server/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="registrar_client">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/libregistrar_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 registrar_client"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="registrar_client/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/libregistrar_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/modules/registrar"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/modules/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/modules/io_systems"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 registrar_client/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/modules/registrar/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="clean_tests">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean_tests"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_module_manager_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_module_manager_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/test/unit/module_manager"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_module_manager_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_module_manager_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_module_manager_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/labstor/test/unit/module_manager"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_module_manager_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_module_manager">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_module_manager"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_strings">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_strings" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_strings"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_strings/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_strings" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_strings/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_single_core_mem_alloc_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_single_core_mem_alloc_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_single_core_mem_alloc_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_single_core_mem_alloc_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_single_core_mem_alloc_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_single_core_mem_alloc_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="client_to_kernel_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/client_to_kernel_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 client_to_kernel_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="client_to_kernel_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/client_to_kernel_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 client_to_kernel_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_multicore_mem_alloc_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_multicore_mem_alloc_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_multicore_mem_alloc_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_multicore_mem_alloc_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_multicore_mem_alloc_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_multicore_mem_alloc_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="simple_module">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/libsimple_module.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 simple_module"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="simple_module/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/libsimple_module.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 simple_module/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_request_queue_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_request_queue_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_request_queue_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_request_queue_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_request_queue_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_request_queue_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_multicore_mem_alloc">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_multicore_mem_alloc"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="client_to_trusted_server_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/client_to_trusted_server_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 client_to_trusted_server_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="client_to_trusted_server_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/client_to_trusted_server_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 client_to_trusted_server_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_unordered_map_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_unordered_map_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_unordered_map_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_unordered_map_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_unordered_map_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_unordered_map_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_request_queue_path">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_request_queue_path"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_unordered_map2_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_unordered_map2_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_unordered_map2_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_shmem_unordered_map2_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/unit/test_shmem_unordered_map2_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/unit/include"/>
+					<Add directory="/home/llogan/labstor/modules/kernel"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_shmem_unordered_map2_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_multicore_map">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/unit"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 test_multicore_map"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/unit/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="start_integration_client">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 start_integration_client"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="start_labstor_server_integration">
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 start_labstor_server_integration"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="integration_exec">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/integration_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 integration_exec"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="integration_exec/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/integration_exec" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 integration_exec/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="dummy_server">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_server.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 dummy_server"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="dummy_server/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_server.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 dummy_server/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="dummy_client">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 dummy_client"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="dummy_client/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/integration/libdummy_client.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/integration"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/labstor/test/integration"/>
+					<Add directory="/home/llogan/labstor/test/integration/dummy"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 dummy_client/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/integration/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_getcpu">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/performance/test_getcpu" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/performance"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 test_getcpu"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test_getcpu/fast">
+				<Option output="/home/llogan/labstor/cmake-build-debug-remote/test/performance/test_getcpu" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/llogan/labstor/cmake-build-debug-remote/test/performance"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/llogan/labstor/include"/>
+					<Add directory="/home/llogan/labstor"/>
+					<Add directory="/home/llogan/labstor/modules/registrar"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/mpich-3.3.2-q4tpd5ig2wfdnoycwz3oswp26czihiji/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/hwloc-2.2.0-nvxxkzaqodk4fa6apvxfo7gvbhfl4jul/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libxml2-2.9.10-a5l2lj7dfurshwzxv62t7rw2lv6lnfhr/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/zlib-1.2.11-p7dmb5pqi6svirhovljrkp3uyfiytz3m/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/xz-5.2.5-kamfyq4jqy3je7qoimrp2tgs6gqswzcf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libiconv-1.16-w6zptbclncs3jsnl3i4qtg72fgheiwdf/include"/>
+					<Add directory="/home/llogan/spack/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.3.0/libpciaccess-0.16-ux5xkhgfhhmitpkxfuf5h6ooudsiwhd4/include"/>
+					<Add directory="/home/llogan/scspkg/packages/yaml-cpp/include"/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 test_getcpu/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/llogan/labstor/cmake-build-debug-remote/test/performance/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/llogan/labstor/modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.cpp">
+			<Option target="secure_shmem_client_netlink"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h">
+			<Option target="secure_shmem_client_netlink"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/kernel/workers/netlink_client/worker_user_netlink.cpp">
+			<Option target="worker_client_netlink"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/kernel/workers/netlink_client/worker_user_netlink.h">
+			<Option target="worker_client_netlink"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/registrar/client/registrar_client.cpp">
+			<Option target="labstor_client_library"/>
+			<Option target="registrar_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/registrar/client/registrar_client.h">
+			<Option target="labstor_client_library"/>
+			<Option target="registrar_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/registrar/server/registrar_server.cpp">
+			<Option target="labstor_server_library"/>
+			<Option target="registrar_server"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/registrar/server/registrar_server.h">
+			<Option target="labstor_server_library"/>
+			<Option target="registrar_server"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/kernel/client/kernel_client.cpp">
+			<Option target="labstor_kernel_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/kernel/client/singleton.cpp">
+			<Option target="labstor_kernel_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/client/client.cpp">
+			<Option target="labstor_client_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/client/ipc_manager.cpp">
+			<Option target="labstor_client_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/client/module_manager.cpp">
+			<Option target="labstor_client_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/client/singleton.cpp">
+			<Option target="labstor_client_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/ipc_manager.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/module_manager.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/namespace.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/server.cpp">
+			<Option target="labstor_trusted_server"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/singleton.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/work_orchestrator.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/src/userspace/server/worker.cpp">
+			<Option target="labstor_server_library"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/dummy/client/dummy_client.cpp">
+			<Option target="dummy_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/dummy/client/dummy_client.h">
+			<Option target="dummy_client"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/dummy/server/dummy_server.cpp">
+			<Option target="dummy_server"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/dummy/server/dummy_server.h">
+			<Option target="dummy_server"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/test.cpp">
+			<Option target="integration_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/performance/getcpu/test.cpp">
+			<Option target="test_getcpu"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/memory_allocator/multicore/test.cpp">
+			<Option target="test_multicore_mem_alloc_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/memory_allocator/single/test.cpp">
+			<Option target="test_single_core_mem_alloc_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/module_manager/simple_module.cpp">
+			<Option target="simple_module"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/module_manager/simple_module.h">
+			<Option target="simple_module"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/module_manager/test.cpp">
+			<Option target="test_module_manager_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/request_queue/client_client/shmem_request_queue.cpp">
+			<Option target="test_shmem_request_queue_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/shared_memory/test_shmem.cpp">
+			<Option target="test_shmem_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/sockets/client_to_kernel/test_kernel_client.cpp">
+			<Option target="client_to_kernel_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/sockets/client_to_trusted_server/test_client.cpp">
+			<Option target="client_to_trusted_server_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/strings/test.cpp">
+			<Option target="test_strings"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/unordered_map/client/test.cpp">
+			<Option target="test_shmem_unordered_map_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/unordered_map/client_client/test.cpp">
+			<Option target="test_shmem_unordered_map2_exec"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\modules\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/kernel/secure_shmem/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\modules\kernel\secure_shmem\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/kernel/workers/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\modules\kernel\workers\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/modules/registrar/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\modules\registrar\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/unit/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\unit\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/integration/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\integration\"/>
+		</Unit>
+		<Unit filename="/home/llogan/labstor/test/performance/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\test\performance\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

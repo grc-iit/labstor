@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 11/2/21.
 //
 
-#include <labstor/types/module.h>
+#include <labstor/userspace/types/module.h>
 #include "simple_module.h"
 
 void SimpleModule::print1() {

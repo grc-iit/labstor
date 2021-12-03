@@ -6,6 +6,7 @@
 #define LABSTOR_WORKER_KERNEL_H
 
 #include <labstor/types/basics.h>
+#include <labstor/kernel/types/data_structures/shmem_request.h>
 
 #define WORKER_MODULE_ID "WORKER_ID"
 
@@ -37,7 +38,7 @@ struct resume_worker_request {
 };
 
 struct kernel_worker_request {
-    int op;
+    struct labstor_request header;
     union {
         struct spawn_worker_request spawn;
         struct set_worker_affinity_request affinity;

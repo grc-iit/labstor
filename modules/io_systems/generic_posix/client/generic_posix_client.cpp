@@ -4,8 +4,8 @@
 
 #include "generic_posix_client.h"
 #include <generic_posix/posix.h>
-#include <labstor/userspace_client/client.h>
-#include <labstor/types/module.h>
+#include <labstor/userspace/client/client.h>
+#include <labstor/userspace/types/module.h>
 
 namespace labstor::Client {
 

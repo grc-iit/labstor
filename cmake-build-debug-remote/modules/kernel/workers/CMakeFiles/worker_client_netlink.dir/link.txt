@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -g -fPIC -g  -shared -Wl,-soname,libworker_client_netlink.so -o libworker_client_netlink.so CMakeFiles/worker_client_netlink.dir/netlink_client/worker_user_netlink.cpp.o  -Wl,-rpath,/home/llogan/labstor/cmake-build-debug-remote ../../../liblabstor_kernel_client.so 

@@ -1,0 +1,1 @@
+cmd_/home/llogan/labstor/modules/kernel/workers/kernel/worker.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /home/llogan/labstor/modules/kernel/workers/kernel/worker.ko /home/llogan/labstor/modules/kernel/workers/kernel/worker.o /home/llogan/labstor/modules/kernel/workers/kernel/worker.mod.o;  true
