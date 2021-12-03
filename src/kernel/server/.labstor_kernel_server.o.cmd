@@ -1,1 +1,0 @@
-cmd_/home/llogan/labstor/src/kernel/server/labstor_kernel_server.o := ld -m elf_x86_64  -z max-page-size=0x200000    -r -o /home/llogan/labstor/src/kernel/server/labstor_kernel_server.o /home/llogan/labstor/src/kernel/server/kernel_server.o /home/llogan/labstor/src/kernel/server/module_manager.o

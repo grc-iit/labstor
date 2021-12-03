@@ -1,1 +1,0 @@
-cmd_/home/llogan/labstor/modules/kernel/secure_shmem/kernel/secure_shmem.mod := { echo  /home/llogan/labstor/modules/kernel/secure_shmem/kernel/secure_shmem_kernel.o;  echo; } > /home/llogan/labstor/modules/kernel/secure_shmem/kernel/secure_shmem.mod

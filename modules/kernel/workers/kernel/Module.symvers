@@ -1,5 +1,0 @@
-0x67f1bb59	labstor_msg_trusted_server	/home/llogan/labstor/src/kernel/server/labstor_kernel_server	EXPORT_SYMBOL	
-0xf4130344	get_labstor_module_by_runtime_id	/home/llogan/labstor/src/kernel/server/labstor_kernel_server	EXPORT_SYMBOL	
-0xd4bd6ac7	free_labstor_module_manager	/home/llogan/labstor/src/kernel/server/labstor_kernel_server	EXPORT_SYMBOL	
-0x71536ee3	unregister_labstor_module	/home/llogan/labstor/src/kernel/server/labstor_kernel_server	EXPORT_SYMBOL	
-0xcfc5fa3e	register_labstor_module	/home/llogan/labstor/src/kernel/server/labstor_kernel_server	EXPORT_SYMBOL	

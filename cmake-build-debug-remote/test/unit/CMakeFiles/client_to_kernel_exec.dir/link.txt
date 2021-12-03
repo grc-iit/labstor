@@ -1,1 +1,0 @@
-/usr/bin/c++  -g -fPIC -g   CMakeFiles/client_to_kernel_exec.dir/sockets/client_to_kernel/test_kernel_client.cpp.o  -o client_to_kernel_exec  -Wl,-rpath,/home/llogan/labstor/cmake-build-debug-remote ../../liblabstor_kernel_client.so 

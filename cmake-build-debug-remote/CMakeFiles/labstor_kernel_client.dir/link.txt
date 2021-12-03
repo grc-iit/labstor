@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -g -fPIC -g  -shared -Wl,-soname,liblabstor_kernel_client.so -o liblabstor_kernel_client.so CMakeFiles/labstor_kernel_client.dir/src/kernel/client/singleton.cpp.o CMakeFiles/labstor_kernel_client.dir/src/kernel/client/kernel_client.cpp.o 

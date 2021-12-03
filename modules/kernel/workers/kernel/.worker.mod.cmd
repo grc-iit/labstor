@@ -1,1 +1,0 @@
-cmd_/home/llogan/labstor/modules/kernel/workers/kernel/worker.mod := { echo  /home/llogan/labstor/modules/kernel/workers/kernel/worker_kernel.o;  echo; } > /home/llogan/labstor/modules/kernel/workers/kernel/worker.mod

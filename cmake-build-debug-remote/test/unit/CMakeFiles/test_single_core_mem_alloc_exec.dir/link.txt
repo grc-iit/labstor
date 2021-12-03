@@ -1,1 +1,0 @@
-/usr/bin/c++  -g -fPIC -g   CMakeFiles/test_single_core_mem_alloc_exec.dir/memory_allocator/single/test.cpp.o  -o test_single_core_mem_alloc_exec 
