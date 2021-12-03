@@ -24,7 +24,7 @@ class LabStorDataStructures:
     def _create_array(self, T, T_NAME=None):
         if T_NAME is None:
             T_NAME = T
-        output = f"{self.data_structures}/ring_buffer/shmem_array_{T_NAME}.h"
+        output = f"{self.data_structures}/array/shmem_array_{T_NAME}.h"
         text = self.replace(
             self.array,
             T_NAME=T_NAME,
@@ -36,7 +36,7 @@ class LabStorDataStructures:
     def _create_ring_buffer(self, T, T_NAME=None):
         if T_NAME is None:
             T_NAME = T
-        output = f"{self.data_structures}/array/shmem_ring_buffer_{T_NAME}.h"
+        output = f"{self.data_structures}/ring_buffer/shmem_ring_buffer_{T_NAME}.h"
         text = self.replace(
             self.rbuf,
             T_NAME=T_NAME,

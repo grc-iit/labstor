@@ -7,7 +7,8 @@
 
 #include <labstor/types/basics.h>
 
-//#define labstor_ring_buffer_qp_ptr(qp_ptr, struct labstor_queue_pair_ptr)
+//qp_ptr: The semantic name of the type
+//struct labstor_queue_pair_ptr: The type being buffered
 
 struct labstor_ring_buffer_qp_ptr_header {
     uint64_t enqueued_, dequeued_;
@@ -90,5 +91,56 @@ static inline bool labstor_ring_buffer_qp_ptr_Dequeue(struct labstor_ring_buffer
     *data = rbuf->queue_[dequeued % rbuf->header_->max_depth_];
     return true;
 }
+
+#ifdef __cplusplus
+
+namespace labstor::ipc {
+
+struct ring_buffer_qp_ptr_header {
+    uint64_t enqueued_, dequeued_;
+    uint32_t max_depth_;
+};
+
+class ring_buffer_qp_ptr : private labstor_ring_buffer_qp_ptr, public shmem_type {
+public:
+    static inline uint32_t GetSize(uint32_t max_depth) {
+        return labstor_ring_buffer_qp_ptr_GetSize_global(max_depth);
+    }
+    inline uint32_t GetSize() {
+        return labstor_ring_buffer_qp_ptr_GetSize(this);
+    }
+    inline void* GetRegion() { return labstor_ring_buffer_qp_ptr_GetRegion(this); }
+
+    inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0) {
+        labstor_ring_buffer_qp_ptr_Init(this, region, region_size, max_depth);
+    }
+
+    inline void Attach(void *region) {
+        labstor_ring_buffer_qp_ptr_Attach(this, region);
+    }
+
+    inline bool Enqueue(T data) {
+        return labstor_ring_buffer_qp_ptr_Enqueue_simple(this, data);
+    }
+
+    inline bool Enqueue(T data, uint32_t &req_id) {
+        return labstor_ring_buffer_qp_ptr_Enqueue(this, data, &req_id);
+    }
+
+    inline bool Dequeue(T &data) {
+        return labstor_ring_buffer_qp_ptr_Dequeue(this, &data);
+    }
+
+    inline uint32_t GetDepth() {
+        return labstor_ring_buffer_qp_ptr_GetDepth(this);
+    }
+    inline uint32_t GetMaxDepth() {
+        return labstor_ring_buffer_qp_ptr_GetMaxDepth(this);
+    }
+};
+
+}
+
+#endif
 
 #endif //labstor_ring_buffer_qp_ptr_H
