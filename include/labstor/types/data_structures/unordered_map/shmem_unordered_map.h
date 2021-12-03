@@ -137,7 +137,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(s
     struct {BUCKET_T_NAME} tmp;
     do {
         tmp = labstor_array_{BUCKET_T_NAME}_Get(arr, i);
-        if ({KeyCompare}(
+        if (!{KeyCompare}(
                 {GetKey}(&tmp, labstor_array_{BUCKET_T_NAME}_GetRegion(arr)),
                 key)
         ) { return false; }
@@ -154,7 +154,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(stru
     struct {BUCKET_T_NAME} tmp;
     do {
         tmp = labstor_array_{BUCKET_T_NAME}_Get(arr, i);
-        if ({KeyCompare}(
+        if (!{KeyCompare}(
                 {GetKey}(&tmp, labstor_array_{BUCKET_T_NAME}_GetRegion(arr)),
                 key)
         ) { return false; }

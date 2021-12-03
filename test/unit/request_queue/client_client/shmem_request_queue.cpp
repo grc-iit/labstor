@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
 
     //Dequeue request and print its value
-    if(rank == 1) {
+    if(rank != 0) {
         int i = 0;
         while(i < 10) {
             labstor::ipc::request *rq_uncast;

@@ -137,7 +137,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueB
     struct labstor_string_map_bucket tmp;
     do {
         tmp = labstor_array_labstor_string_map_bucket_Get(arr, i);
-        if (labstor_string_map_bucket_KeyCompare(
+        if (!labstor_string_map_bucket_KeyCompare(
                 labstor_string_map_bucket_GetKey(&tmp, labstor_array_labstor_string_map_bucket_GetRegion(arr)),
                 key)
         ) { return false; }
@@ -154,7 +154,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKe
     struct labstor_string_map_bucket tmp;
     do {
         tmp = labstor_array_labstor_string_map_bucket_Get(arr, i);
-        if (labstor_string_map_bucket_KeyCompare(
+        if (!labstor_string_map_bucket_KeyCompare(
                 labstor_string_map_bucket_GetKey(&tmp, labstor_array_labstor_string_map_bucket_GetRegion(arr)),
                 key)
         ) { return false; }

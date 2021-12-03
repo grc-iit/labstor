@@ -18,9 +18,11 @@ int main(int argc, char **argv) {
 
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     ShmemNetlinkClient shmem_netlink;
+    printf("Starting test\n");
 
     //Create SHMEM region
     netlink_client_->Connect();
+    printf("Netlink client connected\n");
     if(rank == 0) {
         region_id = shmem_netlink.CreateShmem(region_size, true);
         if(region_id < 0) {

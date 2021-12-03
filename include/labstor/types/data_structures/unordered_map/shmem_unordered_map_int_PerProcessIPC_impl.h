@@ -137,7 +137,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(s
     struct labstor_int_PerProcessIPC_bucket tmp;
     do {
         tmp = labstor_array_labstor_int_PerProcessIPC_bucket_Get(arr, i);
-        if (labstor_int_PerProcessIPC_bucket_KeyCompare(
+        if (!labstor_int_PerProcessIPC_bucket_KeyCompare(
                 labstor_int_PerProcessIPC_bucket_GetKey(&tmp, labstor_array_labstor_int_PerProcessIPC_bucket_GetRegion(arr)),
                 key)
         ) { return false; }
@@ -154,7 +154,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(stru
     struct labstor_int_PerProcessIPC_bucket tmp;
     do {
         tmp = labstor_array_labstor_int_PerProcessIPC_bucket_Get(arr, i);
-        if (labstor_int_PerProcessIPC_bucket_KeyCompare(
+        if (!labstor_int_PerProcessIPC_bucket_KeyCompare(
                 labstor_int_PerProcessIPC_bucket_GetKey(&tmp, labstor_array_labstor_int_PerProcessIPC_bucket_GetRegion(arr)),
                 key)
         ) { return false; }

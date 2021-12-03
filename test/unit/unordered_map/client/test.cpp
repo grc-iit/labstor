@@ -16,6 +16,14 @@ int main() {
     uint32_t value;
     int num_inserts = map.GetNumBuckets() + map.GetOverflow();
 
+    //Test set
+    for(int i = 0; i < num_inserts; ++i) {
+        LABSTOR_ERROR_HANDLE_START()
+        map.Set(i, i+1);
+        LABSTOR_ERROR_HANDLE_END()
+    }
+    printf("Finished setting\n");
+
     //Test find
     for(int i = 0; i < num_inserts; ++i) {
         LABSTOR_ERROR_HANDLE_START()

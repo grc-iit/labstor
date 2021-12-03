@@ -137,7 +137,7 @@ static inline bool labstor_unordered_map_uint32_t_uint32_t_AtomicGetValueByKey(s
     struct labstor_uint32_t_uint32_t_bucket tmp;
     do {
         tmp = labstor_array_labstor_uint32_t_uint32_t_bucket_Get(arr, i);
-        if (labstor_uint32_t_uint32_t_bucket_KeyCompare(
+        if (!labstor_uint32_t_uint32_t_bucket_KeyCompare(
                 labstor_uint32_t_uint32_t_bucket_GetKey(&tmp, labstor_array_labstor_uint32_t_uint32_t_bucket_GetRegion(arr)),
                 key)
         ) { return false; }
@@ -154,7 +154,7 @@ static inline bool labstor_unordered_map_uint32_t_uint32_t_AtomicNullifyKey(stru
     struct labstor_uint32_t_uint32_t_bucket tmp;
     do {
         tmp = labstor_array_labstor_uint32_t_uint32_t_bucket_Get(arr, i);
-        if (labstor_uint32_t_uint32_t_bucket_KeyCompare(
+        if (!labstor_uint32_t_uint32_t_bucket_KeyCompare(
                 labstor_uint32_t_uint32_t_bucket_GetKey(&tmp, labstor_array_labstor_uint32_t_uint32_t_bucket_GetRegion(arr)),
                 key)
         ) { return false; }

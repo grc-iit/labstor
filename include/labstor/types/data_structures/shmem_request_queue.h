@@ -67,7 +67,7 @@ static inline struct labstor_qtok_t labstor_request_queue_Enqueue(struct labstor
 
 static inline bool labstor_request_queue_Dequeue(struct labstor_request_queue *lrq, struct labstor_request **rq) {
     labstor_off_t off;
-    if(labstor_ring_buffer_labstor_off_t_Dequeue(&lrq->queue_, &off)) { return false; }
+    if(!labstor_ring_buffer_labstor_off_t_Dequeue(&lrq->queue_, &off)) { return false; }
     *rq = (struct labstor_request*)(LABSTOR_REGION_ADD(off, lrq->header_));
     return true;
 }

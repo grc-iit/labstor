@@ -13,5 +13,4 @@ add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&
         cd ${CMAKE_BINARY_DIR} && make clean_labstor_kernel_server &&
         cd ${CMAKE_BINARY_DIR} && make clean_secure_shmem &&
-        #cd ${CMAKE_BINARY_DIR} && make clean_kernel_worker &&
-        cd ${CMAKE_BINARY_DIR} && make clean_kpkg_devkit)
+        cd ${CMAKE_BINARY_DIR} && make clean_worker)

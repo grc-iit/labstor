@@ -137,7 +137,7 @@ static inline bool labstor_unordered_map_labstor_qid_t_qp_AtomicGetValueByKey(st
     struct labstor_labstor_qid_t_qp_bucket tmp;
     do {
         tmp = labstor_array_labstor_labstor_qid_t_qp_bucket_Get(arr, i);
-        if (labstor_labstor_qid_t_qp_bucket_KeyCompare(
+        if (!labstor_labstor_qid_t_qp_bucket_KeyCompare(
                 labstor_labstor_qid_t_qp_bucket_GetKey(&tmp, labstor_array_labstor_labstor_qid_t_qp_bucket_GetRegion(arr)),
                 key)
         ) { return false; }
@@ -154,7 +154,7 @@ static inline bool labstor_unordered_map_labstor_qid_t_qp_AtomicNullifyKey(struc
     struct labstor_labstor_qid_t_qp_bucket tmp;
     do {
         tmp = labstor_array_labstor_labstor_qid_t_qp_bucket_Get(arr, i);
-        if (labstor_labstor_qid_t_qp_bucket_KeyCompare(
+        if (!labstor_labstor_qid_t_qp_bucket_KeyCompare(
                 labstor_labstor_qid_t_qp_bucket_GetKey(&tmp, labstor_array_labstor_labstor_qid_t_qp_bucket_GetRegion(arr)),
                 key)
         ) { return false; }

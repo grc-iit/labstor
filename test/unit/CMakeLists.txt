@@ -18,12 +18,8 @@ add_executable(client_to_kernel_exec sockets/client_to_kernel/test_kernel_client
 add_dependencies(client_to_kernel_exec labstor_kernel_client)
 target_link_libraries(client_to_kernel_exec labstor_kernel_client)
 
-######MEMORY ALLOCATION
-add_executable(test_single_core_mem_alloc_exec memory_allocator/single/test.cpp)
-add_executable(test_multicore_mem_alloc_exec memory_allocator/multicore/test.cpp)
-add_dependencies(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink)
-target_link_libraries(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink mpi)
-add_custom_target(test_multicore_mem_alloc mpirun -n 4 ${CMAKE_CURRENT_BINARY_DIR}/test_multicore_mem_alloc_exec MULTICORE)
+######IN-MEMORY REQUEST QUEUE
+add_executable(test_request_queue_exec request_queue/single/request_queue.cpp)
 
 ######SHARED MEMORY CREATION
 add_executable(test_shmem_exec shared_memory/test_shmem.cpp)
@@ -38,9 +34,12 @@ add_dependencies(test_shmem_unordered_map2_exec labstor_kernel_client secure_shm
 target_link_libraries(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_multicore_map mpirun -n 2 ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_unordered_map2_exec)
 
-######IN-MEMORY REQUEST QUEUE
-#add_executable(request_queue_exec request_queue/single/request_queue.cpp)
-#add_custom_target(test_request_queue ${CMAKE_CURRENT_BINARY_DIR}/request_queue)
+######MEMORY ALLOCATION
+add_executable(test_single_core_mem_alloc_exec memory_allocator/single/test.cpp)
+add_executable(test_multicore_mem_alloc_exec memory_allocator/multicore/test.cpp)
+add_dependencies(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink)
+target_link_libraries(test_multicore_mem_alloc_exec labstor_kernel_client secure_shmem_client_netlink mpi)
+add_custom_target(test_multicore_mem_alloc mpirun -n 4 ${CMAKE_CURRENT_BINARY_DIR}/test_multicore_mem_alloc_exec MULTICORE)
 
 ######SHARED MEMORY REQUEST QUEUE (USER - USER)
 add_executable(test_shmem_request_queue_exec request_queue/client_client/shmem_request_queue.cpp)
