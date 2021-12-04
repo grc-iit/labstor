@@ -20,8 +20,7 @@ void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair &qp, 
 }
 
 void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair &qp, labstor_submit_blkdev_table_register_request *rq_submit) {
-    AUTO_TRACE("labstor::BlkdevTable::AddBdev")
-    TRACEPOINT("labstor::BlkdevTable::AddBdev", rq_submit->path);
+    AUTO_TRACE("labstor::BlkdevTable::AddBdev", rq_submit->path);
     labstor_submit_blkdev_table_register_request *kern_submit;
     labstor_complete_blkdev_table_register_request *kern_complete;
     labstor::ipc::queue_pair kern_qp;

@@ -13,6 +13,7 @@
 #include <linux/slab.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
+#include <linux/time.h>
 
 #include <linux/netlink.h>
 #include <linux/connector.h>
@@ -54,7 +55,13 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_request *rq;
     struct labstor_module *module;
     void *region = ipc_manager_GetRegion();
+    struct timespec start, end;
+
+    //Get initial time
+    getnstimeofday(&start);
+
     while(keep_running) {
+        //Process queues
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
@@ -68,6 +75,14 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             }
             labstor_queue_pair_GetPointer(&qp, &ptr, region);
             labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
+        }
+
+        //Get nanoseconds
+        getnstimeofday(&end);
+        if(end.tv_sec - start.tv_sec > 5) {
+            start = end;
+            pr_info("Actually delaying\n");
+            udelay(100);
         }
     }
     return 0;
@@ -126,7 +141,7 @@ void resume_worker(int worker_id) {
 void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
     pr_info("Setting CPU to %d for worker %d\n", rq->cpu_id, rq->worker_id);
     kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
-    //wake_up_process(workers[rq->worker_id].worker_task);
+    wake_up_process(workers[rq->worker_id].worker_task);
 }
 
 void pause_worker_user(struct labstor_pause_worker_request *rq) {

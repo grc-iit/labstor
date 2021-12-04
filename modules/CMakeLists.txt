@@ -14,7 +14,6 @@ add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&
-        cd ${CMAKE_BINARY_DIR} && make clean_dummy &&
         cd ${CMAKE_BINARY_DIR} && make clean_labstor_kernel_server &&
         cd ${CMAKE_BINARY_DIR} && make clean_secure_shmem &&
         cd ${CMAKE_BINARY_DIR} && make clean_ipc_manager &&

@@ -24,7 +24,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
     uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>();
     uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"].as<uint32_t>();
     uint32_t queue_size = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"].as<uint32_t>();
-    uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit"].as<uint32_t>();
+    uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit_bytes"].as<uint32_t>();
 
     //Create new IPC
     pid_to_ipc_.Set(KERNEL_PID, new PerProcessIPC());

@@ -21,6 +21,7 @@ private:
     int n_cpu_;
     pthread_t mapper_;
     std::unordered_map<pid_t, std::vector<std::shared_ptr<labstor::Daemon>>> worker_pool_;
+    std::shared_ptr<labstor::Daemon> work_balancer_;
 public:
     WorkOrchestrator() {
         pid_ = getpid();

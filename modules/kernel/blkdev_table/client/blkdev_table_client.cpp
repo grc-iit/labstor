@@ -25,8 +25,11 @@ void labstor::BlkdevTable::Client::AddBdev(std::string path) {
     rq_submit = reinterpret_cast<labstor_submit_blkdev_table_register_request*>(
             ipc_manager_->AllocRequest(qp, sizeof(labstor_submit_blkdev_table_register_request)));
     rq_submit->header.ns_id_ = ns_id_;
+    rq_submit->header.op_ = static_cast<int>(Ops::kRegisterBdev);
     strncpy(rq_submit->path, path.c_str(), path.size());
+    TRACEPOINT("path", rq_submit->path);
     qtok = qp.Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
+    TRACEPOINT("Enqueued");
     rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
     ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
 }
