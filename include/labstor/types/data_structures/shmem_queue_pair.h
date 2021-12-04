@@ -139,6 +139,10 @@ struct queue_pair : public labstor_queue_pair {
         labstor_queue_pair_GetPointer(this, &ptr, region);
     }
 
+    inline uint32_t GetDepth() {
+        return labstor_queue_pair_GetDepth(this);
+    }
+
     inline void Init(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
         labstor_queue_pair_Init(this, qid, sq_region, sq_size, cq_region, cq_size);
     }

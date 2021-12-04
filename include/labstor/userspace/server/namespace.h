@@ -21,7 +21,7 @@
 #include "macros.h"
 #include "server.h"
 
-#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 namespace labstor::Server {
 

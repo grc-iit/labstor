@@ -14,7 +14,7 @@
 #include <labstor/kernel/client/kernel_client.h>
 
 #include <secure_shmem/secure_shmem.h>
-#include "shmem_user_netlink.h"
+#include "secure_shmem_client_netlink.h"
 
 int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
     struct secure_shmem_request rq;

@@ -21,8 +21,8 @@ enum {
 };
 #endif
 
-struct request_layer_request {
-    int op_;
+struct mq_driver_request {
+    struct labstor_request header;
     int dev_id_;
     char *user_buf_;
     size_t lba_;

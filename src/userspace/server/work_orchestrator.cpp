@@ -13,8 +13,8 @@
 #include <labstor/userspace/server/server.h>
 #include <labstor/kernel/client/kernel_client.h>
 
-#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
-#include <modules/kernel/workers/netlink_client/worker_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <modules/kernel/workers/netlink_client/worker_client_netlink.h>
 
 void labstor::Server::WorkOrchestrator::CreateWorkers() {
     AUTO_TRACE("labstor::Server::WorkOrchestrator::CreateWorkers")

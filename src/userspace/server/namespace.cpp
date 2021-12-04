@@ -4,7 +4,7 @@
 
 #include <labstor/userspace/util/debug.h>
 #include <labstor/userspace/server/namespace.h>
-#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include <modules/live_upgrade/live_upgrade.h>
 #include <modules/registrar/server/registrar_server.h>
 

@@ -12,7 +12,7 @@
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/client/ipc_manager.h>
-#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 void labstor::Client::IPCManager::Connect() {
     AUTO_TRACE("labstor::Client::IPCManager::Connect")

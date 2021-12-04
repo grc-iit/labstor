@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 9/17/21.
 //
 
-#ifndef LABSTOR_SHMEM_USER_NETLINK_H
-#define LABSTOR_SHMEM_USER_NETLINK_H
+#ifndef LABSTOR_SECURE_SHMEM_CLIENT_NETLINK_H
+#define LABSTOR_SECURE_SHMEM_CLIENT_NETLINK_H
 
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
@@ -26,4 +26,4 @@ public:
     static void UnmapShmem(void *region, size_t region_size);
 };
 
-#endif //LABSTOR_SHMEM_USER_NETLINK_H
+#endif //LABSTOR_SECURE_SHMEM_CLIENT_NETLINK_H

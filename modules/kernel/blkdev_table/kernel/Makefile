@@ -1,12 +1,11 @@
 LABSTOR_KERNEL_SERVER=$(CMAKE_SOURCE_DIR)/src/kernel/server
 LABSTOR_INCLUDE=$(CMAKE_SOURCE_DIR)/include
 LABSTOR_MODULES=$(CMAKE_SOURCE_DIR)/modules/kernel
-LABSTOR_SHMEM_MODULE=$(LABSTOR_MODULES)/secure_shmem/kernel
 
 EXTRA_CFLAGS=-I$(LABSTOR_KERNEL_SERVER) -I$(LABSTOR_INCLUDE) -I$(LABSTOR_MODULES) -DKERNEL_BUILD -Wno-missing-braces
-KBUILD_EXTRA_SYMBOLS += $(LABSTOR_KERNEL_SERVER)/Module.symvers $(LABSTOR_SHMEM_MODULE)/Module.symvers
-obj-m = worker.o
-worker-objs += worker_kernel.o
+KBUILD_EXTRA_SYMBOLS += $(LABSTOR_KERNEL_SERVER)/Module.symvers
+obj-m = blkdev_table.o
+blkdev_table-objs += blkdev_table_kernel.o
 KVERSION = $(shell uname -r)
 all:
 	make -C /lib/modules/$(KVERSION)/build M=$(PWD) modules

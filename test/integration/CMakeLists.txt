@@ -9,7 +9,7 @@ add_library(dummy_client dummy/client/dummy_client.cpp)
 add_dependencies(dummy_client labstor_client_library)
 target_link_libraries(dummy_client labstor_client_library)
 
-add_library(dummy_server dummy/server/dummy_server.cpp)
+add_library(dummy_server dummy/server/blkdev_table_server.cpp)
 add_dependencies(dummy_server labstor_server_library)
 target_link_libraries(dummy_server labstor_server_library)
 

@@ -19,7 +19,7 @@
 #include "per_process_ipc.h"
 #include <labstor/types/data_structures/shmem_unordered_map_int_PerProcessIPC.h>
 #include <labstor/types/data_structures/shmem_unordered_map_labstor_qid_t_qp.h>
-#include <modules/kernel/secure_shmem/netlink_client/shmem_user_netlink.h>
+#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 #include "macros.h"
 #include "server.h"
@@ -133,6 +133,10 @@ public:
     }
     inline void FreeRequest(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
         return FreeRequest(qtok.qid, rq);
+    }
+    inline void FreeRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *rq) {
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qp.GetQid())]->alloc_;
+        alloc->Free((void*)rq);
     }
     inline labstor::ipc::request* Wait(labstor::ipc::qtok_t &qtok) {
         labstor::ipc::request *rq;

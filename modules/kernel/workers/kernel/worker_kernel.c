@@ -23,7 +23,7 @@
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <workers/worker_kernel.h>
-
+#include <secure_shmem/secure_shmem.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages the scheduling of labstor kernel workers");
@@ -32,12 +32,12 @@ MODULE_ALIAS("labstor_kernel_worker");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
-    struct labstor_work_queue worker_queue;
+    struct labstor_work_queue work_queue;
 };
-int region_id;
-void *shmem_region;
 
-size_t time_slice_us_;
+bool keep_running = true;
+int shmem_region_id;
+void *shmem_region;
 struct sock *nl_sk = NULL;
 struct labstor_worker_struct *workers = NULL;
 typedef int (*kthread_fn)(void*);
@@ -46,30 +46,26 @@ size_t time_slice_us;
 
 int worker_runtime(struct labstor_worker_struct *worker) {
     int work_depth, qp_depth, i, j;
+    struct labstor_queue_pair_ptr ptr;
     struct labstor_queue_pair qp;
     struct labstor_request *rq;
     struct labstor_module *module;
 
     pr_info("Worker: %p\n", worker);
-    while(true) {
-       /* work_depth = labstor_work_queue_GetDepth(&worker->worker_queue);
+    while(keep_running) {
+        work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
-            if(!labstor_work_queue_Dequeue(&worker->worker_queue, &qp, shmem_region)) {
-                break;
-            }
+            if (!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
+            labstor_queue_pair_InitFromPtr(&qp, &ptr, shmem_region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
             for(j = 0; j < qp_depth; ++j) {
-                if(!labstor_queue_pair_Dequeue(&qp, &rq)){
-                    break;
-                }
-                module = get_labstor_module_by_runtime_id(rq->runtime_id_);
-                if(!module) {
-                    pr_warn("No module with runtime id: %d\n", rq->runtime_id_);
-                    continue;
-                }
+                if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
+                module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 module->process_request_fn(&qp, rq);
             }
-        }*/
+            labstor_queue_pair_GetPointer(&qp, &ptr, shmem_region);
+            labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
+        }
     }
     return 0;
 }
@@ -78,16 +74,20 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
     struct labstor_worker_struct *worker;
     void *region;
     int i;
-    time_slice_us_ = time_slice_us;
-    workers = vmalloc(num_workers * sizeof(struct labstor_worker_struct));
+    //Create worker array
+    workers = kvmalloc(num_workers * sizeof(struct labstor_worker_struct), GFP_USER);
     if(workers == NULL) {
         pr_err("Could not allocate worker array");
         return false;
     }
-    //region = shmem whatever...
+    //Get shared memory
+    shmem_region_id = region_id;
+    shmem_region = find_shmem_region(shmem_region_id);
+
+    //Create worker threads
     for(i = 0; i < num_workers; ++i) {
         worker = workers + i;
-        //labstor_request_queue_init(&worker->worker_queue, region, region_size, time_slice_us);
+        labstor_work_queue_Init(&worker->work_queue, region, region_size, 0);
         worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
@@ -144,8 +144,9 @@ static int __init init_labstor_kernel_server(void) {
 }
 
 static void __exit exit_labstor_kernel_server(void) {
+    keep_running = false;
     if(workers) {
-        vfree(workers);
+        kvfree(workers);
     }
     unregister_labstor_module(&worker_module);
 }

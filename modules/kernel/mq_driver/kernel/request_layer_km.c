@@ -517,28 +517,23 @@ inline void submit_req_layer_io(struct queue_pair *qp, struct request_layer_requ
     //Add monitor request
 }
 
-inline void check_req_layer_io_complete(struct queue_pair *qp, struct request_layer_request *req) {
-
-}
-
-void process_request_fn(struct queue_pair *qp, struct request_layer_request *req) {
-    switch(req->op) {
-        case RQ_PKG_SUBMIT_REQUEST: {
-            submit_req_layer_io(qp, req);
+void mq_process_request_fn(struct labstor_queue_pair *qp, struct request_layer_request *rq) {
+    switch(rq->header.op_) {
+        case MQ_SUBMIT_REQUEST: {
+            submit_req_layer_io(qp, rq);
             break;
         }
-        case RQ_PKG_POLL_REQUEST: {
-            check_req_layer_io_complete(qp, req);
-            break;
+        default: {
+            pr_error("Invalid MQ request: %d\n", rq->header.op_);
         }
     }
 }
 
-struct labstor_module request_layer_pkg = {
-    .module_id = REQEUST_LAYER_PKG_ID,
-    .process_request_fn = process_request_fn,
-    .request_size = sizeof(struct request_layer_request),
-    .get_ops = NULL
+struct labstor_module worker_module = {
+        .module_id = WORKER_MODULE_ID,
+        .runtime_id = WORKER_MODULE_RUNTIME_ID,
+        .process_request_fn = (process_request_fn_netlink_type)mq_process_request_fn,
+        .process_request_fn_netlink = NULL,
 };
 
 /**

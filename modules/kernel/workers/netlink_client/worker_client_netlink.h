@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 9/17/21.
 //
 
-#ifndef LABSTOR_WORKER_USER_NETLINK_H
-#define LABSTOR_WORKER_USER_NETLINK_H
+#ifndef LABSTOR_WORKER_CLIENT_NETLINK_H
+#define LABSTOR_WORKER_CLIENT_NETLINK_H
 
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
@@ -19,4 +19,4 @@ public:
     int SetAffinity(int worker_id, int cpu_id);
 };
 
-#endif //LABSTOR_WORKER_USER_NETLINK_H
+#endif //LABSTOR_WORKER_CLIENT_NETLINK_H

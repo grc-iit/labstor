@@ -14,7 +14,7 @@
 #include <labstor/kernel/client/kernel_client.h>
 
 #include <workers/worker_kernel.h>
-#include "worker_user_netlink.h"
+#include "worker_client_netlink.h"
 
 int WorkerNetlinkClient::CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
     struct kernel_worker_request rq;
