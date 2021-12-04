@@ -80,11 +80,13 @@ struct labstor_module shmem_module = {
 
 static int __init init_ipc_manager(void) {
     register_labstor_module(&shmem_module);
+    pr_debug("IPC manager has started");
     return 0;
 }
 
 static void __exit exit_ipc_manager(void) {
     unregister_labstor_module(&shmem_module);
+    pr_debug("IPC manager has ended");
 }
 
 module_init(init_ipc_manager)

@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 9/16/21.
 //
 
-#ifndef LABSTOR_WORKER_KERNEL_H
-#define LABSTOR_WORKER_KERNEL_H
+#ifndef LABSTOR_WORKER_ORCHESTRATOR_KERNEL_H
+#define LABSTOR_WORKER_ORCHESTRATOR_KERNEL_H
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
@@ -49,4 +49,4 @@ struct labstor_resume_worker_request {
     int worker_id;
 };
 
-#endif //LABSTOR_WORKER_KERNEL_H
+#endif //LABSTOR_WORKER_ORCHESTRATOR_KERNEL_H

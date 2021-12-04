@@ -12,7 +12,7 @@ set(CMAKE_CXX_FLAGS "-g -fPIC")
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 ######CUSTOM DATA STRUCTURES
-add_custom_target(build_data_structures ALL COMMAND
+add_custom_target(build_data_structures COMMAND
         python3 ${CMAKE_SOURCE_DIR}/preprocess.py ${CMAKE_SOURCE_DIR})
 
 ######KERNEL SERVER
@@ -39,7 +39,7 @@ add_dependencies(labstor_server_library
         labstor_kernel_client
         secure_shmem_client_netlink
         ipc_manager_client_netlink
-        worker_client_netlink
+        work_orchestrator_client_netlink
         registrar_server)
 target_link_libraries(labstor_server_library
         pthread rt dl
@@ -47,7 +47,7 @@ target_link_libraries(labstor_server_library
         yaml-cpp
         secure_shmem_client_netlink
         ipc_manager_client_netlink
-        worker_client_netlink
+        work_orchestrator_client_netlink
         registrar_server)
 
 ######LABSTOR USERSPACE SERVER

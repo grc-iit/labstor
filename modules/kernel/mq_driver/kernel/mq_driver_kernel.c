@@ -6,7 +6,7 @@
  * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
  * */
 
-#include "../request_layer.h"
+#include "../mq_driver.h"
 
 #include <linux/init.h>
 #include <linux/module.h>

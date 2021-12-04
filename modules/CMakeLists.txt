@@ -9,7 +9,7 @@ include_directories(include kernel io_systems)
 add_subdirectory(kernel/secure_shmem)
 add_subdirectory(kernel/ipc_manager)
 add_subdirectory(kernel/blkdev_table)
-add_subdirectory(kernel/workers)
+add_subdirectory(kernel/work_orchestrator)
 add_subdirectory(registrar)
 add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&

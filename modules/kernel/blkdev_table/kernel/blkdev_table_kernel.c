@@ -82,11 +82,13 @@ struct labstor_module blkdev_table_pkg = {
 
 static int __init init_blkdev_table(void) {
     register_labstor_module(&blkdev_table_pkg);
+    pr_debug("Blkdev table has started");
     return 0;
 }
 
 static void __exit exit_blkdev_table(void) {
     unregister_labstor_module(&blkdev_table_pkg);
+    pr_debug("Blkdev table has ended");
 }
 
 module_init(init_blkdev_table)

@@ -14,7 +14,7 @@
 #include <labstor/kernel/client/kernel_client.h>
 #include <labstor/userspace/types/messages.h>
 #include <modules/kernel/ipc_manager/netlink_client/ipc_manager_client_netlink.h>
-#include <modules/kernel/workers/netlink_client/worker_client_netlink.h>
+#include <modules/kernel/work_orchestrator/netlink_client/work_orchestrator_client_netlink.h>
 
 LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 

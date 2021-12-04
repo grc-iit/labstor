@@ -22,7 +22,7 @@
 #include <labstor/types/data_structures/shmem_work_queue.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
-#include <workers/worker_kernel.h>
+#include <work_orchestrator/work_orchestrator.h>
 #include <secure_shmem/kernel/secure_shmem_kernel.h>
 #include <ipc_manager/kernel/ipc_manager_kernel.h>
 
@@ -63,6 +63,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             qp_depth = labstor_queue_pair_GetDepth(&qp);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
+                pr_debug("Dequeued a request!");
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 module->process_request_fn(&qp, rq);
             }
@@ -172,18 +173,20 @@ struct labstor_module worker_module = {
         .process_request_fn_netlink = (process_request_fn_netlink_type)worker_process_request_fn_netlink,
 };
 
-static int __init init_labstor_kernel_server(void) {
+static int __init init_worker_kernel(void) {
     register_labstor_module(&worker_module);
+    pr_debug("Work orchestrator started");
     return 0;
 }
 
-static void __exit exit_labstor_kernel_server(void) {
+static void __exit exit_worker_kernel(void) {
     keep_running = false;
     if(workers) {
         kvfree(workers);
     }
     unregister_labstor_module(&worker_module);
+    pr_debug("Work orchestrator ended");
 }
 
-module_init(init_labstor_kernel_server)
-module_exit(exit_labstor_kernel_server)
+module_init(init_worker_kernel)
+module_exit(exit_worker_kernel)

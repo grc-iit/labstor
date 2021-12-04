@@ -13,8 +13,8 @@
 #include <labstor/constants/constants.h>
 #include <labstor/kernel/client/kernel_client.h>
 
-#include <workers/worker_kernel.h>
-#include "worker_client_netlink.h"
+#include <work_orchestrator/work_orchestrator.h>
+#include "work_orchestrator_client_netlink.h"
 
 int labstor::kernel::netlink::WorkerClient::CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
     int code;

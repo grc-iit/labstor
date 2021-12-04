@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(MODULE_NAME worker)
+set(MODULE_NAME work_orchestrator)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 
 #BUILD KERNEL MODULE

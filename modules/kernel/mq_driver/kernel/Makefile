@@ -1,4 +1,4 @@
-obj-m = request_layer_km.o
+obj-m = mq_driver_km.o
 KVERSION = $(shell uname -r)
 all:
 	make -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
