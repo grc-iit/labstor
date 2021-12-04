@@ -34,7 +34,7 @@
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module for storing block device pointers");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS_FS("blkdev_table_km");
+MODULE_ALIAS_FS("blkdev_table");
 
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
@@ -82,13 +82,13 @@ struct labstor_module blkdev_table_pkg = {
 
 static int __init init_blkdev_table(void) {
     register_labstor_module(&blkdev_table_pkg);
-    pr_debug("Blkdev table has started");
+    pr_info("Blkdev table has started");
     return 0;
 }
 
 static void __exit exit_blkdev_table(void) {
     unregister_labstor_module(&blkdev_table_pkg);
-    pr_debug("Blkdev table has ended");
+    pr_info("Blkdev table has ended");
 }
 
 module_init(init_blkdev_table)

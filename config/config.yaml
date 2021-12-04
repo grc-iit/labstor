@@ -1,3 +1,7 @@
+modules:
+  BlkdevTable:
+    client: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_client.so
+    server: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_server.so
 work_orchestrator:
   time_slice_us: 1000
   policy: round-robin

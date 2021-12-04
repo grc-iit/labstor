@@ -29,7 +29,7 @@
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages the scheduling of labstor kernel workers");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("labstor_kernel_worker");
+MODULE_ALIAS("work_orchestrator");
 
 struct labstor_worker_struct {
     struct task_struct *worker_task;
@@ -63,7 +63,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             qp_depth = labstor_queue_pair_GetDepth(&qp);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
-                pr_debug("Dequeued a request!");
+                pr_info("Dequeued a request!");
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 module->process_request_fn(&qp, rq);
             }
@@ -134,21 +134,21 @@ void worker_process_request_fn_netlink(int pid, struct labstor_request *rq) {
     int code = 0;
     switch(rq->op_) {
         case LABSTOR_SPAWN_WORKERS: {
-            pr_debug("Spawning workers\n");
+            pr_info("Spawning workers\n");
             code = spawn_workers((struct labstor_spawn_worker_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
         case LABSTOR_ASSIGN_QP: {
-            pr_debug("Registering queue pairs\n");
+            pr_info("Registering queue pairs\n");
             code = register_qp((struct labstor_assign_queue_pair_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
         case LABSTOR_SET_WORKER_AFFINITY: {
-            pr_debug("Set worker affinity\n");
+            pr_info("Set worker affinity\n");
             set_worker_affinity((struct labstor_set_worker_affinity_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
@@ -173,20 +173,20 @@ struct labstor_module worker_module = {
         .process_request_fn_netlink = (process_request_fn_netlink_type)worker_process_request_fn_netlink,
 };
 
-static int __init init_worker_kernel(void) {
+static int __init init_work_orchestrator_kernel(void) {
     register_labstor_module(&worker_module);
-    pr_debug("Work orchestrator started");
+    pr_info("Work orchestrator started");
     return 0;
 }
 
-static void __exit exit_worker_kernel(void) {
+static void __exit exit_work_orchestrator_kernel(void) {
     keep_running = false;
     if(workers) {
         kvfree(workers);
     }
     unregister_labstor_module(&worker_module);
-    pr_debug("Work orchestrator ended");
+    pr_info("Work orchestrator ended");
 }
 
-module_init(init_worker_kernel)
-module_exit(exit_worker_kernel)
+module_init(init_work_orchestrator_kernel)
+module_exit(exit_work_orchestrator_kernel)

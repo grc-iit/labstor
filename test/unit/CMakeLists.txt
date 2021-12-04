@@ -7,6 +7,7 @@ include_directories(include ${CMAKE_SOURCE_DIR}/modules/kernel)
 
 ######BASICS
 add_executable(test_strings strings/test.cpp)
+add_executable(test_path_parser path_parser/test.cpp)
 
 ######CLIENT -> TRUSTED SERVER (SOCKET)
 add_executable(client_to_trusted_server_exec sockets/client_to_trusted_server/test_client.cpp)

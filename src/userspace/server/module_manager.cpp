@@ -4,6 +4,7 @@
 
 #include <labstor/userspace/util/errors.h>
 #include <labstor/userspace/util/debug.h>
+#include <labstor/userspace/util/path_parser.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/module_manager.h>
@@ -17,10 +18,10 @@ void labstor::Server::ModuleManager::LoadDefaultModules() {
             labstor::id module_id(module.first.as<std::string>());
             labstor::ModulePath paths;
             if (module.second["client"]) {
-                paths.client = module.second["client"].as<std::string>();
+                paths.client = scs::path_parser(module.second["client"].as<std::string>());
             }
             if (module.second["server"]) {
-                paths.server = module.second["server"].as<std::string>();
+                paths.server = scs::path_parser(module.second["server"].as<std::string>());
             }
             AddModulePaths(module_id, paths);
             UpdateModule(paths.server);

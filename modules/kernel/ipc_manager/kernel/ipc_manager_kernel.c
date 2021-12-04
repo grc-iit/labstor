@@ -49,7 +49,7 @@ void ipc_manager_process_request_fn_netlink(int pid, struct labstor_request *rq)
     int code = 0;
     switch(rq->op_) {
         case IPC_MANAGER_REGISTER: {
-            pr_debug("Creating IPC manager\n");
+            pr_info("Creating IPC manager\n");
             if(ipc_manager_register((struct labstor_ipc_manager_register_request *)rq)) {}
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -80,13 +80,13 @@ struct labstor_module shmem_module = {
 
 static int __init init_ipc_manager(void) {
     register_labstor_module(&shmem_module);
-    pr_debug("IPC manager has started");
+    pr_info("IPC manager has started");
     return 0;
 }
 
 static void __exit exit_ipc_manager(void) {
     unregister_labstor_module(&shmem_module);
-    pr_debug("IPC manager has ended");
+    pr_info("IPC manager has ended");
 }
 
 module_init(init_ipc_manager)
