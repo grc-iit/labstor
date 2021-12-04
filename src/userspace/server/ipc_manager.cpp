@@ -19,6 +19,7 @@
 LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 
 void labstor::Server::IPCManager::CreateKernelQueues() {
+    AUTO_TRACE("labstor::Server::IPCManager::CreateKernelQueues")
     //Load config options
     uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>();
     uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"].as<uint32_t>();
@@ -76,7 +77,8 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
     }
 }
 
-void labstor::Server::IPCManager::CreateInternalQueues() {
+void labstor::Server::IPCManager::CreatePrivateQueues() {
+    AUTO_TRACE("labstor::Server::IPCManager::CreatePrivateQueues")
     //Load config options
     uint32_t region_size = labstor_config_->config_["ipc_manager"]["internal_shmem_mb"].as<uint32_t>();
     uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_internal_queues"].as<uint32_t>();

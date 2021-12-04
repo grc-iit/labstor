@@ -60,7 +60,7 @@ public:
     inline int GetServerFd() { return server_fd_; }
 
     void CreateKernelQueues();
-    void CreateInternalQueues();
+    void CreatePrivateQueues();
     void RegisterClient(int client_fd, labstor::credentials &creds);
     void RegisterClientQP(PerProcessIPC *client_ipc);
     void PauseQueues();

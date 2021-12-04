@@ -10,7 +10,7 @@
 void labstor::BlkdevTable::Client::Register() {
     AUTO_TRACE("labstor::BlkdevTable::Client")
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance("BlkdevTable", "BlkdevTable");
+    ns_id_ = registrar.RegisterInstance(BLKDEV_TABLE_MODULE_ID, BLKDEV_TABLE_MODULE_ID);
     TRACEPOINT("labstor::BlkdevTable::Client::Register::NamespaceID", ns_id_)
 }
 

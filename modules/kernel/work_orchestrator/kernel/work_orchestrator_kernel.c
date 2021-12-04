@@ -12,6 +12,7 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/kthread.h>
+#include <linux/sched.h>
 
 #include <linux/netlink.h>
 #include <linux/connector.h>
@@ -53,8 +54,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_request *rq;
     struct labstor_module *module;
     void *region = ipc_manager_GetRegion();
-
-    pr_info("Worker: %p\n", worker);
     while(keep_running) {
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
@@ -104,7 +103,7 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
         worker = workers + i;
         labstor_work_queue_Init(&worker->work_queue, region, work_queue_size, 0);
         region = labstor_work_queue_GetNextSection(&worker->work_queue);
-        worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
+        worker->worker_task = kthread_create((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
 }
@@ -112,20 +111,31 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
     labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->ptr);
+    pr_info("Registered queue pair\n");
     return true;
 }
 
-void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
-    kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
+void pause_worker(int worker_id) {
+    //set_task_state(workers[worker_id].worker_task, TASK_INTERRUPTIBLE);
 }
 
-void pause_worker(struct labstor_pause_worker_request *rq) {
+void resume_worker(int worker_id) {
+    //set_task_state(workers[worker_id].worker_task, TASK_RUNNING);
+}
+
+void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
+    pr_info("Setting CPU to %d for worker %d\n", rq->cpu_id, rq->worker_id);
+    kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
+    //wake_up_process(workers[rq->worker_id].worker_task);
+}
+
+void pause_worker_user(struct labstor_pause_worker_request *rq) {
     //set_task_state(TASK_INTERRUPTIBLE);
     //schedule();
     //https://www.linuxjournal.com/article/8144
 }
 
-void resume_worker(struct labstor_resume_worker_request *rq) {
+void resume_worker_user(struct labstor_resume_worker_request *rq) {
     //set_task_state(TASK_RUNNING)
     //schedule();
 }
@@ -181,9 +191,9 @@ static int __init init_work_orchestrator_kernel(void) {
 
 static void __exit exit_work_orchestrator_kernel(void) {
     keep_running = false;
-    if(workers) {
+    /*if(workers) {
         kvfree(workers);
-    }
+    }*/
     unregister_labstor_module(&worker_module);
     pr_info("Work orchestrator ended");
 }

@@ -5,7 +5,7 @@
 #ifndef LABSTOR_BLKDEV_TABLE_CLIENT_H
 #define LABSTOR_BLKDEV_TABLE_CLIENT_H
 
-#include "blkdev_table.h"
+#include <modules/kernel/blkdev_table/blkdev_table.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
 #include <labstor/userspace/types/module.h>

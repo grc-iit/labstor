@@ -19,12 +19,13 @@ labstor::Server::Namespace::Namespace() {
 
     //Create a shared memory region
     TRACEPOINT("labstor::Server::Namespace::Namespace", max_entries, max_collisions, request_unit, shmem_size)
-    region_id_ = shmem_.CreateShmem(shmem_size, true);
+    LABSTOR_KERNEL_SHMEM_ALLOC_T shmem = LABSTOR_KERNEL_SHMEM_ALLOC;
+    region_id_ = shmem->CreateShmem(shmem_size, true);
     if(region_id_ < 0) {
         throw SHMEM_CREATE_FAILED.format();
     }
-    shmem_.GrantPidShmem(getpid(), region_id_);
-    region_ = shmem_.MapShmem(region_id_, shmem_size);
+    shmem->GrantPidShmem(getpid(), region_id_);
+    region_ = shmem->MapShmem(region_id_, shmem_size);
     if(!region_) {
         throw MMAP_FAILED.format(strerror(errno));
     }

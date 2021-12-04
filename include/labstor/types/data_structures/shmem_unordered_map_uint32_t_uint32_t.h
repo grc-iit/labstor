@@ -14,41 +14,41 @@ struct labstor_uint32_t_uint32_t_bucket {
     uint32_t value_;
 };
 
-inline void labstor_uint32_t_uint32_t_bucket_Init(labstor_uint32_t_uint32_t_bucket *bucket, uint32_t key, uint32_t value) {
+static inline void labstor_uint32_t_uint32_t_bucket_Init(labstor_uint32_t_uint32_t_bucket *bucket, uint32_t key, uint32_t value) {
     bucket->key_ = key;
     bucket->value_ = value;
 }
-inline uint32_t labstor_uint32_t_uint32_t_bucket_GetValue(labstor_uint32_t_uint32_t_bucket *bucket, void *region) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_GetValue(labstor_uint32_t_uint32_t_bucket *bucket, void *region) {
     return bucket->value_;
 }
-inline uint32_t labstor_uint32_t_uint32_t_bucket_GetKey(labstor_uint32_t_uint32_t_bucket *bucket, void *region) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_GetKey(labstor_uint32_t_uint32_t_bucket *bucket, void *region) {
     return bucket->key_;
 }
-inline uint32_t labstor_uint32_t_uint32_t_bucket_GetAtomicValue(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_GetAtomicValue(labstor_uint32_t_uint32_t_bucket *bucket) {
     return bucket->value_;
 }
-inline uint32_t labstor_uint32_t_uint32_t_bucket_GetAtomicKey(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_GetAtomicKey(labstor_uint32_t_uint32_t_bucket *bucket) {
     return bucket->key_;
 }
-inline uint32_t* labstor_uint32_t_uint32_t_bucket_GetAtomicKeyRef(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline uint32_t* labstor_uint32_t_uint32_t_bucket_GetAtomicKeyRef(labstor_uint32_t_uint32_t_bucket *bucket) {
     return &bucket->key_;
 }
-inline static uint32_t labstor_uint32_t_uint32_t_bucket_hash(const uint32_t key, const void *region) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_hash(const uint32_t key, const void *region) {
     return key;
 }
-inline bool labstor_uint32_t_uint32_t_bucket_IsMarked(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline bool labstor_uint32_t_uint32_t_bucket_IsMarked(labstor_uint32_t_uint32_t_bucket *bucket) {
     return labstor_uint32_t_uint32_t_bucket_GetAtomicKey(bucket) & null1_mark;
 }
-inline bool labstor_uint32_t_uint32_t_bucket_IsNull(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline bool labstor_uint32_t_uint32_t_bucket_IsNull(labstor_uint32_t_uint32_t_bucket *bucket) {
     return labstor_uint32_t_uint32_t_bucket_GetAtomicKey(bucket) == null1_null;
 }
-inline uint32_t labstor_uint32_t_uint32_t_bucket_GetMarkedAtomicKey(labstor_uint32_t_uint32_t_bucket *bucket) {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_GetMarkedAtomicKey(labstor_uint32_t_uint32_t_bucket *bucket) {
     return labstor_uint32_t_uint32_t_bucket_GetAtomicKey(bucket) | null1_mark;
 }
-inline static uint32_t labstor_uint32_t_uint32_t_bucket_NullKey() {
+static inline uint32_t labstor_uint32_t_uint32_t_bucket_NullKey() {
     return null1_null;
 }
-inline bool labstor_uint32_t_uint32_t_bucket_KeyCompare(uint32_t key1, uint32_t key2) {
+static inline bool labstor_uint32_t_uint32_t_bucket_KeyCompare(uint32_t key1, uint32_t key2) {
     return key1==key2;
 }
 

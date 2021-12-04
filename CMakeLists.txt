@@ -60,15 +60,16 @@ add_library(labstor_client_library
         src/userspace/client/singleton.cpp
         src/userspace/client/client.cpp
         src/userspace/client/ipc_manager.cpp
-        src/userspace/client/module_manager.cpp
-        modules/registrar/client/registrar_client.cpp)
+        src/userspace/client/module_manager.cpp)
 add_dependencies(labstor_client_library
         labstor_kernel_client
-        secure_shmem_client_netlink)
+        secure_shmem_client_netlink
+        registrar_client)
 target_link_libraries(labstor_client_library
         pthread rt dl
         labstor_kernel_client
-        secure_shmem_client_netlink)
+        secure_shmem_client_netlink
+        registrar_client)
 
 ######UTIL
 add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)

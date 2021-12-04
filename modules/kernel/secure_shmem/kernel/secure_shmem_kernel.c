@@ -79,8 +79,8 @@ void* reserve_shmem_nolock(size_t size, bool user_owned, int *new_region_id) {
     struct shmem_region_info *region_info;
 
     if(size % PAGE_SIZE != 0) {
-        pr_warn("Shared memory is not page-aligned\n");
         size = size + PAGE_SIZE - (size % PAGE_SIZE);
+        pr_warn("Shared memory is not page-aligned, fixed: %lu\n", size);
     }
 
     region_info = kvmalloc(sizeof(struct shmem_region_info), GFP_HIGHUSER);

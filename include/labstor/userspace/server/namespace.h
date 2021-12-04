@@ -32,7 +32,6 @@ private:
     uint32_t region_size_;
     void *region_;
     labstor::ipc::SpinLock lock_;
-    labstor::kernel::netlink::ShmemClient shmem_;
 
     std::unordered_map<labstor::id, std::queue<labstor::Module*>> module_id_to_instance_;
     labstor::ipc::ring_buffer_uint32_t ns_ids_;
@@ -44,11 +43,12 @@ public:
     void Init();
 
     ~Namespace() {
+        LABSTOR_KERNEL_SHMEM_ALLOC_T shmem = LABSTOR_KERNEL_SHMEM_ALLOC;
         if(shmem_alloc_) { delete shmem_alloc_; }
         for(auto module : private_state_) {
             delete module;
         }
-        shmem_.FreeShmem(region_id_);
+        shmem->FreeShmem(region_id_);
     }
 
     inline void *AllocateShmem(uint32_t size, uint32_t ns_id) {

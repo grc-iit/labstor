@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(MODULE_NAME registrar)
+set(MODULE_NAME dummy)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 
 #BUILD KERNEL MODULE
@@ -30,13 +30,13 @@ endif()
 #BUILD USERSPACE CLIENT
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/client)
     add_library(${MODULE_NAME}_client client/${MODULE_NAME}_client.cpp)
-    #add_dependencies(${MODULE_NAME}_client labstor_client_library)
-    #target_link_libraries(${MODULE_NAME}_client labstor_client_library)
+    add_dependencies(${MODULE_NAME}_client labstor_client_library)
+    target_link_libraries(${MODULE_NAME}_client labstor_client_library)
 endif()
 
 #BUILD USERSPACE SERVER
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
     add_library(${MODULE_NAME}_server server/${MODULE_NAME}_server.cpp)
-    #add_dependencies(${MODULE_NAME}_server labstor_server_library)
-    #target_link_libraries(${MODULE_NAME}_server labstor_server_library)
+    add_dependencies(${MODULE_NAME}_server labstor_server_library)
+    target_link_libraries(${MODULE_NAME}_server labstor_server_library)
 endif()

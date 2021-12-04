@@ -139,6 +139,11 @@ int main(int argc, char **argv) {
     auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
     work_orchestrator_->CreateWorkers();
 
+    //Establish SHMEM queues
+    auto ipc_manager_ = LABSTOR_IPC_MANAGER;
+    ipc_manager_->CreateKernelQueues();
+    ipc_manager_->CreatePrivateQueues();
+
     //Initialize server
     server_init();
 

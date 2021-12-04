@@ -3,19 +3,12 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
+#Dummy & Registration
+add_executable(test_dummy_exec registrar/test.cpp)
+add_dependencies(test_dummy_exec labstor_client_library dummy_client)
+target_link_libraries(test_dummy_exec labstor_client_library dummy_client)
 
-add_library(dummy_client dummy/client/dummy_client.cpp)
-add_dependencies(dummy_client labstor_client_library)
-target_link_libraries(dummy_client labstor_client_library)
-
-add_library(dummy_server dummy/server/blkdev_table_server.cpp)
-add_dependencies(dummy_server labstor_server_library)
-target_link_libraries(dummy_server labstor_server_library)
-
-add_executable(integration_exec test.cpp)
-add_dependencies(integration_exec dummy_client)
-target_link_libraries(integration_exec dummy_client)
-
-add_custom_target(start_labstor_server_integration COMMAND ${CMAKE_BINARY_DIR}/labstor_trusted_server ${CMAKE_CURRENT_SOURCE_DIR}/config/config.yaml)
-add_custom_target(start_integration_client COMMAND ${CMAKE_CURRENT_BINARY_DIR}/integration_exec)
+#Blkdev table client
+add_executable(test_blkdev_table_exec blkdev_table/test.cpp)
+add_dependencies(test_blkdev_table_exec labstor_client_library blkdev_table_client)
+target_link_libraries(test_blkdev_table_exec labstor_client_library blkdev_table_client)
