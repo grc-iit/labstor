@@ -21,9 +21,9 @@ LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 void labstor::Server::IPCManager::CreateKernelQueues() {
     AUTO_TRACE("labstor::Server::IPCManager::CreateKernelQueues")
     //Load config options
-    uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>();
+    uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>()*SizeType::MB;
     uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"].as<uint32_t>();
-    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"].as<uint32_t>();
+    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"].as<uint32_t>()*SizeType::KB;
     uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit_bytes"].as<uint32_t>();
 
     //Create new IPC
@@ -73,6 +73,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         }
 
         //Send QP to kernel work orchestrator
+        TRACEPOINT("AssignQueuePair")
         kernel_work_orchestrator->AssignQueuePair(qp, region);
     }
 }
@@ -80,10 +81,10 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
 void labstor::Server::IPCManager::CreatePrivateQueues() {
     AUTO_TRACE("labstor::Server::IPCManager::CreatePrivateQueues")
     //Load config options
-    uint32_t region_size = labstor_config_->config_["ipc_manager"]["internal_shmem_mb"].as<uint32_t>();
-    uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_internal_queues"].as<uint32_t>();
-    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["internal_queue_size_kb"].as<uint32_t>();
-    uint32_t request_unit = labstor_config_->config_["ipc_manager"]["internal_request_unit_bytes"].as<uint32_t>();
+    uint32_t region_size = labstor_config_->config_["ipc_manager"]["private_mem_mb"].as<uint32_t>()*SizeType::MB;
+    uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_private_queues"].as<uint32_t>();
+    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["private_queue_size_kb"].as<uint32_t>()*SizeType::KB;
+    uint32_t request_unit = labstor_config_->config_["ipc_manager"]["private_request_unit_bytes"].as<uint32_t>();
 
     //Allocator internal memory
     private_mem_ = malloc(region_size);

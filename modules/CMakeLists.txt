@@ -18,4 +18,4 @@ add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean_secure_shmem &&
         cd ${CMAKE_BINARY_DIR} && make clean_ipc_manager &&
         cd ${CMAKE_BINARY_DIR} && make clean_blkdev_table &&
-        cd ${CMAKE_BINARY_DIR} && make clean_worker)
+        cd ${CMAKE_BINARY_DIR} && make clean_work_orchestrator)

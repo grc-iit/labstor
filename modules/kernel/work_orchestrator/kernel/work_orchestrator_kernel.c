@@ -79,10 +79,9 @@ int worker_runtime(struct labstor_worker_struct *worker) {
 
         //Get nanoseconds
         getnstimeofday(&end);
-        if(end.tv_sec - start.tv_sec > 5) {
+        if(end.tv_sec - start.tv_sec > 1) {
             start = end;
-            pr_info("Actually delaying\n");
-            udelay(100);
+            yield();
         }
     }
     return 0;
