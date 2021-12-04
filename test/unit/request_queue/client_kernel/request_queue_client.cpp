@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     size_t region_size = 4096;
     labstor::ipc::request_map q;
     auto netlink_client__ = LABSTOR_KERNEL_CLIENT;
-    ShmemNetlinkClient shmem_netlink;
+    labstor::kernel::netlink::ShmemClient shmem_netlink;
     struct simple_request* rq;
 
     //Create SHMEM region

@@ -11,9 +11,20 @@ ipc_manager:
   pid_to_ipc_size_mb: 2
   qps_by_id_size_mb: 2
   max_collisions: 64
+
   allocator_unit_bytes: 128
-  kernel_shmem_mb: 1
   process_shmem_kb: 16
+
+  kernel_shmem_mb: 1
+  num_kernel_queues: 8
+  kernel_queue_size_kb: 4
+  kernel_request_unit_bytes: 64
+
+  internal_mem_mb: 2
+  num_internal_queues: 8
+  internal_queue_size_kb: 4
+  internal_request_unit_bytes: 128
+
 namespace:
   max_entries: 1024
   max_collisions: 16

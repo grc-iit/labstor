@@ -6,7 +6,7 @@
 #define LABSTOR_ADMIN_THREAD_H
 
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/types/daemon/daemon.h>
+#include <labstor/types/daemon.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/types/messages.h>
 

@@ -7,44 +7,46 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
 
 #define WORKER_MODULE_ID "WORKER_ID"
 
 enum {
-    SPAWN_WORKERS,
-    SET_WORKER_AFFINITY,
-    PAUSE_WORKER,
-    RESUME_WORKER,
+    LABSTOR_SPAWN_WORKERS,
+    LABSTOR_SET_WORKER_AFFINITY,
+    LABSTOR_ASSIGN_QP,
+    LABSTOR_PAUSE_WORKER,
+    LABSTOR_RESUME_WORKER,
 };
 
-struct spawn_worker_request {
+struct labstor_spawn_worker_request {
+    struct labstor_request header;
     int num_workers;
     int region_id;
     size_t region_size;
     size_t time_slice_us;
 };
 
-struct set_worker_affinity_request {
+struct labstor_assign_queue_pair_request {
+    struct labstor_request header;
+    struct labstor_queue_pair_ptr ptr;
+    int worker_id;
+};
+
+struct labstor_set_worker_affinity_request {
+    struct labstor_request header;
     int worker_id;
     int cpu_id;
 };
 
-struct pause_worker_request {
-    int worker_id;
-};
-
-struct resume_worker_request {
-    int worker_id;
-};
-
-struct kernel_worker_request {
+struct labstor_pause_worker_request {
     struct labstor_request header;
-    union {
-        struct spawn_worker_request spawn;
-        struct set_worker_affinity_request affinity;
-        struct pause_worker_request pause;
-        struct resume_worker_request resume;
-    };
+    int worker_id;
+};
+
+struct labstor_resume_worker_request {
+    struct labstor_request header;
+    int worker_id;
 };
 
 #endif //LABSTOR_WORKER_KERNEL_H

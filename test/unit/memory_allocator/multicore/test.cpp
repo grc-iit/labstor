@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     labstor::GenericAllocator *alloc;
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
-    ShmemNetlinkClient shmem_netlink;
+    labstor::kernel::netlink::ShmemClient shmem_netlink;
     std::string allocator_type;
 
     //Allocator

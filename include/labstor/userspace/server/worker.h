@@ -10,7 +10,7 @@
 #include <thread>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/namespace.h>
-#include <labstor/userspace/types/daemon/daemon.h>
+#include <labstor/types/daemon.h>
 #include <labstor/types/data_structures/shmem_work_queue.h>
 
 namespace labstor::Server {

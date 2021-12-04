@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     labstor::ipc::request_queue q;
     labstor::ipc::shmem_allocator alloc;
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
-    ShmemNetlinkClient shmem_netlink;
+    labstor::kernel::netlink::ShmemClient shmem_netlink;
 
     //Create SHMEM region
     netlink_client_->Connect();

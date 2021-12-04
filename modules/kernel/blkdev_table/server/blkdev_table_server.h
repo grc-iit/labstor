@@ -18,7 +18,7 @@ class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
-    Server() : labstor::Module(BLKDEV_MODULE_ID) {
+    Server() : labstor::Module(BLKDEV_TABLE_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
 

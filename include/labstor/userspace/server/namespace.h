@@ -32,7 +32,7 @@ private:
     uint32_t region_size_;
     void *region_;
     labstor::ipc::SpinLock lock_;
-    ShmemNetlinkClient shmem_;
+    labstor::kernel::netlink::ShmemClient shmem_;
 
     std::unordered_map<labstor::id, std::queue<labstor::Module*>> module_id_to_instance_;
     labstor::ipc::ring_buffer_uint32_t ns_ids_;

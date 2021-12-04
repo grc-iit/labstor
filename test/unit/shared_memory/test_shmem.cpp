@@ -14,7 +14,7 @@ int main() {
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     netlink_client_->Connect();
 
-    ShmemNetlinkClient shmem;
+    labstor::kernel::netlink::ShmemClient shmem;
 
     //Create a shared memory region
     region_id = shmem.CreateShmem(region_size, true);

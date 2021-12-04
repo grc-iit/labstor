@@ -22,7 +22,9 @@
 #include <labstor/types/data_structures/shmem_queue_pair.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
+
 #include <secure_shmem/secure_shmem.h>
+#include <secure_shmem/kernel/secure_shmem_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that provides secure memory mapping");
@@ -188,16 +190,16 @@ int labstor_mmap_nolock(struct file *filp, struct vm_area_struct *vma) {
 
 /*LOCKED UPDATES*/
 
-struct shmem_region_info *find_shmem_region_info(int region_id) {
+struct shmem_region_info *labstor_find_shmem_region_info(int region_id) {
     struct shmem_region_info *pos;
     LABSTOR_MMAP_LOCK
     pos = find_shmem_region_nolock(region_id);
     LABSTOR_MMAP_UNLOCK
     return pos;
 }
-EXPORT_SYMBOL(find_shmem_region_info);
+EXPORT_SYMBOL(labstor_find_shmem_region_info);
 
-void *find_shmem_region(int region_id) {
+void *labstor_find_shmem_region(int region_id) {
     struct shmem_region_info *pos;
     LABSTOR_MMAP_LOCK
     pos = find_shmem_region_nolock(region_id);
@@ -205,7 +207,7 @@ void *find_shmem_region(int region_id) {
     if(pos) { return pos->vmalloc_ptr; }
     return NULL;
 }
-EXPORT_SYMBOL(find_shmem_region);
+EXPORT_SYMBOL(labstor_find_shmem_region);
 
 struct shmem_pid_region *find_pid_region(int pid, int region_id) {
     struct shmem_pid_region *pid_region;

@@ -20,7 +20,6 @@ struct labstor_qtok_t {
 namespace labstor::ipc {
 
 typedef uint64_t qid_t;
-
 typedef labstor_qtok_t qtok_t;
 
 class qtok_set {

@@ -19,7 +19,6 @@
 #include "per_process_ipc.h"
 #include <labstor/types/data_structures/shmem_unordered_map_int_PerProcessIPC.h>
 #include <labstor/types/data_structures/shmem_unordered_map_labstor_qid_t_qp.h>
-#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 #include "macros.h"
 #include "server.h"
@@ -30,13 +29,12 @@ class IPCManager {
 private:
     int pid_;
     int server_fd_;
-    void *internal_mem_;
+    void *private_mem_;
     std::mutex lock_;
     labstor::GenericAllocator *private_alloc_;
     std::vector<int> pids_;
     labstor::ipc::int_map_int_PerProcessIPC pid_to_ipc_;
     labstor::ipc::int_map_labstor_qid_t_qp qps_by_id_;
-    ShmemNetlinkClient shmem_client_;
     uint32_t per_process_shmem_, allocator_unit_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
 public:
@@ -61,11 +59,21 @@ public:
     inline void SetServerFd(int fd) { server_fd_ = fd; }
     inline int GetServerFd() { return server_fd_; }
 
+    void CreateKernelQueues();
+    void CreateInternalQueues();
     void RegisterClient(int client_fd, labstor::credentials &creds);
-    void RegisterQP(PerProcessIPC *client_ipc);
+    void RegisterClientQP(PerProcessIPC *client_ipc);
     void PauseQueues();
     void WaitForPause();
     void ResumeQueues();
+
+    inline bool RegisterQueuePair(labstor::ipc::queue_pair &qp) {
+        return qps_by_id_.Set(qp.GetQid(), qp);
+    }
+
+    inline bool UnregisterQueuePair(labstor::ipc::queue_pair &qp) {
+        return qps_by_id_.Remove(qp.GetQid());
+    }
 
     inline void* GetRegion(int pid) {
         return pid_to_ipc_[pid]->GetRegion();
@@ -79,7 +87,7 @@ public:
         return pid_to_ipc_[LABSTOR_GET_QP_PID(qp.GetQid())]->GetRegion();
     }
 
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qid_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];
@@ -87,7 +95,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qid_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid_)];
@@ -95,7 +103,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, pid_)];
@@ -103,7 +111,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, uint32_t depth=0, int pid=-1) {
+    inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qid_t flags, uint32_t depth=0, int pid=-1) {
         if(pid >= 0) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];

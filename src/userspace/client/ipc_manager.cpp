@@ -56,7 +56,7 @@ void labstor::Client::IPCManager::Connect() {
     //Attach SHMEM allocator
     TRACEPOINT("Attach SHMEM allocator")
     labstor::ipc::shmem_allocator *shmem_alloc;
-    void *region = ShmemNetlinkClient::MapShmem(reply.region_id, reply.region_size);
+    void *region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
     shmem_alloc = new labstor::ipc::shmem_allocator();
     shmem_alloc->Attach(region);
     shmem_alloc_ = shmem_alloc;

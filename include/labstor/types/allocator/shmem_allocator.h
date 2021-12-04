@@ -27,15 +27,32 @@ struct labstor_shmem_allocator {
 };
 
 
-inline void* labstor_shmem_allocator_GetRegion(struct labstor_shmem_allocator *alloc) { return alloc->header_; }
+static inline void* labstor_shmem_allocator_GetRegion(struct labstor_shmem_allocator *alloc) { return alloc->header_; }
 
-inline uint32_t labstor_shmem_allocator_GetSize(struct labstor_shmem_allocator *alloc) {
+static inline uint32_t labstor_shmem_allocator_GetSize(struct labstor_shmem_allocator *alloc) {
     return alloc->region_size_;
 }
 
-inline void labstor_shmem_allocator_Init(struct labstor_shmem_allocator *alloc, void *region, uint32_t region_size, uint32_t request_unit, int concurrency = 0) {
+static inline void* labstor_shmem_allocator_AllocPerCore(struct labstor_shmem_allocator *alloc) {
+#ifdef KERNEL_BUILD
+    return (struct labstor_private_shmem_allocator*)kvmalloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator), GFP_USER);
+#elif __cplusplus
+    return malloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator));
+#endif
+}
+
+static inline void labstor_shmem_allocator_FreePerCore(struct labstor_shmem_allocator *alloc) {
+#ifdef KERNEL_BUILD
+    kvfree(alloc->per_core_allocs_);
+#elif __cplusplus
+    free(alloc->per_core_allocs_);
+#endif
+}
+
+static inline void labstor_shmem_allocator_Init(struct labstor_shmem_allocator *alloc, void *region, uint32_t region_size, uint32_t request_unit, int concurrency) {
     uint32_t per_core_region_size;
     void *core_region;
+    int i;
 
     if(concurrency == 0) {
 #ifdef KERNEL_BUILD
@@ -53,20 +70,17 @@ inline void labstor_shmem_allocator_Init(struct labstor_shmem_allocator *alloc, 
 
     core_region = (void*)(alloc->header_ + 1);
     per_core_region_size = region_size / concurrency;
-#ifdef KERNEL_BUILD
-    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)kmalloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator));
-#elif __cplusplus
-    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)malloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator));
-#endif
-    for(int i = 0; i < concurrency; ++i) {
+    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)labstor_shmem_allocator_AllocPerCore(alloc);
+    for(i = 0; i < concurrency; ++i) {
         labstor_private_shmem_allocator_Init(&alloc->per_core_allocs_[i], core_region, per_core_region_size, request_unit);
         core_region = (void*)((char*)core_region + per_core_region_size);
     }
 }
 
-inline void labstor_shmem_allocator_Attach(struct labstor_shmem_allocator *alloc, void *region) {
+static inline void labstor_shmem_allocator_Attach(struct labstor_shmem_allocator *alloc, void *region) {
     uint32_t per_core_region_size;
     void *core_region;
+    int i;
 
     alloc->header_ = (struct labstor_shmem_allocator_header *)region;
     alloc->region_size_ = alloc->header_->region_size_;
@@ -74,18 +88,14 @@ inline void labstor_shmem_allocator_Attach(struct labstor_shmem_allocator *alloc
 
     core_region = (void*)(alloc->header_ + 1);
     per_core_region_size = alloc->region_size_ / alloc->concurrency_;
-#ifdef KERNEL_BUILD
-    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)kmalloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator));
-#elif __cplusplus
-    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)malloc(alloc->concurrency_ * sizeof(struct labstor_private_shmem_allocator));
-#endif
-    for(int i = 0; i < alloc->concurrency_; ++i) {
+    alloc->per_core_allocs_ = (struct labstor_private_shmem_allocator*)labstor_shmem_allocator_AllocPerCore(alloc);
+    for(i = 0; i < alloc->concurrency_; ++i) {
         labstor_private_shmem_allocator_Attach(&alloc->per_core_allocs_[i], core_region);
         core_region = (void*)((char*)core_region + per_core_region_size);
     }
 }
 
-inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator *alloc, uint32_t size, uint32_t core) {
+static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator *alloc, uint32_t size, uint32_t core) {
     int save = core % alloc->concurrency_;
     struct labstor_shmem_allocator_entry *page;
     do {
@@ -96,12 +106,18 @@ inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator *alloc
         }
         core = (core + 1)%alloc->concurrency_;
     } while(core != save);
-    return nullptr;
+    return NULL;
 }
 
-inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *alloc, void *data) {
+static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *alloc, void *data) {
     int core = ((struct labstor_shmem_allocator_entry*)data - 1)->core_;
     labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], data);
+}
+
+static inline void labstor_shmem_allocator_Release(struct labstor_shmem_allocator *alloc) {
+    if(alloc->per_core_allocs_) {
+        labstor_shmem_allocator_FreePerCore(alloc);
+    }
 }
 
 

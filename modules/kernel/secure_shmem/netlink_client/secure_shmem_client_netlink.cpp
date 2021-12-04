@@ -16,7 +16,7 @@
 #include <secure_shmem/secure_shmem.h>
 #include "secure_shmem_client_netlink.h"
 
-int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
+int labstor::kernel::netlink::ShmemClient::CreateShmem(size_t region_size, bool user_owned) {
     struct secure_shmem_request rq;
     int region_id;
     rq.header.ns_id_ = SHMEM_MODULE_RUNTIME_ID;
@@ -28,7 +28,7 @@ int ShmemNetlinkClient::CreateShmem(size_t region_size, bool user_owned) {
     return region_id;
 }
 
-int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
+int labstor::kernel::netlink::ShmemClient::GrantPidShmem(int pid, int region_id) {
     struct secure_shmem_request rq;
     int code;
     rq.header.ns_id_ = SHMEM_MODULE_RUNTIME_ID;
@@ -40,7 +40,7 @@ int ShmemNetlinkClient::GrantPidShmem(int pid, int region_id) {
     return code;
 }
 
-int ShmemNetlinkClient::FreeShmem(int region_id) {
+int labstor::kernel::netlink::ShmemClient::FreeShmem(int region_id) {
     struct secure_shmem_request rq;
     int code;
     rq.header.ns_id_ = SHMEM_MODULE_RUNTIME_ID;
@@ -51,7 +51,7 @@ int ShmemNetlinkClient::FreeShmem(int region_id) {
     return code;
 }
 
-void* ShmemNetlinkClient::MapShmem(int region_id, size_t region_size) {
+void* labstor::kernel::netlink::ShmemClient::MapShmem(int region_id, size_t region_size) {
     int fd = open(SHMEM_CHRDEV, O_RDWR);
     if(fd < 0) {
         return nullptr;
@@ -65,6 +65,6 @@ void* ShmemNetlinkClient::MapShmem(int region_id, size_t region_size) {
     return data;
 }
 
-void ShmemNetlinkClient::UnmapShmem(void *region, size_t region_size) {
+void labstor::kernel::netlink::ShmemClient::UnmapShmem(void *region, size_t region_size) {
     munmap(region, region_size);
 }

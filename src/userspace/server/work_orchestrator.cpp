@@ -4,7 +4,7 @@
 
 #include <labstor/userspace/util/errors.h>
 #include <labstor/userspace/util/debug.h>
-#include <labstor/userspace/types/daemon/userspace_daemon.h>
+#include <labstor/userspace/types/userspace_daemon.h>
 #include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/work_orchestrator.h>
@@ -37,6 +37,40 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
         worker_daemon->Start();
         worker_daemon->SetAffinity(cpu_id);
         server_workers[worker_id] = worker_daemon;
+    }
+
+    //Create kernel work queue region
+    labstor::kernel::netlink::ShmemClient shmem;
+    nworkers = config["kernel_workers"].size();
+    uint32_t region_size = nworkers * labstor::ipc::work_queue::GetSize(queue_depth);
+    int region_id = shmem.CreateShmem(region_size, true);
+    if(region_id < 0) {
+        throw WORK_ORCHESTRATOR_WORK_QUEUE_ALLOC_FAILED.format();
+    }
+    shmem.GrantPidShmem(getpid(), region_id);
+    void *region = (char*)shmem.MapShmem(region_id, region_size);
+    if(!region) {
+        throw WORK_ORCHESTRATOR_WORK_QUEUE_MMAP_FAILED.format();
+    }
+
+    //Tell kernel to create work queues
+    LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
+    kernel_work_orchestrator->CreateWorkers(nworkers, region_id, region_size, 0);
+
+    //Worker queues
+    worker_pool_.emplace(KERNEL_PID, nworkers);
+    auto &kernel_workers = worker_pool_[KERNEL_PID];
+    for (const auto &worker_conf : config["server_workers"]) {
+        int worker_id = worker_conf["worker_id"].as<int>();
+        int cpu_id = worker_conf["cpu_id"].as<int>();
+        std::shared_ptr<labstor::kernel::netlink::WorkerClient> worker_daemon =
+                std::shared_ptr<labstor::kernel::netlink::WorkerClient>(new labstor::kernel::netlink::WorkerClient(worker_id));
+        std::shared_ptr<labstor::Server::Worker> worker =
+                std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth));
+        worker_daemon->SetWorker(worker);
+        worker_daemon->Start();
+        worker_daemon->SetAffinity(cpu_id);
+        kernel_workers[worker_id] = worker_daemon;
     }
 }
 

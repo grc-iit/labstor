@@ -34,18 +34,21 @@ add_library(labstor_server_library
         src/userspace/server/module_manager.cpp
         src/userspace/server/ipc_manager.cpp
         src/userspace/server/work_orchestrator.cpp
-        src/userspace/server/namespace.cpp
-        modules/registrar/server/registrar_server.cpp)
+        src/userspace/server/namespace.cpp)
 add_dependencies(labstor_server_library
         labstor_kernel_client
         secure_shmem_client_netlink
-        worker_client_netlink)
+        ipc_manager_client_netlink
+        worker_client_netlink
+        registrar_server)
 target_link_libraries(labstor_server_library
         pthread rt dl
         labstor_kernel_client
         yaml-cpp
         secure_shmem_client_netlink
-        worker_client_netlink)
+        ipc_manager_client_netlink
+        worker_client_netlink
+        registrar_server)
 
 ######LABSTOR USERSPACE SERVER
 add_executable(labstor_trusted_server src/userspace/server/server.cpp)

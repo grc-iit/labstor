@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     labstor::ipc::int_map_uint32_t_uint32_t map;
 
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
-    ShmemNetlinkClient shmem_netlink;
+    labstor::kernel::netlink::ShmemClient shmem_netlink;
     printf("Starting test\n");
 
     //Create SHMEM region

@@ -21,7 +21,7 @@ namespace labstor::BlkdevTable {
         LABSTOR_IPC_MANAGER_T ipc_manager_;
         uint32_t ns_id_;
     public:
-        Client() : labstor::Module(BLKDEV_MODULE_ID) {
+        Client() : labstor::Module(BLKDEV_TABLE_MODULE_ID) {
             ipc_manager_ = LABSTOR_IPC_MANAGER;
         }
         void Register();

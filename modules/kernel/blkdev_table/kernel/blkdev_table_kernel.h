@@ -5,4 +5,8 @@
 #ifndef LABSTOR_BLKDEV_REGISTER_H
 #define LABSTOR_BLKDEV_REGISTER_H
 
+#include <blkdev_table/blkdev_table.h>
+
+struct block_device* labstor_get_bdev(int bdev_id);
+
 #endif //LABSTOR_BLKDEV_REGISTER_H

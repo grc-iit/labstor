@@ -23,7 +23,8 @@
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <workers/worker_kernel.h>
-#include <secure_shmem/secure_shmem.h>
+#include <secure_shmem/kernel/secure_shmem_kernel.h>
+#include <ipc_manager/kernel/ipc_manager_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that manages the scheduling of labstor kernel workers");
@@ -40,6 +41,7 @@ int shmem_region_id;
 void *shmem_region;
 struct sock *nl_sk = NULL;
 struct labstor_worker_struct *workers = NULL;
+int num_workers = 0;
 typedef int (*kthread_fn)(void*);
 
 size_t time_slice_us;
@@ -50,30 +52,41 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_queue_pair qp;
     struct labstor_request *rq;
     struct labstor_module *module;
+    void *region = ipc_manager_GetRegion();
 
     pr_info("Worker: %p\n", worker);
     while(keep_running) {
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
-            if (!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
-            labstor_queue_pair_InitFromPtr(&qp, &ptr, shmem_region);
+            if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
+            labstor_queue_pair_InitFromPtr(&qp, &ptr, region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 module->process_request_fn(&qp, rq);
             }
-            labstor_queue_pair_GetPointer(&qp, &ptr, shmem_region);
+            labstor_queue_pair_GetPointer(&qp, &ptr, region);
             labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
         }
     }
     return 0;
 }
 
-bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
+bool spawn_workers(struct labstor_spawn_worker_request *rq) {
     struct labstor_worker_struct *worker;
     void *region;
+    int region_id;
+    uint32_t region_size;
+    uint32_t work_queue_size;
     int i;
+
+    //Get request variables
+    num_workers = rq->num_workers;
+    region_id = rq->region_id;
+    region_size = rq->region_size;
+    work_queue_size = region_size / num_workers;
+
     //Create worker array
     workers = kvmalloc(num_workers * sizeof(struct labstor_worker_struct), GFP_USER);
     if(workers == NULL) {
@@ -82,49 +95,70 @@ bool spawn_workers(int num_workers, int region_id, size_t region_size, size_t ti
     }
     //Get shared memory
     shmem_region_id = region_id;
-    shmem_region = find_shmem_region(shmem_region_id);
+    shmem_region = labstor_find_shmem_region(shmem_region_id);
+    region = shmem_region;
 
     //Create worker threads
     for(i = 0; i < num_workers; ++i) {
         worker = workers + i;
-        labstor_work_queue_Init(&worker->work_queue, region, region_size, 0);
+        labstor_work_queue_Init(&worker->work_queue, region, work_queue_size, 0);
+        region = labstor_work_queue_GetNextSection(&worker->work_queue);
         worker->worker_task = kthread_run((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
 }
 
-void set_worker_affinity(int worker_id, int cpu_id) {
-    kthread_bind(workers[worker_id].worker_task, cpu_id);
+bool register_qp(struct labstor_assign_queue_pair_request *rq) {
+    struct labstor_worker_struct *worker = &workers[rq->worker_id];
+    labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->ptr);
+    return true;
 }
 
-void pause_worker(int worker_id) {
+void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
+    kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
 }
 
-void resume_worker(int worker_id) {
+void pause_worker(struct labstor_pause_worker_request *rq) {
+    //set_task_state(TASK_INTERRUPTIBLE);
+    //schedule();
+    //https://www.linuxjournal.com/article/8144
 }
 
+void resume_worker(struct labstor_resume_worker_request *rq) {
+    //set_task_state(TASK_RUNNING)
+    //schedule();
+}
 
-void worker_process_request_fn_netlink(int pid, struct kernel_worker_request *rq) {
+void worker_process_request_fn_netlink(int pid, struct labstor_request *rq) {
     int code = 0;
-    switch(rq->header.op_) {
-        case SPAWN_WORKERS: {
-            code = spawn_workers(rq->spawn.num_workers, rq->spawn.region_id, rq->spawn.region_size, rq->spawn.time_slice_us);
+    switch(rq->op_) {
+        case LABSTOR_SPAWN_WORKERS: {
+            pr_debug("Spawning workers\n");
+            code = spawn_workers((struct labstor_spawn_worker_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
-        case SET_WORKER_AFFINITY: {
-            set_worker_affinity(rq->affinity.worker_id, rq->affinity.cpu_id);
+        case LABSTOR_ASSIGN_QP: {
+            pr_debug("Registering queue pairs\n");
+            code = register_qp((struct labstor_assign_queue_pair_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
-        case PAUSE_WORKER: {
+        case LABSTOR_SET_WORKER_AFFINITY: {
+            pr_debug("Set worker affinity\n");
+            set_worker_affinity((struct labstor_set_worker_affinity_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
-        case RESUME_WORKER: {
+        case LABSTOR_PAUSE_WORKER: {
+            labstor_msg_trusted_server(&code, sizeof(code), pid);
+            break;
+        }
+
+        case LABSTOR_RESUME_WORKER: {
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }

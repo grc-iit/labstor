@@ -5,14 +5,10 @@
 #ifndef LABSTOR_BLKDEV_TABLE_H
 #define LABSTOR_BLKDEV_TABLE_H
 
-#define BLKDEV_MODULE_ID "BlkdevTable"
+#define BLKDEV_TABLE_MODULE_ID "BlkdevTable"
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
-
-#ifdef KERNEL_BUILD
-struct block_device* labstor_get_bdev(int bdev_id);
-#endif
 
 struct labstor_submit_blkdev_table_register_request {
     struct labstor_request header;

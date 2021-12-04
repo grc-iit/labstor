@@ -5,7 +5,7 @@
 #ifndef LABSTOR_USERSPACE_DAEMON_H
 #define LABSTOR_USERSPACE_DAEMON_H
 
-#include <labstor/userspace/types/daemon/daemon.h>
+#include <labstor/types/daemon.h>
 #include <labstor/userspace/util/errors.h>
 #include <sys/sysinfo.h>
 #include <sched.h>

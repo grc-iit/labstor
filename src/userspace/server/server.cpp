@@ -20,7 +20,7 @@
 #include <labstor/userspace/util/errors.h>
 #include <labstor/userspace/util/debug.h>
 
-#include <labstor/userspace/types/daemon/userspace_daemon.h>
+#include <labstor/userspace/types/userspace_daemon.h>
 #include <labstor/userspace/server/server.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/admin_thread.h>

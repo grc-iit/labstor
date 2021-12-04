@@ -16,27 +16,45 @@
 #include <workers/worker_kernel.h>
 #include "worker_client_netlink.h"
 
-int WorkerNetlinkClient::CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
-    struct kernel_worker_request rq;
+int labstor::kernel::netlink::WorkerClient::CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us) {
+    int code;
+    struct labstor_spawn_worker_request rq;
     rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
-    rq.header.op_ = SPAWN_WORKERS;
-    rq.spawn.num_workers = num_workers;
-    rq.spawn.region_id = region_id;
-    rq.spawn.region_size = region_size;
-    rq.spawn.time_slice_us = time_slice_us;
+    rq.header.op_ = LABSTOR_SPAWN_WORKERS;
+    rq.num_workers = num_workers;
+    rq.region_id = region_id;
+    rq.region_size = region_size;
+    rq.time_slice_us = time_slice_us;
+    num_workers_ = num_workers;
     kernel_client_->SendMSG(&rq, sizeof(rq));
-    kernel_client_->RecvMSG(&region_id, sizeof(region_id));
+    kernel_client_->RecvMSG(&code, sizeof(code));
     return region_id;
 }
 
-int WorkerNetlinkClient::SetAffinity(int worker_id, int cpu_id) {
-    struct kernel_worker_request rq;
+void labstor::kernel::netlink::WorkerClient::AssignQueuePair(labstor::ipc::queue_pair &qp, void *base) {
     int code;
+    struct labstor_assign_queue_pair_request rq;
     rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
-    rq.header.op_ = SET_WORKER_AFFINITY;
-    rq.affinity.worker_id = worker_id;
-    rq.affinity.cpu_id = cpu_id;
+    rq.header.op_ = LABSTOR_ASSIGN_QP;
+    qp.GetPointer(rq.ptr, base);
+    rq.worker_id = qp.GetQid() % num_workers_;
     kernel_client_->SendMSG(&rq, sizeof(rq));
     kernel_client_->RecvMSG(&code, sizeof(code));
-    return code;
 }
+
+void labstor::kernel::netlink::WorkerClient::SetAffinity(int cpu_id) {
+    struct labstor_set_worker_affinity_request rq;
+    int code;
+    rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
+    rq.header.op_ = LABSTOR_SET_WORKER_AFFINITY;
+    rq.worker_id = worker_id_;
+    rq.cpu_id = cpu_id;
+    kernel_client_->SendMSG(&rq, sizeof(rq));
+    kernel_client_->RecvMSG(&code, sizeof(code));
+}
+
+void labstor::kernel::netlink::WorkerClient::Start() {}
+void labstor::kernel::netlink::WorkerClient::Stop() {}
+void labstor::kernel::netlink::WorkerClient::Pause() {}
+void labstor::kernel::netlink::WorkerClient::Resume() {}
+void labstor::kernel::netlink::WorkerClient::Wait() {}

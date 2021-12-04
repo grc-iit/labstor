@@ -24,17 +24,17 @@
 #include <linux/timer.h>
 #include <linux/delay.h>
 
-#include <blkdev_table/blkdev_table.h>
 #include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_queue_pair.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 
+#include <blkdev_table/kernel/blkdev_table_kernel.h>
+
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
-MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");
+MODULE_DESCRIPTION("A kernel module for storing block device pointers");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("blkdev_table_km");
-
 
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
@@ -42,13 +42,13 @@ MODULE_ALIAS_FS("blkdev_table_km");
 #define MAX_MOUNTED_BDEVS 64
 struct block_device *bdevs[MAX_MOUNTED_BDEVS];
 
-void register_bdev(struct labstor_queue_pair *qp, const char *path, int bdev_id) {
+inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
-    bdev = blkdev_get_by_path(path, BDEV_ACCESS_FLAGS, NULL);
-    bdevs[bdev_id] = bdev;
+    bdev = blkdev_get_by_path(rq->path, BDEV_ACCESS_FLAGS, NULL);
+    bdevs[rq->dev_id] = bdev;
 }
 
-void unregister_bdev(struct labstor_queue_pair *qp, int bdev_id) {
+inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_unregister_request *rq) {
 }
 
 struct block_device* labstor_get_bdev(int bdev_id) {
@@ -56,37 +56,38 @@ struct block_device* labstor_get_bdev(int bdev_id) {
 }
 EXPORT_SYMBOL(labstor_get_bdev);
 
-void bdev_table_process_request_fn(struct queue_pair *qp, struct bdev_table_request *rq) {
-    switch(rq->header.op) {
+void bdev_table_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
+    switch(rq->op_) {
         case LABSTOR_BLKDEV_TABLE_REGISTER_BDEV: {
-            register_bdev(qp, rq->path, rq->reg.bdev_id);
+            register_bdev(qp, (struct labstor_submit_blkdev_table_register_request *)rq);
             break;
         }
         case LABSTOR_BLKDEV_TABLE_UNREGISTER_BDEV: {
-            unregister_bdev(qp, rq->unreg.bdev_id)
+            unregister_bdev(qp, (struct labstor_submit_blkdev_table_unregister_request *)rq);
             break;
         }
     }
 }
 
-struct module {
-    .module_id = BLDEV_TABLE_MODULE_ID,
+struct labstor_module blkdev_table_pkg = {
+    .module_id = BLKDEV_TABLE_MODULE_ID,
     .runtime_id = BLKDEV_TABLE_RUNTIME_ID,
     .process_request_fn = bdev_table_process_request_fn,
-} blkdev_table_pkg;
+};
 
 /**
  * MY FUNCTIONS
  * */
 
 
-static int __init init_request_layer_km(void) {
+static int __init init_blkdev_table(void) {
     register_labstor_module(&blkdev_table_pkg);
+    return 0;
 }
 
-static void __exit exit_request_layer_km(void) {
+static void __exit exit_blkdev_table(void) {
     unregister_labstor_module(&blkdev_table_pkg);
 }
 
-module_init(init_request_layer_km)
-module_exit(exit_request_layer_km)
+module_init(init_blkdev_table)
+module_exit(exit_blkdev_table)
