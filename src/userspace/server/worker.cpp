@@ -25,8 +25,8 @@ void labstor::Server::Worker::DoWork() {
             if(!qp.Dequeue(rq)) { break; }
             TRACEPOINT("labstor::Server::Worker::DoWork", rq->ns_id_, rq->op_, rq->req_id_, creds->pid);
             labstor::Module *module = namespace_->Get(rq->ns_id_);
-            module->ProcessRequest(qp, rq, creds);
-            ipc_manager_->FreeRequest(qp, rq);
+            module->ProcessRequest(&qp, rq, creds);
+            ipc_manager_->FreeRequest(&qp, rq);
         }
         qp.GetPointer(ptr, base);
         work_queue_.Enqueue(ptr);

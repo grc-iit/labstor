@@ -17,14 +17,43 @@
 
 #include <labstor/types/data_structures/array/shmem_array_labstor_string_map_bucket.h>
 
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
+#endif
+
+#ifdef __cplusplus
+struct labstor_unordered_map_labstor_string_uint32_t : public labstor::shmem_type {
+#else
 struct labstor_unordered_map_labstor_string_uint32_t {
+#endif
     struct labstor_array_labstor_string_map_bucket buckets_;
     struct labstor_array_labstor_string_map_bucket overflow_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline uint32_t GetNumBuckets();
+    inline uint32_t GetOverflow();
+    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions);
+    inline void Attach(void *region);
+    inline int Set(struct labstor_string_map_bucket &bucket);
+    inline int Find(labstor::ipc::string key, uint32_t &value);
+    inline int Remove(labstor::ipc::string key);
+    inline uint32_t operator [](labstor::ipc::string key) {
+        uint32_t value;
+        if(Find(key, value)) {
+            return value;
+        }
+        throw labstor::INVALID_UNORDERED_MAP_KEY.format();
+    }
+#endif
 };
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicSetKeyValue(struct labstor_array_labstor_string_map_bucket *arr, int i, struct labstor_string_map_bucket *bucket);
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueByKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key, uint32_t *value);
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key);
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicSetKeyValue(struct labstor_array_labstor_string_map_bucket *arr, int i, struct labstor_string_map_bucket *bucket);
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueByKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key, uint32_t *value);
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key);
 
 static inline uint32_t labstor_unordered_map_labstor_string_uint32_t_GetSize_global(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_array_labstor_string_map_bucket_GetSize_global(num_buckets) + labstor_array_labstor_string_map_bucket_GetSize_global(max_collisions);
@@ -72,7 +101,7 @@ static inline void labstor_unordered_map_labstor_string_uint32_t_Attach(struct l
     labstor_array_labstor_string_map_bucket_Attach(&map->overflow_, region);
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_Set(struct labstor_unordered_map_labstor_string_uint32_t *map, struct labstor_string_map_bucket *bucket) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_Set(struct labstor_unordered_map_labstor_string_uint32_t *map, struct labstor_string_map_bucket *bucket) {
     void *bucket_region;
     uint32_t b;
     int i;
@@ -90,7 +119,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_Set(struct labs
     return false;
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_Find(struct labstor_unordered_map_labstor_string_uint32_t *map, labstor::ipc::string key, uint32_t *value) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_Find(struct labstor_unordered_map_labstor_string_uint32_t *map, labstor::ipc::string key, uint32_t *value) {
     uint32_t b = labstor_string_map_bucket_hash(key, labstor_array_labstor_string_map_bucket_GetRegion(&map->buckets_)) % labstor_array_labstor_string_map_bucket_GetLength(&map->buckets_);
     int i;
 
@@ -105,7 +134,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_Find(struct lab
     return false;
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_Remove(struct labstor_unordered_map_labstor_string_uint32_t *map, labstor::ipc::string key) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_Remove(struct labstor_unordered_map_labstor_string_uint32_t *map, labstor::ipc::string key) {
     int32_t b = labstor_string_map_bucket_hash(key, labstor_array_labstor_string_map_bucket_GetRegion(&map->buckets_)) % labstor_array_labstor_string_map_bucket_GetLength(&map->buckets_);
     int i;
 
@@ -120,7 +149,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_Remove(struct l
     return false;
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicSetKeyValue(struct labstor_array_labstor_string_map_bucket *arr, int i, struct labstor_string_map_bucket *bucket) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicSetKeyValue(struct labstor_array_labstor_string_map_bucket *arr, int i, struct labstor_string_map_bucket *bucket) {
     labstor_off_t null = labstor_string_map_bucket_NullKey();
     if(__atomic_compare_exchange_n(
             labstor_string_map_bucket_GetAtomicKeyRef(labstor_array_labstor_string_map_bucket_GetPtr(arr, i)),
@@ -133,7 +162,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicSetKeyVal
     return false;
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueByKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key, uint32_t *value) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueByKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key, uint32_t *value) {
     struct labstor_string_map_bucket tmp;
     do {
         tmp = labstor_array_labstor_string_map_bucket_Get(arr, i);
@@ -150,7 +179,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicGetValueB
     return true;
 }
 
-static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key) {
+static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKey(struct labstor_array_labstor_string_map_bucket *arr, int i, labstor::ipc::string key) {
     struct labstor_string_map_bucket tmp;
     do {
         tmp = labstor_array_labstor_string_map_bucket_Get(arr, i);
@@ -168,56 +197,40 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKe
 }
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+
 namespace labstor::ipc {
+    typedef labstor_unordered_map_labstor_string_uint32_t unordered_map_labstor_string_uint32_t;
+}
 
-class unordered_map_labstor_string_uint32_t : protected labstor_unordered_map_labstor_string_uint32_t, public shmem_type {
-public:
-    static uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions) {
-        return labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets, max_collisions);
-    }
-    inline uint32_t GetSize() {
-        return labstor_unordered_map_labstor_string_uint32_t_GetSize(this);
-    }
-    inline void* GetRegion() {
-        return labstor_unordered_map_labstor_string_uint32_t_GetRegion(this);
-    }
-    inline uint32_t GetNumBuckets() {
-        return labstor_unordered_map_labstor_string_uint32_t_GetNumBuckets(this);
-    }
-    inline uint32_t GetOverflow() {
-        return labstor_unordered_map_labstor_string_uint32_t_GetOverflow(this);
-    }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
-        labstor_unordered_map_labstor_string_uint32_t_Init(this, region, region_size, max_collisions);
-    }
-    inline void Attach(void *region) {
-        labstor_unordered_map_labstor_string_uint32_t_Attach(this, region);
-    }
-
-    inline bool Set(struct labstor_string_map_bucket &bucket) {
-        return labstor_unordered_map_labstor_string_uint32_t_Set(this, &bucket);
-    }
-
-    inline bool Find(labstor::ipc::string key, uint32_t &value) {
-        return labstor_unordered_map_labstor_string_uint32_t_Find(this, key, &value);
-    }
-
-    inline bool Remove(labstor::ipc::string key) {
-        return labstor_unordered_map_labstor_string_uint32_t_Remove(this, key);
-    }
-
-    inline uint32_t operator [](labstor::ipc::string key) {
-        uint32_t value;
-        if(Find(key, value)) {
-            return value;
-        }
-        throw INVALID_UNORDERED_MAP_KEY.format();
-    }
-};
-
+uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+    return labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets, max_collisions);
+}
+uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetSize() {
+    return labstor_unordered_map_labstor_string_uint32_t_GetSize(this);
+}
+void* labstor::ipc::unordered_map_labstor_string_uint32_t::GetRegion() {
+    return labstor_unordered_map_labstor_string_uint32_t_GetRegion(this);
+}
+uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetNumBuckets() {
+    return labstor_unordered_map_labstor_string_uint32_t_GetNumBuckets(this);
+}
+uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetOverflow() {
+    return labstor_unordered_map_labstor_string_uint32_t_GetOverflow(this);
+}
+void labstor::ipc::unordered_map_labstor_string_uint32_t::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+    labstor_unordered_map_labstor_string_uint32_t_Init(this, region, region_size, max_collisions);
+}
+void labstor::ipc::unordered_map_labstor_string_uint32_t::Attach(void *region) {
+    labstor_unordered_map_labstor_string_uint32_t_Attach(this, region);
+}
+int labstor::ipc::unordered_map_labstor_string_uint32_t::Set(struct labstor_string_map_bucket &bucket) {
+    return labstor_unordered_map_labstor_string_uint32_t_Set(this, &bucket);
+}
+int labstor::ipc::unordered_map_labstor_string_uint32_t::Find(labstor::ipc::string key, uint32_t &value) {
+    return labstor_unordered_map_labstor_string_uint32_t_Find(this, key, &value);
+}
+int labstor::ipc::unordered_map_labstor_string_uint32_t::Remove(labstor::ipc::string key) {
+    return labstor_unordered_map_labstor_string_uint32_t_Remove(this, key);
 }
 
 #endif

@@ -55,9 +55,9 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
 
     //Allocate & register SHMEM queues for the kernel
     LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
-    labstor::ipc::queue_pair qp;
     for(int i = 0; i < num_queues; ++i) {
         //Initialize QP
+        labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
         labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
                 LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
@@ -65,7 +65,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
                 KERNEL_PID);
         void *sq_region = client_ipc->alloc_->Alloc(queue_size);
         void *cq_region = client_ipc->alloc_->Alloc(queue_size);
-        qp.Init(qid, sq_region, queue_size, cq_region, queue_size);
+        qp->Init(qid, sq_region, queue_size, cq_region, queue_size);
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -97,9 +97,10 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     TRACEPOINT("Private allocator")
 
     //Allocate & register PRIVATE intermediate queues for modules to communicate internally
-    labstor::ipc::queue_pair qp;
+    labstor::ipc::queue_pair *qp;
     for(int i = 0; i < num_queues; ++i) {
         //Initialize QP
+        labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
         labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
                 LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
@@ -107,7 +108,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
                 KERNEL_PID);
         void *sq_region = private_alloc_->Alloc(queue_size);
         void *cq_region = private_alloc_->Alloc(queue_size);
-        qp.Init(qid, sq_region, queue_size, cq_region, queue_size);
+        qp->Init(qid, sq_region, queue_size, cq_region, queue_size);
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -166,7 +167,8 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc) {
     labstor::ipc::queue_pair_ptr *ptrs = (labstor::ipc::queue_pair_ptr*)malloc(size);
     client_ipc->GetSocket().RecvMSG((void*)ptrs, size);
     for(int i = 0; i < request.count_; ++i) {
-        labstor::ipc::queue_pair qp(ptrs[i], client_ipc->shmem_region_);
+        labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
+        qp->Init(ptrs[i], client_ipc->shmem_region_);
         if(!RegisterQueuePair(qp)) {
             free(ptrs);
             throw IPC_MANAGER_CANT_REGISTER_QP.format();

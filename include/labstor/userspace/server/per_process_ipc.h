@@ -14,15 +14,16 @@ struct PerProcessIPC {
     labstor::GenericAllocator *alloc_;
     int num_stream_qps_;
 
-    PerProcessIPC() {}
+    PerProcessIPC() : num_stream_qps_(0) {}
 
-    PerProcessIPC(int fd, labstor::credentials creds) : clisock_(fd), creds_(creds) {}
+    PerProcessIPC(int fd, labstor::credentials creds) : clisock_(fd), creds_(creds), num_stream_qps_(0) {}
 
     PerProcessIPC(const PerProcessIPC &old_ipc) {
         clisock_ = old_ipc.clisock_;
         creds_ = old_ipc.creds_;
         shmem_region_ = old_ipc.shmem_region_;
         alloc_ = old_ipc.alloc_;
+        num_stream_qps_ = old_ipc.num_stream_qps_;
     }
 
     inline UnixSocket &GetSocket() { return clisock_; };

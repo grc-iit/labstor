@@ -5,17 +5,21 @@
 #ifndef LABSTOR_DEBUG_H
 #define LABSTOR_DEBUG_H
 
-#include "stdio.h"
-#include "timer.h"
-#include "serializeable.h"
-
 #define LABSTOR_DEBUG
-#ifdef LABSTOR_DEBUG
+#if defined(LABSTOR_DEBUG) && defined(__cplusplus)
 #define AUTO_TRACE(...) labstor::AutoTrace auto_tracer(false, __VA_ARGS__);
 #define TRACEPOINT(...) labstor::AutoTrace(true, __VA_ARGS__);
 #else
 #define AUTO_TRACE(...)
+#define TRACEPOINT(...)
 #endif
+
+
+#ifdef __cplusplus
+
+#include "stdio.h"
+#include "timer.h"
+#include "serializeable.h"
 
 namespace labstor {
 
@@ -47,5 +51,7 @@ public:
 };
 
 }
+
+#endif
 
 #endif //LABSTOR_DEBUG_H

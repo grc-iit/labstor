@@ -24,7 +24,7 @@ public:
     }
 
     int CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us);
-    void AssignQueuePair(labstor::ipc::queue_pair &qp, void *base);
+    void AssignQueuePair(labstor::ipc::queue_pair *qp, void *base);
 
     void Start();
     void Pause();

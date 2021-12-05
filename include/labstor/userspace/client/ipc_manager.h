@@ -22,12 +22,12 @@ private:
     UnixSocket serversock_;
     labstor::GenericAllocator *shmem_alloc_;
     labstor::GenericAllocator *private_alloc_;
-    std::vector<labstor::ipc::queue_pair> shmem_qps_;
-    std::vector<labstor::ipc::queue_pair> private_qps_;
+    std::vector<labstor::ipc::queue_pair*> shmem_qps_;
+    std::vector<labstor::ipc::queue_pair*> private_qps_;
 public:
     IPCManager() = default;
     void Connect();
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, sched_getcpu(), shmem_qps_.size(), 0)];
@@ -38,7 +38,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, int hash) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, hash, shmem_qps_.size(), 0)];
@@ -49,7 +49,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, str, ns_id, shmem_qps_.size(), 0)];
@@ -60,7 +60,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair &qp, labstor::ipc::qtok_t &qtok) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
         if(LABSTOR_QP_IS_SHMEM(qtok.qid)) {
             qp = shmem_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
         } else {
@@ -74,8 +74,8 @@ public:
             return (labstor::ipc::request*)private_alloc_->Alloc(size);
         }
     }
-    inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair &qp, uint32_t size) {
-        return AllocRequest(qp.GetQid(), size);
+    inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
+        return AllocRequest(qp->GetQid(), size);
     }
     inline void FreeRequest(labstor::ipc::qid_t qid, labstor::ipc::request *rq) {
         if(LABSTOR_QP_IS_SHMEM(qid)) {
@@ -89,9 +89,9 @@ public:
     }
     labstor::ipc::request* Wait(labstor::ipc::qtok_t &qtok) {
         labstor::ipc::request *rq;
-        labstor::ipc::queue_pair qp;
+        labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
-        rq = qp.Wait(qtok.req_id);
+        rq = qp->Wait(qtok.req_id);
         return rq;
     }
     void Wait(labstor::ipc::qtok_set &qtoks) {

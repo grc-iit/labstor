@@ -119,9 +119,12 @@ static inline void labstor_queue_pair_GetPointer(struct labstor_queue_pair *qp, 
             region);
 }
 
+#include <labstor/userspace/util/debug.h>
+
 static inline void labstor_queue_pair_Init(struct labstor_queue_pair *qp, labstor_qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
     labstor_request_queue_Init(&qp->sq, sq_region, sq_size, qid);
     labstor_unordered_map_uint32_t_request_Init(&qp->cq, cq_region, cq_size, 4);
+    TRACEPOINT("labstor_queue_pair_Init", qid, qp->cq.GetNumBuckets(), qp->cq.GetOverflow())
 }
 
 static inline void labstor_queue_pair_Attach(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base) {
@@ -146,7 +149,9 @@ static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, st
 
 static inline struct labstor_request* labstor_queue_pair_Wait(struct labstor_queue_pair *qp, uint32_t req_id) {
     struct labstor_request *ret = NULL;
+    TRACEPOINT("labstor_queue_pair_Wait", "Finding request", qp->GetQid(), req_id, qp->cq.GetNumBuckets(), qp->cq.GetOverflow());
     while(!labstor_unordered_map_uint32_t_request_Find(&qp->cq, req_id, &ret)) {}
+    TRACEPOINT("labstor_queue_pair_Wait", "Successfully found", req_id);
     labstor_unordered_map_uint32_t_request_Remove(&qp->cq, req_id);
     return ret;
 }

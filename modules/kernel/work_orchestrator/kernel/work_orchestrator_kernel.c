@@ -58,7 +58,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct timespec start, end;
 
     //Get initial time
-    getnstimeofday(&start);
+    //getnstimeofday(&start);
 
     while(keep_running) {
         //Process queues
@@ -77,12 +77,12 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
         }
 
-        //Get nanoseconds
-        getnstimeofday(&end);
+        yield();
+        /*getnstimeofday(&end);
         if(end.tv_sec - start.tv_sec > 1) {
             start = end;
             yield();
-        }
+        }*/
     }
     return 0;
 }

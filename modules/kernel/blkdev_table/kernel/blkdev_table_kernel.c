@@ -39,13 +39,19 @@ MODULE_ALIAS_FS("blkdev_table");
 //Macros
 #define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
 
-#define MAX_MOUNTED_BDEVS 64
 struct block_device *bdevs[MAX_MOUNTED_BDEVS];
 
 inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
     bdev = blkdev_get_by_path(rq->path, BDEV_ACCESS_FLAGS, NULL);
+    pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id, rq->path);
+    if(bdev == NULL) {
+        rq->header.ns_id_ = -2;
+        pr_warn("Could not find bdev: %s\n", rq->path);
+    }
     bdevs[rq->dev_id] = bdev;
+    rq->header.ns_id_ = -1;
+    //labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
 }
 
 inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_unregister_request *rq) {

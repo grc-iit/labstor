@@ -27,7 +27,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
 
-    void ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
         switch(request->op) {
             case labstor::iosched::ManualOps::kWrite: {
                 break;
@@ -54,7 +54,7 @@ public:
         mq_rq->buf_size_ = buf_size;
         mq_rq->lba_ = lba;
         mq_rq->hctx_ = hctx;
-        qtok_t qtok = kernel_qp.sq.Enqueue(rq, qtok);
+        qtok_t qtok = kernel_qp->sq.Enqueue(rq, qtok);
 
         labstor::ipc::queue_pair poll_qp;
         ipc_manager_->GetQueuePair(poll_qp, LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_STREAM | LABSTOR_QP_LOW_LATENCY);
@@ -62,7 +62,7 @@ public:
         poll_rq->ns_id_ = ns_id_;
         poll_rq->op_ = kPoll;
         poll_rq->req_id_ = qtok;
-        poll_qp.sq.Enqueue(poll_rq);
+        poll_qp->sq.Enqueue(poll_rq);
     }
 
     void Write(void *buf, size_t buf_size, size_t lba, int hctx) {
@@ -73,10 +73,10 @@ public:
         IO(buf, buf_size, lba, hctx, labstor::ipc::driver::MQOps::kRead);
     }
 
-    void PollRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request) {
+    void PollRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request) {
         labstor::ipc::poll_request new_poll_rq = (labstor::ipc::poll_request*)ipc_manager_->Alloc(sizeof(labstor::ipc::poll_request));
         *new_poll_rq = *((labstor:ipc::poll_request*)request);
-        qp.sq.Enqueue(new_poll_rq);
+        qp->sq.Enqueue(new_poll_rq);
     }
 };
 

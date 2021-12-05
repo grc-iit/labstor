@@ -11,20 +11,20 @@
 
 struct labstor_labstor_qid_t_qp_bucket {
     labstor_qid_t key_;
-    labstor::ipc::queue_pair value_;
+    labstor::ipc::queue_pair* value_;
 };
 
-static inline void labstor_labstor_qid_t_qp_bucket_Init(labstor_labstor_qid_t_qp_bucket *bucket, labstor_qid_t key, labstor::ipc::queue_pair value) {
+static inline void labstor_labstor_qid_t_qp_bucket_Init(labstor_labstor_qid_t_qp_bucket *bucket, labstor_qid_t key, labstor::ipc::queue_pair* value) {
     bucket->key_ = key;
     bucket->value_ = value;
 }
-static inline labstor::ipc::queue_pair labstor_labstor_qid_t_qp_bucket_GetValue(labstor_labstor_qid_t_qp_bucket *bucket, void *region) {
+static inline labstor::ipc::queue_pair* labstor_labstor_qid_t_qp_bucket_GetValue(labstor_labstor_qid_t_qp_bucket *bucket, void *region) {
     return bucket->value_;
 }
 static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_GetKey(labstor_labstor_qid_t_qp_bucket *bucket, void *region) {
     return bucket->key_;
 }
-static inline labstor::ipc::queue_pair labstor_labstor_qid_t_qp_bucket_GetAtomicValue(labstor_labstor_qid_t_qp_bucket *bucket) {
+static inline labstor::ipc::queue_pair* labstor_labstor_qid_t_qp_bucket_GetAtomicValue(labstor_labstor_qid_t_qp_bucket *bucket) {
     return bucket->value_;
 }
 static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_GetAtomicKey(labstor_labstor_qid_t_qp_bucket *bucket) {
@@ -57,7 +57,7 @@ static inline bool labstor_labstor_qid_t_qp_bucket_KeyCompare(labstor_qid_t key1
 namespace labstor::ipc {
 class int_map_labstor_qid_t_qp : public unordered_map_labstor_qid_t_qp {
 public:
-    inline bool Set(labstor_qid_t key, labstor::ipc::queue_pair value) {
+    inline bool Set(labstor_qid_t key, labstor::ipc::queue_pair* value) {
         labstor_labstor_qid_t_qp_bucket bucket;
         labstor_labstor_qid_t_qp_bucket_Init(&bucket, key, value);
         return unordered_map_labstor_qid_t_qp::Set(bucket);

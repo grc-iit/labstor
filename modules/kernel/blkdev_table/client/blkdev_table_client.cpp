@@ -16,7 +16,7 @@ void labstor::BlkdevTable::Client::Register() {
 
 void labstor::BlkdevTable::Client::AddBdev(std::string path) {
     AUTO_TRACE("labstor::BlkdevTable::Client::AddBdev", ns_id_)
-    labstor::ipc::queue_pair qp;
+    labstor::ipc::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     labstor_submit_blkdev_table_register_request *rq_submit;
     labstor_complete_blkdev_table_register_request *rq_complete;
@@ -28,10 +28,10 @@ void labstor::BlkdevTable::Client::AddBdev(std::string path) {
     rq_submit->header.op_ = static_cast<int>(Ops::kRegisterBdev);
     strncpy(rq_submit->path, path.c_str(), path.size());
     TRACEPOINT("path", rq_submit->path);
-    qtok = qp.Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
+    qtok = qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
     TRACEPOINT("Enqueued");
-    rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
-    ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
+    //rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
+    //ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
 }
 
 void labstor::BlkdevTable::Client::UnregisterBlkdev(int dev_id) {

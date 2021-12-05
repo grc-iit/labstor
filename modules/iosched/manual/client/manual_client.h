@@ -35,13 +35,13 @@ public:
 
     inline labstor::ipc::qtok_t AIO(ManualOp op, void *buf, size_t buf_size, size_t lba, int hctx) {
         labstor::ipc::qtok_t qtok;
-        labstor::ipc::queue_pair qp;
+        labstor::ipc::queue_pair *qp;
         mq_submit_request *io_start;
 
         ipc_manager_->GetQueuePair(qp, LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
         io_start = ipc_manager_->AllocRequest(qp, sizeof(io_request));
         io_start->Init(ns_id_, op, buf, buf_size, lba, hctx);
-        qtok = qp.Enqueue(io_start);
+        qtok = qp->Enqueue(io_start);
         return qtok;
     }
 

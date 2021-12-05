@@ -35,6 +35,9 @@ add_dependencies(test_shmem_unordered_map2_exec labstor_kernel_client secure_shm
 target_link_libraries(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_multicore_map mpirun -n 2 ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_unordered_map2_exec)
 
+######UNORDERED MAP FIND
+add_executable(test_shmem_unordered_map_find_exec ipc_manager/server/test.cpp)
+
 ######MEMORY ALLOCATION
 add_executable(test_single_core_mem_alloc_exec memory_allocator/single/test.cpp)
 add_executable(test_multicore_mem_alloc_exec memory_allocator/multicore/test.cpp)

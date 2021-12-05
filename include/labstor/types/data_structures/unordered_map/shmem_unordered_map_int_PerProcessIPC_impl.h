@@ -17,14 +17,43 @@
 
 #include <labstor/types/data_structures/array/shmem_array_labstor_int_PerProcessIPC_bucket.h>
 
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
+#endif
+
+#ifdef __cplusplus
+struct labstor_unordered_map_int_PerProcessIPC : public labstor::shmem_type {
+#else
 struct labstor_unordered_map_int_PerProcessIPC {
+#endif
     struct labstor_array_labstor_int_PerProcessIPC_bucket buckets_;
     struct labstor_array_labstor_int_PerProcessIPC_bucket overflow_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline uint32_t GetNumBuckets();
+    inline uint32_t GetOverflow();
+    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions);
+    inline void Attach(void *region);
+    inline int Set(struct labstor_int_PerProcessIPC_bucket &bucket);
+    inline int Find(int key, labstor::Server::PerProcessIPC* &value);
+    inline int Remove(int key);
+    inline labstor::Server::PerProcessIPC* operator [](int key) {
+        labstor::Server::PerProcessIPC* value;
+        if(Find(key, value)) {
+            return value;
+        }
+        throw labstor::INVALID_UNORDERED_MAP_KEY.format();
+    }
+#endif
 };
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicSetKeyValue(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, struct labstor_int_PerProcessIPC_bucket *bucket);
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key, labstor::Server::PerProcessIPC* *value);
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key);
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicSetKeyValue(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, struct labstor_int_PerProcessIPC_bucket *bucket);
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key, labstor::Server::PerProcessIPC* *value);
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key);
 
 static inline uint32_t labstor_unordered_map_int_PerProcessIPC_GetSize_global(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_array_labstor_int_PerProcessIPC_bucket_GetSize_global(num_buckets) + labstor_array_labstor_int_PerProcessIPC_bucket_GetSize_global(max_collisions);
@@ -72,7 +101,7 @@ static inline void labstor_unordered_map_int_PerProcessIPC_Attach(struct labstor
     labstor_array_labstor_int_PerProcessIPC_bucket_Attach(&map->overflow_, region);
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_Set(struct labstor_unordered_map_int_PerProcessIPC *map, struct labstor_int_PerProcessIPC_bucket *bucket) {
+static inline int labstor_unordered_map_int_PerProcessIPC_Set(struct labstor_unordered_map_int_PerProcessIPC *map, struct labstor_int_PerProcessIPC_bucket *bucket) {
     void *bucket_region;
     uint32_t b;
     int i;
@@ -90,7 +119,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_Set(struct labstor_un
     return false;
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_Find(struct labstor_unordered_map_int_PerProcessIPC *map, int key, labstor::Server::PerProcessIPC* *value) {
+static inline int labstor_unordered_map_int_PerProcessIPC_Find(struct labstor_unordered_map_int_PerProcessIPC *map, int key, labstor::Server::PerProcessIPC* *value) {
     uint32_t b = labstor_int_PerProcessIPC_bucket_hash(key, labstor_array_labstor_int_PerProcessIPC_bucket_GetRegion(&map->buckets_)) % labstor_array_labstor_int_PerProcessIPC_bucket_GetLength(&map->buckets_);
     int i;
 
@@ -105,7 +134,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_Find(struct labstor_u
     return false;
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_Remove(struct labstor_unordered_map_int_PerProcessIPC *map, int key) {
+static inline int labstor_unordered_map_int_PerProcessIPC_Remove(struct labstor_unordered_map_int_PerProcessIPC *map, int key) {
     int32_t b = labstor_int_PerProcessIPC_bucket_hash(key, labstor_array_labstor_int_PerProcessIPC_bucket_GetRegion(&map->buckets_)) % labstor_array_labstor_int_PerProcessIPC_bucket_GetLength(&map->buckets_);
     int i;
 
@@ -120,7 +149,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_Remove(struct labstor
     return false;
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicSetKeyValue(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, struct labstor_int_PerProcessIPC_bucket *bucket) {
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicSetKeyValue(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, struct labstor_int_PerProcessIPC_bucket *bucket) {
     int null = labstor_int_PerProcessIPC_bucket_NullKey();
     if(__atomic_compare_exchange_n(
             labstor_int_PerProcessIPC_bucket_GetAtomicKeyRef(labstor_array_labstor_int_PerProcessIPC_bucket_GetPtr(arr, i)),
@@ -133,7 +162,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicSetKeyValue(str
     return false;
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key, labstor::Server::PerProcessIPC* *value) {
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key, labstor::Server::PerProcessIPC* *value) {
     struct labstor_int_PerProcessIPC_bucket tmp;
     do {
         tmp = labstor_array_labstor_int_PerProcessIPC_bucket_Get(arr, i);
@@ -150,7 +179,7 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicGetValueByKey(s
     return true;
 }
 
-static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key) {
+static inline int labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(struct labstor_array_labstor_int_PerProcessIPC_bucket *arr, int i, int key) {
     struct labstor_int_PerProcessIPC_bucket tmp;
     do {
         tmp = labstor_array_labstor_int_PerProcessIPC_bucket_Get(arr, i);
@@ -168,56 +197,40 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(stru
 }
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+
 namespace labstor::ipc {
+    typedef labstor_unordered_map_int_PerProcessIPC unordered_map_int_PerProcessIPC;
+}
 
-class unordered_map_int_PerProcessIPC : protected labstor_unordered_map_int_PerProcessIPC, public shmem_type {
-public:
-    static uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions) {
-        return labstor_unordered_map_int_PerProcessIPC_GetSize_global(num_buckets, max_collisions);
-    }
-    inline uint32_t GetSize() {
-        return labstor_unordered_map_int_PerProcessIPC_GetSize(this);
-    }
-    inline void* GetRegion() {
-        return labstor_unordered_map_int_PerProcessIPC_GetRegion(this);
-    }
-    inline uint32_t GetNumBuckets() {
-        return labstor_unordered_map_int_PerProcessIPC_GetNumBuckets(this);
-    }
-    inline uint32_t GetOverflow() {
-        return labstor_unordered_map_int_PerProcessIPC_GetOverflow(this);
-    }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
-        labstor_unordered_map_int_PerProcessIPC_Init(this, region, region_size, max_collisions);
-    }
-    inline void Attach(void *region) {
-        labstor_unordered_map_int_PerProcessIPC_Attach(this, region);
-    }
-
-    inline bool Set(struct labstor_int_PerProcessIPC_bucket &bucket) {
-        return labstor_unordered_map_int_PerProcessIPC_Set(this, &bucket);
-    }
-
-    inline bool Find(int key, labstor::Server::PerProcessIPC* &value) {
-        return labstor_unordered_map_int_PerProcessIPC_Find(this, key, &value);
-    }
-
-    inline bool Remove(int key) {
-        return labstor_unordered_map_int_PerProcessIPC_Remove(this, key);
-    }
-
-    inline labstor::Server::PerProcessIPC* operator [](int key) {
-        labstor::Server::PerProcessIPC* value;
-        if(Find(key, value)) {
-            return value;
-        }
-        throw INVALID_UNORDERED_MAP_KEY.format();
-    }
-};
-
+uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+    return labstor_unordered_map_int_PerProcessIPC_GetSize_global(num_buckets, max_collisions);
+}
+uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetSize() {
+    return labstor_unordered_map_int_PerProcessIPC_GetSize(this);
+}
+void* labstor::ipc::unordered_map_int_PerProcessIPC::GetRegion() {
+    return labstor_unordered_map_int_PerProcessIPC_GetRegion(this);
+}
+uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetNumBuckets() {
+    return labstor_unordered_map_int_PerProcessIPC_GetNumBuckets(this);
+}
+uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetOverflow() {
+    return labstor_unordered_map_int_PerProcessIPC_GetOverflow(this);
+}
+void labstor::ipc::unordered_map_int_PerProcessIPC::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+    labstor_unordered_map_int_PerProcessIPC_Init(this, region, region_size, max_collisions);
+}
+void labstor::ipc::unordered_map_int_PerProcessIPC::Attach(void *region) {
+    labstor_unordered_map_int_PerProcessIPC_Attach(this, region);
+}
+int labstor::ipc::unordered_map_int_PerProcessIPC::Set(struct labstor_int_PerProcessIPC_bucket &bucket) {
+    return labstor_unordered_map_int_PerProcessIPC_Set(this, &bucket);
+}
+int labstor::ipc::unordered_map_int_PerProcessIPC::Find(int key, labstor::Server::PerProcessIPC* &value) {
+    return labstor_unordered_map_int_PerProcessIPC_Find(this, key, &value);
+}
+int labstor::ipc::unordered_map_int_PerProcessIPC::Remove(int key) {
+    return labstor_unordered_map_int_PerProcessIPC_Remove(this, key);
 }
 
 #endif

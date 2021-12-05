@@ -91,7 +91,7 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int queue_si
                 pid_);
         void *sq_region = shmem_alloc_->Alloc(queue_size);
         void *cq_region = shmem_alloc_->Alloc(queue_size);
-        shmem_qps_.emplace_back(qid, sq_region, queue_size, cq_region, queue_size);
+        shmem_qps_.emplace_back(new labstor::ipc::queue_pair(qid, sq_region, queue_size, cq_region, queue_size));
         qps[i].Init(qid, sq_region, cq_region, shmem_alloc_->GetRegion());
     }
 
@@ -114,7 +114,7 @@ void labstor::Client::IPCManager::CreatePrivateQueues(int num_queues, int queue_
                 pid_);
         void *sq_region = private_alloc_->Alloc(queue_size);
         void *cq_region = private_alloc_->Alloc(queue_size);
-        private_qps_.emplace_back(qid, sq_region, queue_size, cq_region, queue_size);
+        private_qps_.emplace_back(new labstor::ipc::queue_pair(qid, sq_region, queue_size, cq_region, queue_size));
     }
 }
 

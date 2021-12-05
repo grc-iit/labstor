@@ -21,7 +21,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
 
-    void ProcessRequest(labstor::ipc::queue_pair &qp, labstor::ipc::request *request, labstor::credentials *creds);
+    void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
 LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Server)
 

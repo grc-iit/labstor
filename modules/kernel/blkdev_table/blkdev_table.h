@@ -7,12 +7,14 @@
 
 #define BLKDEV_TABLE_MODULE_ID "BlkdevTable"
 
+#define MAX_MOUNTED_BDEVS 64
+
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
 
 struct labstor_submit_blkdev_table_register_request {
     struct labstor_request header;
-    int dev_id;
+    uint32_t dev_id;
     char path[];
 };
 

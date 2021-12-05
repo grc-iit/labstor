@@ -74,7 +74,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     }
 }
 
-void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair &qp, int worker_id) {
+void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair *qp, int worker_id) {
     AUTO_TRACE("labstor::Server::WorkOrchestrator::AssignQueuePair")
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     auto &server_workers = worker_pool_[pid_];

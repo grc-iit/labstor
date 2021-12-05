@@ -122,7 +122,7 @@ class LabStorDataStructures:
     def create_id_to_qp_map(self):
         self._create_int_map(
             S="labstor_qid_t",
-            T="labstor::ipc::queue_pair",
+            T="labstor::ipc::queue_pair*",
             T_NAME="qp"
         )
 

@@ -17,14 +17,43 @@
 
 #include <labstor/types/data_structures/array/shmem_array_{BUCKET_T_NAME}.h>
 
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
+#endif
+
+#ifdef __cplusplus
+struct labstor_unordered_map_{S_NAME}_{T_NAME} : public labstor::shmem_type {
+#else
 struct labstor_unordered_map_{S_NAME}_{T_NAME} {
+#endif
     struct labstor_array_{BUCKET_T_NAME} buckets_;
     struct labstor_array_{BUCKET_T_NAME} overflow_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline uint32_t GetNumBuckets();
+    inline uint32_t GetOverflow();
+    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions);
+    inline void Attach(void *region);
+    inline int Set(struct {BUCKET_T_NAME} &bucket);
+    inline int Find({S} key, {T} &value);
+    inline int Remove({S} key);
+    inline {T} operator []({S} key) {
+        {T} value;
+        if(Find(key, value)) {
+            return value;
+        }
+        throw labstor::INVALID_UNORDERED_MAP_KEY.format();
+    }
+#endif
 };
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicSetKeyValue(struct labstor_array_{BUCKET_T_NAME} *arr, int i, struct {BUCKET_T_NAME} *bucket);
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key, {T} *value);
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key);
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicSetKeyValue(struct labstor_array_{BUCKET_T_NAME} *arr, int i, struct {BUCKET_T_NAME} *bucket);
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key, {T} *value);
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key);
 
 static inline uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_array_{BUCKET_T_NAME}_GetSize_global(num_buckets) + labstor_array_{BUCKET_T_NAME}_GetSize_global(max_collisions);
@@ -72,7 +101,7 @@ static inline void labstor_unordered_map_{S_NAME}_{T_NAME}_Attach(struct labstor
     labstor_array_{BUCKET_T_NAME}_Attach(&map->overflow_, region);
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Set(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, struct {BUCKET_T_NAME} *bucket) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_Set(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, struct {BUCKET_T_NAME} *bucket) {
     void *bucket_region;
     uint32_t b;
     int i;
@@ -90,7 +119,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Set(struct labstor_un
     return false;
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Find(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, {S} key, {T} *value) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_Find(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, {S} key, {T} *value) {
     uint32_t b = {KeyHash}(key, labstor_array_{BUCKET_T_NAME}_GetRegion(&map->buckets_)) % labstor_array_{BUCKET_T_NAME}_GetLength(&map->buckets_);
     int i;
 
@@ -105,7 +134,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Find(struct labstor_u
     return false;
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, {S} key) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(struct labstor_unordered_map_{S_NAME}_{T_NAME} *map, {S} key) {
     int32_t b = {KeyHash}(key, labstor_array_{BUCKET_T_NAME}_GetRegion(&map->buckets_)) % labstor_array_{BUCKET_T_NAME}_GetLength(&map->buckets_);
     int i;
 
@@ -120,7 +149,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(struct labstor
     return false;
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicSetKeyValue(struct labstor_array_{BUCKET_T_NAME} *arr, int i, struct {BUCKET_T_NAME} *bucket) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicSetKeyValue(struct labstor_array_{BUCKET_T_NAME} *arr, int i, struct {BUCKET_T_NAME} *bucket) {
     {S_ATOMIC} null = {NullKey}();
     if(__atomic_compare_exchange_n(
             {GetAtomicKeyRef}(labstor_array_{BUCKET_T_NAME}_GetPtr(arr, i)),
@@ -133,7 +162,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicSetKeyValue(str
     return false;
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key, {T} *value) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key, {T} *value) {
     struct {BUCKET_T_NAME} tmp;
     do {
         tmp = labstor_array_{BUCKET_T_NAME}_Get(arr, i);
@@ -150,7 +179,7 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicGetValueByKey(s
     return true;
 }
 
-static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key) {
+static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(struct labstor_array_{BUCKET_T_NAME} *arr, int i, {S} key) {
     struct {BUCKET_T_NAME} tmp;
     do {
         tmp = labstor_array_{BUCKET_T_NAME}_Get(arr, i);
@@ -168,56 +197,40 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(stru
 }
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+
 namespace labstor::ipc {
+    typedef labstor_unordered_map_{S_NAME}_{T_NAME} unordered_map_{S_NAME}_{T_NAME};
+}
 
-class unordered_map_{S_NAME}_{T_NAME} : protected labstor_unordered_map_{S_NAME}_{T_NAME}, public shmem_type {
-public:
-    static uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions) {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(num_buckets, max_collisions);
-    }
-    inline uint32_t GetSize() {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize(this);
-    }
-    inline void* GetRegion() {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_GetRegion(this);
-    }
-    inline uint32_t GetNumBuckets() {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_GetNumBuckets(this);
-    }
-    inline uint32_t GetOverflow() {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_GetOverflow(this);
-    }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t max_collisions) {
-        labstor_unordered_map_{S_NAME}_{T_NAME}_Init(this, region, region_size, max_collisions);
-    }
-    inline void Attach(void *region) {
-        labstor_unordered_map_{S_NAME}_{T_NAME}_Attach(this, region);
-    }
-
-    inline bool Set(struct {BUCKET_T_NAME} &bucket) {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_Set(this, &bucket);
-    }
-
-    inline bool Find({S} key, {T} &value) {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_Find(this, key, &value);
-    }
-
-    inline bool Remove({S} key) {
-        return labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(this, key);
-    }
-
-    inline {T} operator []({S} key) {
-        {T} value;
-        if(Find(key, value)) {
-            return value;
-        }
-        throw INVALID_UNORDERED_MAP_KEY.format();
-    }
-};
-
+uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(num_buckets, max_collisions);
+}
+uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetSize() {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize(this);
+}
+void* labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetRegion() {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_GetRegion(this);
+}
+uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetNumBuckets() {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_GetNumBuckets(this);
+}
+uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetOverflow() {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_GetOverflow(this);
+}
+void labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+    labstor_unordered_map_{S_NAME}_{T_NAME}_Init(this, region, region_size, max_collisions);
+}
+void labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Attach(void *region) {
+    labstor_unordered_map_{S_NAME}_{T_NAME}_Attach(this, region);
+}
+int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Set(struct {BUCKET_T_NAME} &bucket) {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_Set(this, &bucket);
+}
+int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Find({S} key, {T} &value) {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_Find(this, key, &value);
+}
+int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Remove({S} key) {
+    return labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(this, key);
 }
 
 #endif
