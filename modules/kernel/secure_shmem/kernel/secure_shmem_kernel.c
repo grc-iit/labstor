@@ -182,7 +182,7 @@ int labstor_mmap_nolock(struct file *filp, struct vm_area_struct *vma) {
             pr_err("Could not map region %d into pid %d's address space", region->region_id, pid);
             return -1;
         }
-        //SetPageReserved(page);
+        SetPageReserved(vmalloc_to_page((char*)region->vmalloc_ptr + i));
     }
     return 0;
 }

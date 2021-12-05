@@ -18,6 +18,9 @@ struct ipc_manager {
 
 extern struct ipc_manager ipc_manager_;
 
+static inline bool ipc_manager_IsInitialized(void) {
+    return labstor_shmem_allocator_GetRegion(&ipc_manager_.alloc) != 0;
+}
 static inline void* ipc_manager_GetRegion(void) {
     return labstor_shmem_allocator_GetRegion(&ipc_manager_.alloc);
 }

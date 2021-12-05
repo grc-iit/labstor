@@ -135,12 +135,15 @@ int main(int argc, char **argv) {
     auto namespace_ = LABSTOR_NAMESPACE;
     namespace_->Init();
 
+    //Initialize IPC Manager
+    auto ipc_manager_ = LABSTOR_IPC_MANAGER;
+    ipc_manager_->InitializeKernelIPCManager();
+
     //Initialize workers
     auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
     work_orchestrator_->CreateWorkers();
 
-    //Establish SHMEM queues
-    auto ipc_manager_ = LABSTOR_IPC_MANAGER;
+    //Establish queues
     ipc_manager_->CreateKernelQueues();
     ipc_manager_->CreatePrivateQueues();
 

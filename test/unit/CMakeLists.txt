@@ -62,6 +62,9 @@ target_include_directories(test_module_manager_exec PUBLIC module_manager)
 add_library(simple_module SHARED module_manager/simple_module.cpp)
 add_custom_target(test_module_manager ${CMAKE_CURRENT_BINARY_DIR}/test_module_manager_exec ${CMAKE_CURRENT_BINARY_DIR}/libsimple_module.so)
 
+#######CHARVEC
+add_executable(test_charvec charvec/test.cpp)
+
 ######CLEAN ALL TESTS
 add_custom_target(clean_tests COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean_build_request_queue_client_kernel)

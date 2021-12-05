@@ -46,6 +46,7 @@ struct labstor_worker_struct *workers = NULL;
 int num_workers = 0;
 typedef int (*kthread_fn)(void*);
 
+#define MS_TO_NS(x) x * 1000000
 size_t time_slice_us;
 
 int worker_runtime(struct labstor_worker_struct *worker) {
@@ -54,35 +55,52 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_queue_pair qp;
     struct labstor_request *rq;
     struct labstor_module *module;
-    void *region = ipc_manager_GetRegion();
-    struct timespec start, end;
+    void *region;
+    ktime_t start, end;
+
+    //Check if IPCManager is initalized & get region
+    if(!ipc_manager_IsInitialized()) {
+        pr_err("IPCManager was not initalized before starting the workers!\n");
+        return -1;
+    }
+    region = ipc_manager_GetRegion();
+    pr_info("IPCManager region: %p\n", ipc_manager_.region);
 
     //Get initial time
-    //getnstimeofday(&start);
+    start = ktime_get_ns();
 
     while(keep_running) {
         //Process queues
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
-            labstor_queue_pair_InitFromPtr(&qp, &ptr, region);
+            //pr_info("Dequeing a supervisor queue? %d %d %p %p\n", ptr.sq_off, ptr.cq_off, (char*)region + ptr.sq_off, (char*)region + ptr.cq_off);
+            labstor_queue_pair_Attach(&qp, &ptr, region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
+            //pr_info("Dequeing a supervisor queue: %llu %d\n", labstor_queue_pair_GetQid(&qp), qp_depth);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
-                pr_info("Dequeued a request!");
+                pr_info("Dequeued a request: %p %d!\n", rq, rq->ns_id_);
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
+                if(module == NULL) {
+                    pr_warn("An invalid module was requested: %d\n", rq->ns_id_);
+                    continue;
+                }
+                if(!module->process_request_fn) {
+                    pr_warn("A module without a kernel worker component was selected: %d %s\n", module->runtime_id, module->module_id.key);
+                    continue;
+                }
                 module->process_request_fn(&qp, rq);
             }
             labstor_queue_pair_GetPointer(&qp, &ptr, region);
             labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
         }
 
-        yield();
-        /*getnstimeofday(&end);
-        if(end.tv_sec - start.tv_sec > 1) {
+        end = ktime_get_ns();
+        if(end - start > MS_TO_NS(5)) {
             start = end;
             yield();
-        }*/
+        }
     }
     return 0;
 }
@@ -125,7 +143,7 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
     labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->ptr);
-    pr_info("Registered queue pair\n");
+    pr_info("Registered queue pair: %d %d\n", rq->ptr.cq_off, rq->ptr.sq_off);
     return true;
 }
 

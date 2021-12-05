@@ -19,9 +19,7 @@ void labstor::kernel::netlink::IPCManager::Register(int region_id) {
     rq.header.op_ = IPC_MANAGER_REGISTER;
     rq.region_id = region_id;
     kernel_client_->SendMSG(&rq, sizeof(rq));
-    TRACEPOINT("SendMsg");
     kernel_client_->RecvMSG(&code, sizeof(code));
-    TRACEPOINT("RecvMsg");
     if(code != 0) {
         throw KERNEL_IPC_MANAGER_FAILED_TO_REGISTER.format(code);
     }

@@ -59,6 +59,7 @@ public:
     inline void SetServerFd(int fd) { server_fd_ = fd; }
     inline int GetServerFd() { return server_fd_; }
 
+    void InitializeKernelIPCManager();
     void CreateKernelQueues();
     void CreatePrivateQueues();
     void RegisterClient(int client_fd, labstor::credentials &creds);

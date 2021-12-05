@@ -6,6 +6,8 @@
  * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
  * */
 
+#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -43,15 +45,17 @@ struct block_device *bdevs[MAX_MOUNTED_BDEVS];
 
 inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
-    bdev = blkdev_get_by_path(rq->path, BDEV_ACCESS_FLAGS, NULL);
-    pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id, rq->path);
+    bdev = blkdev_get_by_path(rq->path_, BDEV_ACCESS_FLAGS, NULL);
+    pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
     if(bdev == NULL) {
-        rq->header.ns_id_ = -2;
-        pr_warn("Could not find bdev: %s\n", rq->path);
+        rq->header_.ns_id_ = -2;
+        pr_warn("Could not find bdev: %s\n", rq->path_);
     }
-    bdevs[rq->dev_id] = bdev;
-    rq->header.ns_id_ = -1;
-    //labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
+    bdevs[rq->dev_id_] = bdev;
+    rq->header_.ns_id_ = -1;
+    pr_info("Finished assigning bdev\n");
+    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
+    pr_info("Completed request\n");
 }
 
 inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_unregister_request *rq) {

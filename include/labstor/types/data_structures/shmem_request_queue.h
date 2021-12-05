@@ -16,10 +16,32 @@ struct labstor_request_queue_header {
     uint32_t update_lock_;
 };
 
+#ifdef __cplusplus
+struct labstor_request_queue : public labstor::shmem_type {
+#else
 struct labstor_request_queue {
+#endif
     struct labstor_request_queue_header *header_;
     struct labstor_ring_buffer_labstor_off_t queue_;
     struct labstor_atomic_busy update_lock_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t max_depth);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid);
+    inline void Attach(void *region);
+    inline labstor::ipc::qid_t GetQid();
+    inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq);
+    inline bool Dequeue(labstor::ipc::request *&rq);
+    inline uint32_t GetDepth();
+    inline uint32_t GetFlags();
+    inline void MarkPaused();
+    inline bool IsPaused();
+    inline void UnPause();
+    inline void PleaseWork();
+    inline void FinishWork();
+#endif
 };
 
 static inline uint32_t labstor_request_queue_GetSize_global(uint32_t max_depth) {
@@ -97,61 +119,53 @@ static inline void labstor_request_queue_FinishWork(struct labstor_request_queue
 #include <labstor/types/shmem_type.h>
 
 namespace labstor::ipc {
+    typedef labstor_request_queue request_queue;
+}
 
-class request_queue : public labstor_request_queue, public shmem_type {
-public:
-    inline static uint32_t GetSize(uint32_t max_depth) {
-        return labstor_request_queue_GetSize_global(max_depth);
-    }
-    inline uint32_t GetSize() {
-        return labstor_request_queue_GetSize(this);
-    }
-    inline void* GetRegion() {
-        return labstor_request_queue_GetRegion(this);
-    }
-
-    inline void Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid) {
-        return labstor_request_queue_Init(this, region, region_size, qid);
-    }
-
-    inline void Attach(void *region) {
-        return labstor_request_queue_Attach(this, region);
-    }
-
-    inline qid_t GetQid() {
-        return labstor_request_queue_GetQid(this);
-    }
-
-    inline qtok_t Enqueue(request *rq) {
-        return labstor_request_queue_Enqueue(this, rq);
-    }
-    inline bool Dequeue(request *&rq) {
-        return labstor_request_queue_Dequeue(this, reinterpret_cast<struct labstor_request **>(&rq));
-    }
-
-    inline uint32_t GetDepth() {
-        return labstor_request_queue_GetDepth(this);
-    }
-    inline uint32_t GetFlags() {
-        return labstor_request_queue_GetFlags(this);
-    }
-    inline void MarkPaused() {
-        return labstor_request_queue_MarkPaused(this);
-    }
-    inline bool IsPaused() {
-        return labstor_request_queue_IsPaused(this);
-    }
-    inline void UnPause() {
-        return labstor_request_queue_UnPause(this);
-    }
-    inline void PleaseWork() {
-        return labstor_request_queue_PleaseWork(this);
-    }
-    inline void FinishWork() {
-        return labstor_request_queue_FinishWork(this);
-    }
-};
-
+uint32_t labstor_request_queue::GetSize(uint32_t max_depth) {
+    return labstor_request_queue_GetSize_global(max_depth);
+}
+uint32_t labstor_request_queue::GetSize() {
+    return labstor_request_queue_GetSize(this);
+}
+void* labstor_request_queue::GetRegion() {
+    return labstor_request_queue_GetRegion(this);
+}
+void labstor_request_queue::Init(void *region, uint32_t region_size, labstor::ipc::qid_t qid) {
+    return labstor_request_queue_Init(this, region, region_size, qid);
+}
+void labstor_request_queue::Attach(void *region) {
+    return labstor_request_queue_Attach(this, region);
+}
+labstor::ipc::qid_t labstor_request_queue::GetQid() {
+    return labstor_request_queue_GetQid(this);
+}
+labstor::ipc::qtok_t labstor_request_queue::Enqueue(labstor::ipc::request *rq) {
+    return labstor_request_queue_Enqueue(this, rq);
+}
+bool labstor_request_queue::Dequeue(labstor::ipc::request *&rq) {
+    return labstor_request_queue_Dequeue(this, reinterpret_cast<struct labstor_request **>(&rq));
+}
+uint32_t labstor_request_queue::GetDepth() {
+    return labstor_request_queue_GetDepth(this);
+}
+uint32_t labstor_request_queue::GetFlags() {
+    return labstor_request_queue_GetFlags(this);
+}
+void labstor_request_queue::MarkPaused() {
+    return labstor_request_queue_MarkPaused(this);
+}
+bool labstor_request_queue::IsPaused() {
+    return labstor_request_queue_IsPaused(this);
+}
+void labstor_request_queue::UnPause() {
+    return labstor_request_queue_UnPause(this);
+}
+void labstor_request_queue::PleaseWork() {
+    return labstor_request_queue_PleaseWork(this);
+}
+void labstor_request_queue::FinishWork() {
+    return labstor_request_queue_FinishWork(this);
 }
 
 #endif

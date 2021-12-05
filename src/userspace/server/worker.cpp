@@ -19,7 +19,7 @@ void labstor::Server::Worker::DoWork() {
     for(uint32_t i = 0; i < work_queue_depth; ++i) {
         if(!work_queue_.Dequeue(ptr)) { break; }
         base = ipc_manager_->GetRegion(ptr, creds);
-        qp.Init(ptr, base);
+        qp.Attach(ptr, base);
         qp_depth = qp.GetDepth();
         for(uint32_t j = 0; j < qp_depth; ++j) {
             if(!qp.Dequeue(rq)) { break; }

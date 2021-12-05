@@ -18,15 +18,12 @@
 
 LABSTOR_WORK_ORCHESTRATOR_T work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
 
-void labstor::Server::IPCManager::CreateKernelQueues() {
+void labstor::Server::IPCManager::InitializeKernelIPCManager() {
     AUTO_TRACE("labstor::Server::IPCManager::CreateKernelQueues")
-    //Load config options
-    uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>()*SizeType::MB;
-    uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"].as<uint32_t>();
-    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"].as<uint32_t>()*SizeType::KB;
+    uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>() * SizeType::MB;
     uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit_bytes"].as<uint32_t>();
 
-    //Create new IPC
+    //Create new IPC for the kernel
     pid_to_ipc_.Set(KERNEL_PID, new PerProcessIPC());
     PerProcessIPC *client_ipc = pid_to_ipc_[KERNEL_PID];
 
@@ -52,6 +49,18 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
     //Create kernel IPC manager
     LABSTOR_KERNEL_IPC_MANAGER_T kernel_ipc_manager = LABSTOR_KERNEL_IPC_MANAGER;
     kernel_ipc_manager->Register(region_id);
+}
+
+void labstor::Server::IPCManager::CreateKernelQueues() {
+    AUTO_TRACE("labstor::Server::IPCManager::CreateKernelQueues")
+    //Load config options
+    uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"].as<uint32_t>();
+    //uint32_t queue_size = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"].as<uint32_t>()*SizeType::KB;
+    uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit_bytes"].as<uint32_t>();
+    uint32_t queue_size = request_unit;
+
+    //Get Kernel IPC region
+    PerProcessIPC *client_ipc = pid_to_ipc_[KERNEL_PID];
 
     //Allocate & register SHMEM queues for the kernel
     LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
@@ -66,6 +75,20 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         void *sq_region = client_ipc->alloc_->Alloc(queue_size);
         void *cq_region = client_ipc->alloc_->Alloc(queue_size);
         qp->Init(qid, sq_region, queue_size, cq_region, queue_size);
+        TRACEPOINT("QP Offset",
+                   (size_t)sq_region,
+                   (size_t)cq_region,
+                   (size_t)client_ipc->alloc_->GetRegion(),
+                   LABSTOR_REGION_SUB(sq_region,client_ipc->alloc_->GetRegion()),
+                   LABSTOR_REGION_SUB(cq_region,client_ipc->alloc_->GetRegion()))
+
+
+        //TODO: remove
+        int off = LABSTOR_REGION_SUB(sq_region,client_ipc->alloc_->GetRegion());
+        if(off > client_ipc->alloc_->GetSize() || off < 0) {
+            printf("Not valid region offset: %d\n", off);
+            throw 1;
+        }
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -74,7 +97,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
 
         //Send QP to kernel work orchestrator
         TRACEPOINT("AssignQueuePair")
-        kernel_work_orchestrator->AssignQueuePair(qp, region);
+        kernel_work_orchestrator->AssignQueuePair(qp, client_ipc->alloc_->GetRegion());
     }
 }
 
@@ -83,8 +106,9 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     //Load config options
     uint32_t region_size = labstor_config_->config_["ipc_manager"]["private_mem_mb"].as<uint32_t>()*SizeType::MB;
     uint32_t num_queues = labstor_config_->config_["ipc_manager"]["num_private_queues"].as<uint32_t>();
-    uint32_t queue_size = labstor_config_->config_["ipc_manager"]["private_queue_size_kb"].as<uint32_t>()*SizeType::KB;
+    //uint32_t queue_size = labstor_config_->config_["ipc_manager"]["private_queue_size_kb"].as<uint32_t>()*SizeType::KB;
     uint32_t request_unit = labstor_config_->config_["ipc_manager"]["private_request_unit_bytes"].as<uint32_t>();
+    uint32_t queue_size = request_unit;
 
     //Allocator internal memory
     private_mem_ = malloc(region_size);
@@ -119,6 +143,8 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
 
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
     AUTO_TRACE("labstor::Server::IPCManager::RegisterClient", client_fd)
+    void *region;
+    
     //Create new IPC
     pid_to_ipc_.Set(creds.pid, new PerProcessIPC(client_fd, creds));
     PerProcessIPC *client_ipc = pid_to_ipc_[creds.pid];
@@ -131,15 +157,15 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     }
     shmem->GrantPidShmem(getpid(), client_ipc->region_id_);
     shmem->GrantPidShmem(creds.pid, client_ipc->region_id_);
-    client_ipc->shmem_region_ = shmem->MapShmem(client_ipc->region_id_, per_process_shmem_);
-    if(!client_ipc->shmem_region_) {
+    region = shmem->MapShmem(client_ipc->region_id_, per_process_shmem_);
+    if(!region) {
         throw MMAP_FAILED.format(strerror(errno));
     }
-    TRACEPOINT("IPCManager: The shared memory region for PID queue pairs", (size_t)client_ipc->shmem_region_);
+    TRACEPOINT("IPCManager: The shared memory region for PID queue pairs", (size_t)region);
 
     //Create SHMEM allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
-    alloc->Init(client_ipc->shmem_region_, per_process_shmem_, allocator_unit_);
+    alloc->Init(region, per_process_shmem_, allocator_unit_);
     client_ipc->alloc_ = alloc;
 
     //Send shared memory to client
@@ -168,7 +194,7 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc) {
     client_ipc->GetSocket().RecvMSG((void*)ptrs, size);
     for(int i = 0; i < request.count_; ++i) {
         labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
-        qp->Init(ptrs[i], client_ipc->shmem_region_);
+        qp->Attach(ptrs[i], client_ipc->GetRegion());
         if(!RegisterQueuePair(qp)) {
             free(ptrs);
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
