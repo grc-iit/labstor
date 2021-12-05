@@ -52,11 +52,11 @@ int main(int argc, char **argv) {
 
     //Initialize memory allocator and queue
     if(rank == 0) {
-        map.Init(region, region_size, 16);
+        map.Init(region, region, region_size, 16);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
-        map.Attach(region);
+        map.Attach(region, region);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

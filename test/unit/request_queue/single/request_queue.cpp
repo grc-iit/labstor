@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     labstor::ipc::request *req_region = (labstor::ipc::request*)((char*)region + region_size);
 
     printf("REQUEST QUEUE START!\n");
-    q.Init(region, region_size, 10);
+    q.Init(region, region, region_size, 10);
     for(int i = 0; i < 10; ++i) {
         req_region[i].ns_id_ = i;
         q.Enqueue(req_region + i);

@@ -30,6 +30,7 @@ void labstor::BlkdevTable::Client::AddBdev(std::string path) {
     qtok = qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
     TRACEPOINT("Enqueued");
     rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
+    TRACEPOINT("Complete", (int)rq_complete->header.ns_id_);
     ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
 }
 

@@ -38,7 +38,7 @@ labstor::Server::Namespace::Namespace() {
     ns_ids_.Init(section, labstor::ipc::ring_buffer_uint32_t::GetSize(max_entries));
     remainder -= ns_ids_.GetSize();
     section = ns_ids_.GetNextSection();
-    key_to_ns_id_.Init(section, labstor::ipc::string_map::GetSize(max_entries, max_collisions), max_collisions);
+    key_to_ns_id_.Init(region_, section, labstor::ipc::string_map::GetSize(max_entries, max_collisions), max_collisions);
     remainder -= key_to_ns_id_.GetSize();
     section = key_to_ns_id_.GetNextSection();
     shared_state_.Init(section, labstor::ipc::array_uint32_t::GetSize(max_entries));

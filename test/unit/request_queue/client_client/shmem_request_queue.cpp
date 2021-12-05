@@ -56,13 +56,13 @@ int main(int argc, char **argv) {
     if(rank == 0) {
         alloc.Init(region, alloc_region_size, 256);
         region = alloc.GetNextSection();
-        q.Init(region, queue_region_size, 1);
+        q.Init(region, region, queue_region_size, 1);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
         alloc.Attach(region);
         region = alloc.GetNextSection();
-        q.Attach(region);
+        q.Attach(region, region);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

@@ -6,6 +6,7 @@
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include <labstor/types/data_structures/shmem_request_queue.h>
 #include <labstor/types/data_structures/shmem_request_map.h>
+#include <labstor/userspace/util/debug.h>
 
 //qid: [flags (10-bit)][cnt (32-bit)][pid (22-bit)]
 
@@ -70,16 +71,16 @@ struct labstor_queue_pair {
     struct labstor_unordered_map_uint32_t_request cq;
 #ifdef __cplusplus
     inline labstor_queue_pair() = default;
-    inline labstor_queue_pair(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
-        Init(qid, sq_region, sq_size, cq_region, cq_size);
+    inline labstor_queue_pair(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+        Init(qid, base_region, sq_region, sq_size, cq_region, cq_size);
     }
-    inline labstor_queue_pair(labstor::ipc::queue_pair_ptr &ptr, void *region) {
-        Attach(ptr, region);
+    inline labstor_queue_pair(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
+        Attach(ptr, base_region);
     }
     inline void GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *region);
     inline uint32_t GetDepth();
-    inline void Init(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
-    inline void Attach(labstor::ipc::queue_pair_ptr &ptr, void *base);
+    inline void Init(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
+    inline void Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region);
     inline labstor::ipc::qid_t GetQid();
     inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq);
     inline bool Dequeue(labstor::ipc::request *&rq);
@@ -98,29 +99,29 @@ namespace labstor::ipc {
 }
 #endif
 
-static inline void labstor_queue_pair_ptr_Init(struct labstor_queue_pair_ptr *ptr, labstor_qid_t qid, void *sq_region, void *cq_region, void *region) {
-    ptr->sq_off = LABSTOR_REGION_SUB(sq_region, region);
-    ptr->cq_off = LABSTOR_REGION_SUB(cq_region, region);
+static inline void labstor_queue_pair_ptr_Init(struct labstor_queue_pair_ptr *ptr, labstor_qid_t qid, void *sq_region, void *cq_region, void *base_region) {
+    ptr->sq_off = LABSTOR_REGION_SUB(sq_region, base_region);
+    ptr->cq_off = LABSTOR_REGION_SUB(cq_region, base_region);
     ptr->pid = LABSTOR_GET_QP_PID(qid);
 }
 
-static inline void labstor_queue_pair_GetPointer(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *region) {
+static inline void labstor_queue_pair_GetPointer(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base_region) {
     labstor_queue_pair_ptr_Init(
             ptr,
             labstor_request_queue_GetQid(&qp->sq),
             labstor_request_queue_GetRegion(&qp->sq),
             labstor_unordered_map_uint32_t_request_GetRegion(&qp->cq),
-            region);
+            base_region);
 }
 
-static inline void labstor_queue_pair_Init(struct labstor_queue_pair *qp, labstor_qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
-    labstor_request_queue_Init(&qp->sq, sq_region, sq_size, qid);
-    labstor_unordered_map_uint32_t_request_Init(&qp->cq, cq_region, cq_size, 4);
+static inline void labstor_queue_pair_Init(struct labstor_queue_pair *qp, labstor_qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+    labstor_request_queue_Init(&qp->sq, base_region, sq_region, sq_size, qid);
+    labstor_unordered_map_uint32_t_request_Init(&qp->cq, base_region, cq_region, cq_size, 4);
 }
 
-static inline void labstor_queue_pair_Attach(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base) {
-    labstor_request_queue_Attach(&qp->sq, LABSTOR_REGION_ADD(ptr->sq_off, base));
-    labstor_unordered_map_uint32_t_request_Attach(&qp->cq, LABSTOR_REGION_ADD(ptr->cq_off, base));
+static inline void labstor_queue_pair_Attach(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base_region) {
+    labstor_request_queue_Attach(&qp->sq, base_region, LABSTOR_REGION_ADD(ptr->sq_off, base_region));
+    labstor_unordered_map_uint32_t_request_Attach(&qp->cq, base_region, LABSTOR_REGION_ADD(ptr->cq_off, base_region));
 }
 
 static inline struct labstor_qtok_t labstor_queue_pair_Enqueue(struct labstor_queue_pair *qp, struct labstor_request *rq) {
@@ -134,7 +135,8 @@ static inline bool labstor_queue_pair_Dequeue(struct labstor_queue_pair *qp, str
 static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
     struct labstor_request_map_bucket b;
     msg->req_id_ = rq->req_id_;
-    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetRegion(&qp->cq));
+    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
+    TRACEPOINT("queue_pair_Complete", b.off_);
     labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b);
 }
 
@@ -159,26 +161,26 @@ static inline labstor_qid_t labstor_queue_pair_GetQid(struct labstor_queue_pair 
 
 /*queue_pair_ptr*/
 
-void labstor::ipc::queue_pair_ptr::Init(labstor::ipc::qid_t qid, void *sq_region, void *cq_region, void *region) {
-    labstor_queue_pair_ptr_Init(this, qid, sq_region, cq_region, region);
+void labstor::ipc::queue_pair_ptr::Init(labstor::ipc::qid_t qid, void *sq_region, void *cq_region, void *base_region) {
+    labstor_queue_pair_ptr_Init(this, qid, sq_region, cq_region, base_region);
 }
 
 /*queue_pair*/
 
-void labstor::ipc::queue_pair::GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *region) {
-    labstor_queue_pair_GetPointer(this, &ptr, region);
+void labstor::ipc::queue_pair::GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
+    labstor_queue_pair_GetPointer(this, &ptr, base_region);
 }
 
 uint32_t labstor::ipc::queue_pair::GetDepth() {
     return labstor_queue_pair_GetDepth(this);
 }
 
-void labstor::ipc::queue_pair::Init(labstor::ipc::qid_t qid, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
-    labstor_queue_pair_Init(this, qid, sq_region, sq_size, cq_region, cq_size);
+void labstor::ipc::queue_pair::Init(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size) {
+    labstor_queue_pair_Init(this, qid, base_region, sq_region, sq_size, cq_region, cq_size);
 }
 
-void labstor::ipc::queue_pair::Attach(labstor::ipc::queue_pair_ptr &ptr, void *base) {
-    labstor_queue_pair_Attach(this, &ptr, base);
+void labstor::ipc::queue_pair::Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
+    labstor_queue_pair_Attach(this, &ptr, base_region);
 }
 
 labstor::ipc::qid_t labstor::ipc::queue_pair::GetQid() {

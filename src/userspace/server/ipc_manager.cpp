@@ -74,7 +74,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
                 KERNEL_PID);
         void *sq_region = client_ipc->alloc_->Alloc(queue_size);
         void *cq_region = client_ipc->alloc_->Alloc(queue_size);
-        qp->Init(qid, sq_region, queue_size, cq_region, queue_size);
+        qp->Init(qid, client_ipc->alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
         TRACEPOINT("QP Offset",
                    (size_t)sq_region,
                    (size_t)cq_region,
@@ -132,7 +132,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
                 KERNEL_PID);
         void *sq_region = private_alloc_->Alloc(queue_size);
         void *cq_region = private_alloc_->Alloc(queue_size);
-        qp->Init(qid, sq_region, queue_size, cq_region, queue_size);
+        qp->Init(qid, private_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {

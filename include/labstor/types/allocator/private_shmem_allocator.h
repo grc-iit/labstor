@@ -8,19 +8,36 @@
 #include <labstor/constants/macros.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_labstor_off_t.h>
+#ifdef __cplusplus
+#include "allocator.h"
+#endif
 
 struct labstor_private_shmem_allocator_header {
     uint32_t region_size_;
     uint32_t request_unit_;
 };
 
+#ifdef __cplusplus
+struct labstor_private_shmem_allocator : public labstor::GenericAllocator {
+#else
 struct labstor_private_shmem_allocator {
+#endif
     struct labstor_private_shmem_allocator_header *header_;
     struct labstor_ring_buffer_labstor_off_t objs_;
+
+#ifdef __cplusplus
+    inline void* GetRegion();
+    inline uint32_t GetSize();
+    inline void Init(void *region, uint32_t region_size, uint32_t request_unit);
+    inline void Attach(void *region);
+    inline void* Alloc(uint32_t size, uint32_t core) override;
+    inline void Free(void *data) override;
+#endif
 };
 
-static inline void* labstor_private_shmem_allocator_GetRegion(struct labstor_private_shmem_allocator *alloc) { return alloc->header_; }
-
+static inline void* labstor_private_shmem_allocator_GetRegion(struct labstor_private_shmem_allocator *alloc) {
+    return alloc->header_;
+}
 static inline uint32_t labstor_private_shmem_allocator_GetSize( struct labstor_private_shmem_allocator *alloc) {
     return sizeof(struct labstor_private_shmem_allocator) + labstor_ring_buffer_labstor_off_t_GetSize(&alloc->objs_);
 }
@@ -63,38 +80,27 @@ static inline void labstor_private_shmem_allocator_Free(struct labstor_private_s
 }
 
 #ifdef __cplusplus
-
-#include "allocator.h"
-
 namespace labstor::ipc {
+    typedef labstor_private_shmem_allocator private_shmem_allocator;
+}
 
-class private_shmem_allocator : private labstor_private_shmem_allocator, public GenericAllocator {
-public:
-    private_shmem_allocator() = default;
-    inline void* GetRegion() {
-        return labstor_private_shmem_allocator_GetRegion(this);
-    }
-    uint32_t GetSize() {
-        return labstor_private_shmem_allocator_GetSize(this);
-    }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t request_unit) {
-        labstor_private_shmem_allocator_Init(this, region, region_size, request_unit);
-    }
-
-    inline void Attach(void *region) override {
-        labstor_private_shmem_allocator_Attach(this, region);
-    }
-
-    inline void* Alloc(uint32_t size, uint32_t core) override {
-        return labstor_private_shmem_allocator_Alloc(this, size, core);
-    }
-
-    inline void Free(void *data) override {
-        labstor_private_shmem_allocator_Free(this, data);
-    }
-};
-
+void* labstor_private_shmem_allocator::GetRegion() {
+    return labstor_private_shmem_allocator_GetRegion(this);
+}
+uint32_t labstor_private_shmem_allocator::GetSize() {
+    return labstor_private_shmem_allocator_GetSize(this);
+}
+void labstor_private_shmem_allocator::Init(void *region, uint32_t region_size, uint32_t request_unit) {
+    labstor_private_shmem_allocator_Init(this, region, region_size, request_unit);
+}
+void labstor_private_shmem_allocator::Attach(void *region) {
+    labstor_private_shmem_allocator_Attach(this, region);
+}
+void* labstor_private_shmem_allocator::Alloc(uint32_t size, uint32_t core) {
+    return labstor_private_shmem_allocator_Alloc(this, size, core);
+}
+void labstor_private_shmem_allocator::Free(void *data) {
+    labstor_private_shmem_allocator_Free(this, data);
 }
 
 #endif

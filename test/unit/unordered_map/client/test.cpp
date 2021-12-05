@@ -3,23 +3,33 @@
 //
 
 #include <labstor/userspace/util/errors.h>
-#include <labstor/types/data_structures/shmem_unordered_map_uint32_t_uint32_t.h>
+#include <labstor/types/data_structures/shmem_string_map.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
 
 int main() {
-    uint32_t region_size = 1024;
+    uint32_t region_size = 8192;
+    uint32_t map_region_size = 2048;
     void *region = malloc(region_size);
-    labstor::ipc::int_map_uint32_t_uint32_t map;
-    map.Init(region, region_size, 8);
+    char *string_region = (char*)region;
+    char *map_region = (char*)region + region_size - map_region_size;
+    labstor::ipc::string_map map;
+    map.Init(region, map_region, map_region_size, 8);
     uint32_t value;
-    int num_inserts = map.GetNumBuckets() + map.GetOverflow();
+    //int num_inserts = map.GetNumBuckets() + map.GetOverflow();
+    int num_inserts = 50;
+    printf("Num inserts/overflow: %d\n", num_inserts);
 
     //Test set
     for(int i = 0; i < num_inserts; ++i) {
         LABSTOR_ERROR_HANDLE_START()
-        map.Set(i, i+1);
+        labstor::ipc::string str;
+        str.Init(string_region + (i+16)*16, "hi" + std::to_string(i));
+        if(!map.Set(str, i+1)) {
+            printf("Failed: %d\n", i);
+            exit(1);
+        }
         LABSTOR_ERROR_HANDLE_END()
     }
     printf("Finished setting\n");
@@ -27,9 +37,11 @@ int main() {
     //Test find
     for(int i = 0; i < num_inserts; ++i) {
         LABSTOR_ERROR_HANDLE_START()
-        value = map[i];
+        labstor::ipc::string str;
+        str.Attach(string_region + (i+16)*16);
+        value = map[str];
         if(value != i + 1) {
-            printf("Value not set properly\n");
+            printf("Value not set properly: %d\n", i);
             exit(1);
         }
         LABSTOR_ERROR_HANDLE_END()
@@ -38,13 +50,17 @@ int main() {
 
     //Test deletion
     for(int i = 0; i < num_inserts; ++i) {
-        map.Remove(i);
+        labstor::ipc::string str;
+        str.Attach(string_region + (i+16)*16);
+        map.Remove(str);
     }
     printf("Finished removing\n");
 
     //Retest find
     for(int i = 0; i < num_inserts; ++i) {
-        if(map.Find(i, value)) {
+        labstor::ipc::string str;
+        str.Attach(string_region + (i+16)*16);
+        if(map.Find(str, value)) {
             printf("Was still able to find the value %d\n", i);
             exit(1);
         }

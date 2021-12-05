@@ -47,8 +47,9 @@ public:
         per_process_shmem_ = labstor_config_->config_["ipc_manager"]["process_shmem_kb"].as<uint32_t>()*SizeType::KB;
         allocator_unit_ = labstor_config_->config_["ipc_manager"]["allocator_unit_bytes"].as<uint32_t>()*SizeType::BYTES;
 
-        pid_to_ipc_.Init(malloc(pid_to_ipc_size), pid_to_ipc_size, max_collisions);
-        qps_by_id_.Init(malloc(qps_by_id_size), qps_by_id_size, max_collisions);
+        void *base_region;
+        pid_to_ipc_.Init(base_region = malloc(pid_to_ipc_size), base_region, pid_to_ipc_size, max_collisions);
+        qps_by_id_.Init(base_region = malloc(pid_to_ipc_size), base_region, qps_by_id_size, max_collisions);
         pid_to_ipc_.Set(pid_, new PerProcessIPC());
     }
     ~IPCManager() {
@@ -121,7 +122,7 @@ public:
         if(LABSTOR_QP_IS_BATCH(flags)) {
             uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
             uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth, 4);
-            qp->Init(flags, private_alloc_->Alloc(sq_sz), sq_sz, private_alloc_->Alloc(cq_sz), cq_sz);
+            qp->Init(flags, private_alloc_->GetRegion(), private_alloc_->Alloc(sq_sz), sq_sz, private_alloc_->Alloc(cq_sz), cq_sz);
             return;
         }
         throw INVALID_QP_QUERY.format();

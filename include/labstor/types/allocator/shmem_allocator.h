@@ -8,6 +8,7 @@
 #include "private_shmem_allocator.h"
 #ifdef __cplusplus
 #include <sys/sysinfo.h>
+#include "allocator.h"
 #endif
 
 struct labstor_shmem_allocator_entry {
@@ -19,15 +20,30 @@ struct labstor_shmem_allocator_header {
     int concurrency_;
 };
 
+#ifdef __cplusplus
+struct labstor_shmem_allocator : public labstor::GenericAllocator {
+#else
 struct labstor_shmem_allocator {
+#endif
     int concurrency_;
     uint32_t region_size_;
     struct labstor_shmem_allocator_header *header_;
     struct labstor_private_shmem_allocator *per_core_allocs_;
+
+#ifdef __cplusplus
+    inline void* GetRegion();
+    inline uint32_t GetSize();
+    inline void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency = 0);
+    inline void Attach(void *region);
+    inline void *Alloc(uint32_t size, uint32_t core) override;
+    inline void Free(void *data) override;
+#endif
 };
 
 
-static inline void* labstor_shmem_allocator_GetRegion(struct labstor_shmem_allocator *alloc) { return alloc->header_; }
+static inline void* labstor_shmem_allocator_GetRegion(struct labstor_shmem_allocator *alloc) {
+    return alloc->header_;
+}
 
 static inline uint32_t labstor_shmem_allocator_GetSize(struct labstor_shmem_allocator *alloc) {
     return alloc->region_size_;
@@ -122,37 +138,27 @@ static inline void labstor_shmem_allocator_Release(struct labstor_shmem_allocato
 
 
 #ifdef __cplusplus
-
-#include <sys/sysinfo.h>
-#include "allocator.h"
-
 namespace labstor::ipc {
-
-class shmem_allocator : public labstor_shmem_allocator, public GenericAllocator {
-public:
-    inline shmem_allocator() = default;
-    inline void* GetRegion() {
-        return labstor_shmem_allocator_GetRegion(this);
-    }
-    inline uint32_t GetSize() {
-        return labstor_shmem_allocator_GetSize(this);
-    }
-    inline void Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency = 0) {
-        labstor_shmem_allocator_Init(this, region, region_size, request_unit, concurrency);
-    }
-    inline void Attach(void *region) override {
-        labstor_shmem_allocator_Attach(this, region);
-    }
-    inline void *Alloc(uint32_t size, uint32_t core) override {
-        return labstor_shmem_allocator_Alloc(this, size, core);
-    }
-    inline void Free(void *data) override {
-        return labstor_shmem_allocator_Free(this, data);
-    }
-};
-
+    typedef labstor_shmem_allocator shmem_allocator;
 }
-
+void* labstor_shmem_allocator::GetRegion() {
+    return labstor_shmem_allocator_GetRegion(this);
+}
+uint32_t labstor_shmem_allocator::GetSize() {
+    return labstor_shmem_allocator_GetSize(this);
+}
+void labstor_shmem_allocator::Init(void *region, uint32_t region_size, uint32_t request_unit, int concurrency) {
+    labstor_shmem_allocator_Init(this, region, region_size, request_unit, concurrency);
+}
+void labstor_shmem_allocator::Attach(void *region) {
+    labstor_shmem_allocator_Attach(this, region);
+}
+void *labstor_shmem_allocator::Alloc(uint32_t size, uint32_t core) {
+    return labstor_shmem_allocator_Alloc(this, size, core);
+}
+void labstor_shmem_allocator::Free(void *data) {
+    return labstor_shmem_allocator_Free(this, data);
+}
 #endif
 
 #endif //LABSTOR_SMALL_SHMEM_ALLOCATOR_H

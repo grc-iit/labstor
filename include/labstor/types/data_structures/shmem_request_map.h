@@ -88,7 +88,7 @@ class request_map : public unordered_map_uint32_t_request {
 public:
     inline bool Set(labstor::ipc::request *rq) {
         labstor_request_map_bucket bucket;
-        labstor_request_map_bucket_Init(&bucket, rq, GetRegion());
+        labstor_request_map_bucket_Init(&bucket, rq, GetBaseRegion());
         return unordered_map_uint32_t_request::Set(bucket);
     }
 };

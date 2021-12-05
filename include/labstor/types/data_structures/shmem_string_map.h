@@ -5,6 +5,7 @@
 #ifndef LABSTOR_SHMEM_STRING_MAP_H
 #define LABSTOR_SHMEM_STRING_MAP_H
 
+#include <labstor/constants/macros.h>
 #include <labstor/types/data_structures/unordered_map/constants.h>
 #include "shmem_string.h"
 
@@ -78,7 +79,7 @@ namespace labstor::ipc {
     public:
         inline bool Set(labstor::ipc::string key, uint32_t value) {
             labstor_string_map_bucket bucket;
-            labstor_string_map_bucket_Init(&bucket, key, value, GetRegion());
+            labstor_string_map_bucket_Init(&bucket, key, value, GetBaseRegion());
             return unordered_map_labstor_string_uint32_t::Set(bucket);
         }
     };
