@@ -6,6 +6,9 @@
 #define labstor_ring_buffer_labstor_off_t_H
 
 #include <labstor/types/basics.h>
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#endif
 
 //labstor_off_t: The semantic name of the type
 //labstor_off_t: The type being buffered
@@ -15,9 +18,26 @@ struct labstor_ring_buffer_labstor_off_t_header {
     uint32_t max_depth_;
 };
 
+#ifdef __cplusplus
+struct labstor_ring_buffer_labstor_off_t : public labstor::shmem_type {
+#else
 struct labstor_ring_buffer_labstor_off_t {
+#endif
     struct labstor_ring_buffer_labstor_off_t_header *header_;
     labstor_off_t *queue_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t max_depth);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0);
+    inline void Attach(void *region);
+    inline bool Enqueue(labstor_off_t data);
+    inline bool Enqueue(labstor_off_t data, uint32_t &req_id);
+    inline bool Dequeue(labstor_off_t &data);
+    inline uint32_t GetDepth();
+    inline uint32_t GetMaxDepth();
+#endif
 };
 
 static inline uint32_t labstor_ring_buffer_labstor_off_t_GetSize_global(uint32_t max_depth) {
@@ -97,53 +117,39 @@ static inline bool labstor_ring_buffer_labstor_off_t_Dequeue(struct labstor_ring
 }
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-
 namespace labstor::ipc {
+    typedef labstor_ring_buffer_labstor_off_t ring_buffer_labstor_off_t;
+}
 
-struct ring_buffer_labstor_off_t_header {
-    uint64_t enqueued_, dequeued_;
-    uint32_t max_depth_;
-};
-
-class ring_buffer_labstor_off_t : private labstor_ring_buffer_labstor_off_t, public shmem_type {
-public:
-    static inline uint32_t GetSize(uint32_t max_depth) {
-        return labstor_ring_buffer_labstor_off_t_GetSize_global(max_depth);
-    }
-    inline uint32_t GetSize() {
-        return labstor_ring_buffer_labstor_off_t_GetSize(this);
-    }
-    inline void* GetRegion() { return labstor_ring_buffer_labstor_off_t_GetRegion(this); }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0) {
-        labstor_ring_buffer_labstor_off_t_Init(this, region, region_size, max_depth);
-    }
-
-    inline void Attach(void *region) {
-        labstor_ring_buffer_labstor_off_t_Attach(this, region);
-    }
-
-    inline bool Enqueue(labstor_off_t data) {
-        return labstor_ring_buffer_labstor_off_t_Enqueue_simple(this, data);
-    }
-
-    inline bool Enqueue(labstor_off_t data, uint32_t &req_id) {
-        return labstor_ring_buffer_labstor_off_t_Enqueue(this, data, &req_id);
-    }
-
-    inline bool Dequeue(labstor_off_t &data) {
-        return labstor_ring_buffer_labstor_off_t_Dequeue(this, &data);
-    }
-
-    inline uint32_t GetDepth() {
-        return labstor_ring_buffer_labstor_off_t_GetDepth(this);
-    }
-    inline uint32_t GetMaxDepth() {
-        return labstor_ring_buffer_labstor_off_t_GetMaxDepth(this);
-    }
-};
-
+uint32_t labstor_ring_buffer_labstor_off_t::GetSize(uint32_t max_depth) {
+    return labstor_ring_buffer_labstor_off_t_GetSize_global(max_depth);
+}
+uint32_t labstor_ring_buffer_labstor_off_t::GetSize() {
+    return labstor_ring_buffer_labstor_off_t_GetSize(this);
+}
+void* labstor_ring_buffer_labstor_off_t::GetRegion() {
+    return labstor_ring_buffer_labstor_off_t_GetRegion(this);
+}
+void labstor_ring_buffer_labstor_off_t::Init(void *region, uint32_t region_size, uint32_t max_depth) {
+    labstor_ring_buffer_labstor_off_t_Init(this, region, region_size, max_depth);
+}
+void labstor_ring_buffer_labstor_off_t::Attach(void *region) {
+    labstor_ring_buffer_labstor_off_t_Attach(this, region);
+}
+bool labstor_ring_buffer_labstor_off_t::Enqueue(labstor_off_t data) {
+    return labstor_ring_buffer_labstor_off_t_Enqueue_simple(this, data);
+}
+bool labstor_ring_buffer_labstor_off_t::Enqueue(labstor_off_t data, uint32_t &req_id) {
+    return labstor_ring_buffer_labstor_off_t_Enqueue(this, data, &req_id);
+}
+bool labstor_ring_buffer_labstor_off_t::Dequeue(labstor_off_t &data) {
+    return labstor_ring_buffer_labstor_off_t_Dequeue(this, &data);
+}
+uint32_t labstor_ring_buffer_labstor_off_t::GetDepth() {
+    return labstor_ring_buffer_labstor_off_t_GetDepth(this);
+}
+uint32_t labstor_ring_buffer_labstor_off_t::GetMaxDepth() {
+    return labstor_ring_buffer_labstor_off_t_GetMaxDepth(this);
 }
 
 #endif

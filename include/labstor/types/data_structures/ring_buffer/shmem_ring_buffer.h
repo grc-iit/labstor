@@ -6,6 +6,9 @@
 #define labstor_ring_buffer_{T_NAME}_H
 
 #include <labstor/types/basics.h>
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#endif
 
 //{T_NAME}: The semantic name of the type
 //{T}: The type being buffered
@@ -15,9 +18,26 @@ struct labstor_ring_buffer_{T_NAME}_header {
     uint32_t max_depth_;
 };
 
+#ifdef __cplusplus
+struct labstor_ring_buffer_{T_NAME} : public labstor::shmem_type {
+#else
 struct labstor_ring_buffer_{T_NAME} {
+#endif
     struct labstor_ring_buffer_{T_NAME}_header *header_;
     {T} *queue_;
+
+#ifdef __cplusplus
+    static inline uint32_t GetSize(uint32_t max_depth);
+    inline uint32_t GetSize();
+    inline void* GetRegion();
+    inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0);
+    inline void Attach(void *region);
+    inline bool Enqueue({T} data);
+    inline bool Enqueue({T} data, uint32_t &req_id);
+    inline bool Dequeue({T} &data);
+    inline uint32_t GetDepth();
+    inline uint32_t GetMaxDepth();
+#endif
 };
 
 static inline uint32_t labstor_ring_buffer_{T_NAME}_GetSize_global(uint32_t max_depth) {
@@ -97,53 +117,39 @@ static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buff
 }
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-
 namespace labstor::ipc {
+    typedef labstor_ring_buffer_{T_NAME} ring_buffer_{T_NAME};
+}
 
-struct ring_buffer_{T_NAME}_header {
-    uint64_t enqueued_, dequeued_;
-    uint32_t max_depth_;
-};
-
-class ring_buffer_{T_NAME} : private labstor_ring_buffer_{T_NAME}, public shmem_type {
-public:
-    static inline uint32_t GetSize(uint32_t max_depth) {
-        return labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth);
-    }
-    inline uint32_t GetSize() {
-        return labstor_ring_buffer_{T_NAME}_GetSize(this);
-    }
-    inline void* GetRegion() { return labstor_ring_buffer_{T_NAME}_GetRegion(this); }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0) {
-        labstor_ring_buffer_{T_NAME}_Init(this, region, region_size, max_depth);
-    }
-
-    inline void Attach(void *region) {
-        labstor_ring_buffer_{T_NAME}_Attach(this, region);
-    }
-
-    inline bool Enqueue({T} data) {
-        return labstor_ring_buffer_{T_NAME}_Enqueue_simple(this, data);
-    }
-
-    inline bool Enqueue({T} data, uint32_t &req_id) {
-        return labstor_ring_buffer_{T_NAME}_Enqueue(this, data, &req_id);
-    }
-
-    inline bool Dequeue({T} &data) {
-        return labstor_ring_buffer_{T_NAME}_Dequeue(this, &data);
-    }
-
-    inline uint32_t GetDepth() {
-        return labstor_ring_buffer_{T_NAME}_GetDepth(this);
-    }
-    inline uint32_t GetMaxDepth() {
-        return labstor_ring_buffer_{T_NAME}_GetMaxDepth(this);
-    }
-};
-
+uint32_t labstor_ring_buffer_{T_NAME}::GetSize(uint32_t max_depth) {
+    return labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth);
+}
+uint32_t labstor_ring_buffer_{T_NAME}::GetSize() {
+    return labstor_ring_buffer_{T_NAME}_GetSize(this);
+}
+void* labstor_ring_buffer_{T_NAME}::GetRegion() {
+    return labstor_ring_buffer_{T_NAME}_GetRegion(this);
+}
+void labstor_ring_buffer_{T_NAME}::Init(void *region, uint32_t region_size, uint32_t max_depth) {
+    labstor_ring_buffer_{T_NAME}_Init(this, region, region_size, max_depth);
+}
+void labstor_ring_buffer_{T_NAME}::Attach(void *region) {
+    labstor_ring_buffer_{T_NAME}_Attach(this, region);
+}
+bool labstor_ring_buffer_{T_NAME}::Enqueue({T} data) {
+    return labstor_ring_buffer_{T_NAME}_Enqueue_simple(this, data);
+}
+bool labstor_ring_buffer_{T_NAME}::Enqueue({T} data, uint32_t &req_id) {
+    return labstor_ring_buffer_{T_NAME}_Enqueue(this, data, &req_id);
+}
+bool labstor_ring_buffer_{T_NAME}::Dequeue({T} &data) {
+    return labstor_ring_buffer_{T_NAME}_Dequeue(this, &data);
+}
+uint32_t labstor_ring_buffer_{T_NAME}::GetDepth() {
+    return labstor_ring_buffer_{T_NAME}_GetDepth(this);
+}
+uint32_t labstor_ring_buffer_{T_NAME}::GetMaxDepth() {
+    return labstor_ring_buffer_{T_NAME}_GetMaxDepth(this);
 }
 
 #endif

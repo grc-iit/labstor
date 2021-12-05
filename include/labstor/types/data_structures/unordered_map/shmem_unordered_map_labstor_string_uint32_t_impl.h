@@ -201,35 +201,34 @@ static inline int labstor_unordered_map_labstor_string_uint32_t_AtomicNullifyKey
 namespace labstor::ipc {
     typedef labstor_unordered_map_labstor_string_uint32_t unordered_map_labstor_string_uint32_t;
 }
-
-uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+uint32_t labstor_unordered_map_labstor_string_uint32_t::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets, max_collisions);
 }
-uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetSize() {
+uint32_t labstor_unordered_map_labstor_string_uint32_t::GetSize() {
     return labstor_unordered_map_labstor_string_uint32_t_GetSize(this);
 }
-void* labstor::ipc::unordered_map_labstor_string_uint32_t::GetRegion() {
+void* labstor_unordered_map_labstor_string_uint32_t::GetRegion() {
     return labstor_unordered_map_labstor_string_uint32_t_GetRegion(this);
 }
-uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetNumBuckets() {
+uint32_t labstor_unordered_map_labstor_string_uint32_t::GetNumBuckets() {
     return labstor_unordered_map_labstor_string_uint32_t_GetNumBuckets(this);
 }
-uint32_t labstor::ipc::unordered_map_labstor_string_uint32_t::GetOverflow() {
+uint32_t labstor_unordered_map_labstor_string_uint32_t::GetOverflow() {
     return labstor_unordered_map_labstor_string_uint32_t_GetOverflow(this);
 }
-void labstor::ipc::unordered_map_labstor_string_uint32_t::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+void labstor_unordered_map_labstor_string_uint32_t::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
     labstor_unordered_map_labstor_string_uint32_t_Init(this, region, region_size, max_collisions);
 }
-void labstor::ipc::unordered_map_labstor_string_uint32_t::Attach(void *region) {
+void labstor_unordered_map_labstor_string_uint32_t::Attach(void *region) {
     labstor_unordered_map_labstor_string_uint32_t_Attach(this, region);
 }
-int labstor::ipc::unordered_map_labstor_string_uint32_t::Set(struct labstor_string_map_bucket &bucket) {
+int labstor_unordered_map_labstor_string_uint32_t::Set(struct labstor_string_map_bucket &bucket) {
     return labstor_unordered_map_labstor_string_uint32_t_Set(this, &bucket);
 }
-int labstor::ipc::unordered_map_labstor_string_uint32_t::Find(labstor::ipc::string key, uint32_t &value) {
+int labstor_unordered_map_labstor_string_uint32_t::Find(labstor::ipc::string key, uint32_t &value) {
     return labstor_unordered_map_labstor_string_uint32_t_Find(this, key, &value);
 }
-int labstor::ipc::unordered_map_labstor_string_uint32_t::Remove(labstor::ipc::string key) {
+int labstor_unordered_map_labstor_string_uint32_t::Remove(labstor::ipc::string key) {
     return labstor_unordered_map_labstor_string_uint32_t_Remove(this, key);
 }
 

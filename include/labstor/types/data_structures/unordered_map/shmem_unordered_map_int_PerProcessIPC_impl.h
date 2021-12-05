@@ -201,35 +201,34 @@ static inline int labstor_unordered_map_int_PerProcessIPC_AtomicNullifyKey(struc
 namespace labstor::ipc {
     typedef labstor_unordered_map_int_PerProcessIPC unordered_map_int_PerProcessIPC;
 }
-
-uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+uint32_t labstor_unordered_map_int_PerProcessIPC::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_unordered_map_int_PerProcessIPC_GetSize_global(num_buckets, max_collisions);
 }
-uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetSize() {
+uint32_t labstor_unordered_map_int_PerProcessIPC::GetSize() {
     return labstor_unordered_map_int_PerProcessIPC_GetSize(this);
 }
-void* labstor::ipc::unordered_map_int_PerProcessIPC::GetRegion() {
+void* labstor_unordered_map_int_PerProcessIPC::GetRegion() {
     return labstor_unordered_map_int_PerProcessIPC_GetRegion(this);
 }
-uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetNumBuckets() {
+uint32_t labstor_unordered_map_int_PerProcessIPC::GetNumBuckets() {
     return labstor_unordered_map_int_PerProcessIPC_GetNumBuckets(this);
 }
-uint32_t labstor::ipc::unordered_map_int_PerProcessIPC::GetOverflow() {
+uint32_t labstor_unordered_map_int_PerProcessIPC::GetOverflow() {
     return labstor_unordered_map_int_PerProcessIPC_GetOverflow(this);
 }
-void labstor::ipc::unordered_map_int_PerProcessIPC::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+void labstor_unordered_map_int_PerProcessIPC::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
     labstor_unordered_map_int_PerProcessIPC_Init(this, region, region_size, max_collisions);
 }
-void labstor::ipc::unordered_map_int_PerProcessIPC::Attach(void *region) {
+void labstor_unordered_map_int_PerProcessIPC::Attach(void *region) {
     labstor_unordered_map_int_PerProcessIPC_Attach(this, region);
 }
-int labstor::ipc::unordered_map_int_PerProcessIPC::Set(struct labstor_int_PerProcessIPC_bucket &bucket) {
+int labstor_unordered_map_int_PerProcessIPC::Set(struct labstor_int_PerProcessIPC_bucket &bucket) {
     return labstor_unordered_map_int_PerProcessIPC_Set(this, &bucket);
 }
-int labstor::ipc::unordered_map_int_PerProcessIPC::Find(int key, labstor::Server::PerProcessIPC* &value) {
+int labstor_unordered_map_int_PerProcessIPC::Find(int key, labstor::Server::PerProcessIPC* &value) {
     return labstor_unordered_map_int_PerProcessIPC_Find(this, key, &value);
 }
-int labstor::ipc::unordered_map_int_PerProcessIPC::Remove(int key) {
+int labstor_unordered_map_int_PerProcessIPC::Remove(int key) {
     return labstor_unordered_map_int_PerProcessIPC_Remove(this, key);
 }
 

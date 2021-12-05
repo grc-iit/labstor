@@ -6,18 +6,35 @@
 #define LABSTOR_ARRAY_{T_NAME}_H
 
 #include <labstor/types/basics.h>
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#endif
 
 struct labstor_array_{T_NAME}_header {
     uint32_t length_;
 };
 
+#ifdef __cplusplus
+struct labstor_array_{T_NAME} : public labstor::shmem_type {
+#else
 struct labstor_array_{T_NAME} {
+#endif
     struct labstor_array_{T_NAME}_header *header_;
     {T} *arr_;
+
+#ifdef __cplusplus
+    inline static uint32_t GetSize(uint32_t length);
+    inline uint32_t GetSize();
+    inline uint32_t GetLength();
+    inline void* GetRegion();
+    inline void Init(void *region, uint32_t region_size, uint32_t length = 0);
+    inline void Attach(void *region);
+    inline {T}& operator [] (int i) { return arr_[i]; }
+#endif
 };
 
 static inline uint32_t labstor_array_{T_NAME}_GetSize_global(uint32_t length) {
-    return sizeof(struct labstor_array_{T_NAME}_header*) + sizeof({T})*length;
+    return sizeof(struct labstor_array_{T_NAME}_header) + sizeof({T})*length;
 }
 
 static inline uint32_t labstor_array_{T_NAME}_GetSize(struct labstor_array_{T_NAME} *arr) {
@@ -61,37 +78,26 @@ static inline {T}* labstor_array_{T_NAME}_GetPtr(struct labstor_array_{T_NAME} *
 
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
-
-struct array_{T_NAME}_header {
-    uint32_t length_;
-};
-
-class array_{T_NAME} : private labstor_array_{T_NAME}, public shmem_type {
-public:
-    inline static uint32_t GetSize(uint32_t length) {
-        return labstor_array_{T_NAME}_GetSize_global(length);
-    }
-    inline uint32_t GetSize() {
-        return labstor_array_{T_NAME}_GetSize(this);
-    }
-    inline uint32_t GetLength() {
-        return labstor_array_{T_NAME}_GetLength(this);
-    }
-    inline void* GetRegion() { return labstor_array_{T_NAME}_GetRegion(this); }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t length = 0) {
-        labstor_array_{T_NAME}_Init(this, region, region_size, length);
-    }
-
-    inline void Attach(void *region) {
-        labstor_array_{T_NAME}_Attach(this, region);
-    }
-
-    inline {T}& operator [] (int i) { return arr_[i]; }
-};
-
+    typedef labstor_array_{T_NAME} array_{T_NAME};
+}
+uint32_t labstor_array_{T_NAME}::GetSize(uint32_t length) {
+    return labstor_array_{T_NAME}_GetSize_global(length);
+}
+uint32_t labstor_array_{T_NAME}::GetSize() {
+    return labstor_array_{T_NAME}_GetSize(this);
+}
+uint32_t labstor_array_{T_NAME}::GetLength() {
+    return labstor_array_{T_NAME}_GetLength(this);
+}
+void* labstor_array_{T_NAME}::GetRegion() {
+    return labstor_array_{T_NAME}_GetRegion(this);
+}
+void labstor_array_{T_NAME}::Init(void *region, uint32_t region_size, uint32_t length) {
+    labstor_array_{T_NAME}_Init(this, region, region_size, length);
+}
+void labstor_array_{T_NAME}::Attach(void *region) {
+    labstor_array_{T_NAME}_Attach(this, region);
 }
 
 #endif

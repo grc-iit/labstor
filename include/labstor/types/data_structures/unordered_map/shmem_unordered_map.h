@@ -201,35 +201,34 @@ static inline int labstor_unordered_map_{S_NAME}_{T_NAME}_AtomicNullifyKey(struc
 namespace labstor::ipc {
     typedef labstor_unordered_map_{S_NAME}_{T_NAME} unordered_map_{S_NAME}_{T_NAME};
 }
-
-uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize_global(num_buckets, max_collisions);
 }
-uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetSize() {
+uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}::GetSize() {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_GetSize(this);
 }
-void* labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetRegion() {
+void* labstor_unordered_map_{S_NAME}_{T_NAME}::GetRegion() {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_GetRegion(this);
 }
-uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetNumBuckets() {
+uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}::GetNumBuckets() {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_GetNumBuckets(this);
 }
-uint32_t labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::GetOverflow() {
+uint32_t labstor_unordered_map_{S_NAME}_{T_NAME}::GetOverflow() {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_GetOverflow(this);
 }
-void labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+void labstor_unordered_map_{S_NAME}_{T_NAME}::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
     labstor_unordered_map_{S_NAME}_{T_NAME}_Init(this, region, region_size, max_collisions);
 }
-void labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Attach(void *region) {
+void labstor_unordered_map_{S_NAME}_{T_NAME}::Attach(void *region) {
     labstor_unordered_map_{S_NAME}_{T_NAME}_Attach(this, region);
 }
-int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Set(struct {BUCKET_T_NAME} &bucket) {
+int labstor_unordered_map_{S_NAME}_{T_NAME}::Set(struct {BUCKET_T_NAME} &bucket) {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_Set(this, &bucket);
 }
-int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Find({S} key, {T} &value) {
+int labstor_unordered_map_{S_NAME}_{T_NAME}::Find({S} key, {T} &value) {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_Find(this, key, &value);
 }
-int labstor::ipc::unordered_map_{S_NAME}_{T_NAME}::Remove({S} key) {
+int labstor_unordered_map_{S_NAME}_{T_NAME}::Remove({S} key) {
     return labstor_unordered_map_{S_NAME}_{T_NAME}_Remove(this, key);
 }
 

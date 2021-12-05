@@ -6,18 +6,35 @@
 #define LABSTOR_ARRAY_labstor_off_t_H
 
 #include <labstor/types/basics.h>
+#ifdef __cplusplus
+#include <labstor/types/shmem_type.h>
+#endif
 
 struct labstor_array_labstor_off_t_header {
     uint32_t length_;
 };
 
+#ifdef __cplusplus
+struct labstor_array_labstor_off_t : public labstor::shmem_type {
+#else
 struct labstor_array_labstor_off_t {
+#endif
     struct labstor_array_labstor_off_t_header *header_;
     labstor_off_t *arr_;
+
+#ifdef __cplusplus
+    inline static uint32_t GetSize(uint32_t length);
+    inline uint32_t GetSize();
+    inline uint32_t GetLength();
+    inline void* GetRegion();
+    inline void Init(void *region, uint32_t region_size, uint32_t length = 0);
+    inline void Attach(void *region);
+    inline labstor_off_t& operator [] (int i) { return arr_[i]; }
+#endif
 };
 
 static inline uint32_t labstor_array_labstor_off_t_GetSize_global(uint32_t length) {
-    return sizeof(struct labstor_array_labstor_off_t_header*) + sizeof(labstor_off_t)*length;
+    return sizeof(struct labstor_array_labstor_off_t_header) + sizeof(labstor_off_t)*length;
 }
 
 static inline uint32_t labstor_array_labstor_off_t_GetSize(struct labstor_array_labstor_off_t *arr) {
@@ -61,37 +78,26 @@ static inline labstor_off_t* labstor_array_labstor_off_t_GetPtr(struct labstor_a
 
 
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
-
-struct array_labstor_off_t_header {
-    uint32_t length_;
-};
-
-class array_labstor_off_t : private labstor_array_labstor_off_t, public shmem_type {
-public:
-    inline static uint32_t GetSize(uint32_t length) {
-        return labstor_array_labstor_off_t_GetSize_global(length);
-    }
-    inline uint32_t GetSize() {
-        return labstor_array_labstor_off_t_GetSize(this);
-    }
-    inline uint32_t GetLength() {
-        return labstor_array_labstor_off_t_GetLength(this);
-    }
-    inline void* GetRegion() { return labstor_array_labstor_off_t_GetRegion(this); }
-
-    inline void Init(void *region, uint32_t region_size, uint32_t length = 0) {
-        labstor_array_labstor_off_t_Init(this, region, region_size, length);
-    }
-
-    inline void Attach(void *region) {
-        labstor_array_labstor_off_t_Attach(this, region);
-    }
-
-    inline labstor_off_t& operator [] (int i) { return arr_[i]; }
-};
-
+    typedef labstor_array_labstor_off_t array_labstor_off_t;
+}
+uint32_t labstor_array_labstor_off_t::GetSize(uint32_t length) {
+    return labstor_array_labstor_off_t_GetSize_global(length);
+}
+uint32_t labstor_array_labstor_off_t::GetSize() {
+    return labstor_array_labstor_off_t_GetSize(this);
+}
+uint32_t labstor_array_labstor_off_t::GetLength() {
+    return labstor_array_labstor_off_t_GetLength(this);
+}
+void* labstor_array_labstor_off_t::GetRegion() {
+    return labstor_array_labstor_off_t_GetRegion(this);
+}
+void labstor_array_labstor_off_t::Init(void *region, uint32_t region_size, uint32_t length) {
+    labstor_array_labstor_off_t_Init(this, region, region_size, length);
+}
+void labstor_array_labstor_off_t::Attach(void *region) {
+    labstor_array_labstor_off_t_Attach(this, region);
 }
 
 #endif

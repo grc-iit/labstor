@@ -201,35 +201,34 @@ static inline int labstor_unordered_map_labstor_qid_t_qp_AtomicNullifyKey(struct
 namespace labstor::ipc {
     typedef labstor_unordered_map_labstor_qid_t_qp unordered_map_labstor_qid_t_qp;
 }
-
-uint32_t labstor::ipc::unordered_map_labstor_qid_t_qp::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+uint32_t labstor_unordered_map_labstor_qid_t_qp::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_unordered_map_labstor_qid_t_qp_GetSize_global(num_buckets, max_collisions);
 }
-uint32_t labstor::ipc::unordered_map_labstor_qid_t_qp::GetSize() {
+uint32_t labstor_unordered_map_labstor_qid_t_qp::GetSize() {
     return labstor_unordered_map_labstor_qid_t_qp_GetSize(this);
 }
-void* labstor::ipc::unordered_map_labstor_qid_t_qp::GetRegion() {
+void* labstor_unordered_map_labstor_qid_t_qp::GetRegion() {
     return labstor_unordered_map_labstor_qid_t_qp_GetRegion(this);
 }
-uint32_t labstor::ipc::unordered_map_labstor_qid_t_qp::GetNumBuckets() {
+uint32_t labstor_unordered_map_labstor_qid_t_qp::GetNumBuckets() {
     return labstor_unordered_map_labstor_qid_t_qp_GetNumBuckets(this);
 }
-uint32_t labstor::ipc::unordered_map_labstor_qid_t_qp::GetOverflow() {
+uint32_t labstor_unordered_map_labstor_qid_t_qp::GetOverflow() {
     return labstor_unordered_map_labstor_qid_t_qp_GetOverflow(this);
 }
-void labstor::ipc::unordered_map_labstor_qid_t_qp::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+void labstor_unordered_map_labstor_qid_t_qp::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
     labstor_unordered_map_labstor_qid_t_qp_Init(this, region, region_size, max_collisions);
 }
-void labstor::ipc::unordered_map_labstor_qid_t_qp::Attach(void *region) {
+void labstor_unordered_map_labstor_qid_t_qp::Attach(void *region) {
     labstor_unordered_map_labstor_qid_t_qp_Attach(this, region);
 }
-int labstor::ipc::unordered_map_labstor_qid_t_qp::Set(struct labstor_labstor_qid_t_qp_bucket &bucket) {
+int labstor_unordered_map_labstor_qid_t_qp::Set(struct labstor_labstor_qid_t_qp_bucket &bucket) {
     return labstor_unordered_map_labstor_qid_t_qp_Set(this, &bucket);
 }
-int labstor::ipc::unordered_map_labstor_qid_t_qp::Find(labstor_qid_t key, labstor::ipc::queue_pair* &value) {
+int labstor_unordered_map_labstor_qid_t_qp::Find(labstor_qid_t key, labstor::ipc::queue_pair* &value) {
     return labstor_unordered_map_labstor_qid_t_qp_Find(this, key, &value);
 }
-int labstor::ipc::unordered_map_labstor_qid_t_qp::Remove(labstor_qid_t key) {
+int labstor_unordered_map_labstor_qid_t_qp::Remove(labstor_qid_t key) {
     return labstor_unordered_map_labstor_qid_t_qp_Remove(this, key);
 }
 

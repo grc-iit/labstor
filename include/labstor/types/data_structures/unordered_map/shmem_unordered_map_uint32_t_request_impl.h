@@ -201,35 +201,34 @@ static inline int labstor_unordered_map_uint32_t_request_AtomicNullifyKey(struct
 namespace labstor::ipc {
     typedef labstor_unordered_map_uint32_t_request unordered_map_uint32_t_request;
 }
-
-uint32_t labstor::ipc::unordered_map_uint32_t_request::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
+uint32_t labstor_unordered_map_uint32_t_request::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
     return labstor_unordered_map_uint32_t_request_GetSize_global(num_buckets, max_collisions);
 }
-uint32_t labstor::ipc::unordered_map_uint32_t_request::GetSize() {
+uint32_t labstor_unordered_map_uint32_t_request::GetSize() {
     return labstor_unordered_map_uint32_t_request_GetSize(this);
 }
-void* labstor::ipc::unordered_map_uint32_t_request::GetRegion() {
+void* labstor_unordered_map_uint32_t_request::GetRegion() {
     return labstor_unordered_map_uint32_t_request_GetRegion(this);
 }
-uint32_t labstor::ipc::unordered_map_uint32_t_request::GetNumBuckets() {
+uint32_t labstor_unordered_map_uint32_t_request::GetNumBuckets() {
     return labstor_unordered_map_uint32_t_request_GetNumBuckets(this);
 }
-uint32_t labstor::ipc::unordered_map_uint32_t_request::GetOverflow() {
+uint32_t labstor_unordered_map_uint32_t_request::GetOverflow() {
     return labstor_unordered_map_uint32_t_request_GetOverflow(this);
 }
-void labstor::ipc::unordered_map_uint32_t_request::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
+void labstor_unordered_map_uint32_t_request::Init(void *region, uint32_t region_size, uint32_t max_collisions) {
     labstor_unordered_map_uint32_t_request_Init(this, region, region_size, max_collisions);
 }
-void labstor::ipc::unordered_map_uint32_t_request::Attach(void *region) {
+void labstor_unordered_map_uint32_t_request::Attach(void *region) {
     labstor_unordered_map_uint32_t_request_Attach(this, region);
 }
-int labstor::ipc::unordered_map_uint32_t_request::Set(struct labstor_request_map_bucket &bucket) {
+int labstor_unordered_map_uint32_t_request::Set(struct labstor_request_map_bucket &bucket) {
     return labstor_unordered_map_uint32_t_request_Set(this, &bucket);
 }
-int labstor::ipc::unordered_map_uint32_t_request::Find(uint32_t key, struct labstor_request* &value) {
+int labstor_unordered_map_uint32_t_request::Find(uint32_t key, struct labstor_request* &value) {
     return labstor_unordered_map_uint32_t_request_Find(this, key, &value);
 }
-int labstor::ipc::unordered_map_uint32_t_request::Remove(uint32_t key) {
+int labstor_unordered_map_uint32_t_request::Remove(uint32_t key) {
     return labstor_unordered_map_uint32_t_request_Remove(this, key);
 }
 
