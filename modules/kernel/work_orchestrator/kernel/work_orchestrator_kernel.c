@@ -64,7 +64,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         return -1;
     }
     region = ipc_manager_GetRegion();
-    pr_info("IPCManager region: %p\n", ipc_manager_.region);
+    pr_info("Worker %p has started\n", worker);
 
     //Get initial time
     start = ktime_get_ns();
@@ -74,13 +74,13 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
-            //pr_info("Dequeing a supervisor queue? %d %d %p %p\n", ptr.sq_off, ptr.cq_off, (char*)region + ptr.sq_off, (char*)region + ptr.cq_off);
+            //pr_debug("Dequeing a supervisor queue? %d %d %p %p\n", ptr.sq_off, ptr.cq_off, (char*)region + ptr.sq_off, (char*)region + ptr.cq_off);
             labstor_queue_pair_Attach(&qp, &ptr, region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
-            //pr_info("Dequeing a supervisor queue: %llu %d\n", labstor_queue_pair_GetQid(&qp), qp_depth);
+            //pr_debug("Dequeing a supervisor queue: %llu %d\n", labstor_queue_pair_GetQid(&qp), qp_depth);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
-                pr_info("Dequeued a request: %p %d!\n", rq, rq->ns_id_);
+                pr_debug("Dequeued a request: %p %d!\n", rq, rq->ns_id_);
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 if(module == NULL) {
                     pr_warn("An invalid module was requested: %d\n", rq->ns_id_);
@@ -143,7 +143,7 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
     labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->ptr);
-    pr_info("Registered queue pair: %d %d\n", rq->ptr.cq_off, rq->ptr.sq_off);
+    pr_debug("Registered queue pair: %d %d\n", rq->ptr.cq_off, rq->ptr.sq_off);
     return true;
 }
 
@@ -156,7 +156,7 @@ void resume_worker(int worker_id) {
 }
 
 void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
-    pr_info("Setting CPU to %d for worker %d\n", rq->cpu_id, rq->worker_id);
+    pr_debug("Setting CPU to %d for worker %d\n", rq->cpu_id, rq->worker_id);
     kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
     wake_up_process(workers[rq->worker_id].worker_task);
 }
@@ -183,14 +183,14 @@ void worker_process_request_fn_netlink(int pid, struct labstor_request *rq) {
         }
 
         case LABSTOR_ASSIGN_QP: {
-            pr_info("Registering queue pairs\n");
+            pr_debug("Registering queue pairs\n");
             code = register_qp((struct labstor_assign_queue_pair_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }
 
         case LABSTOR_SET_WORKER_AFFINITY: {
-            pr_info("Set worker affinity\n");
+            pr_debug("Set worker affinity\n");
             set_worker_affinity((struct labstor_set_worker_affinity_request *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;

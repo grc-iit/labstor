@@ -46,16 +46,16 @@ EXPORT_SYMBOL(page_cache);
 inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
     bdev = blkdev_get_by_path(rq->path_, BDEV_ACCESS_FLAGS, NULL);
-    pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
+    pr_debug("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
     if(bdev == NULL) {
         rq->header_.ns_id_ = -2;
         pr_warn("Could not find bdev: %s\n", rq->path_);
     }
     bdevs[rq->dev_id_] = bdev;
     rq->header_.ns_id_ = -1;
-    pr_info("Finished assigning bdev\n");
+    pr_debug("Finished assigning bdev\n");
     labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
-    pr_info("Completed request\n");
+    pr_debug("Completed request\n");
 }
 
 inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_unregister_request *rq) {

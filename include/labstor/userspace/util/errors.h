@@ -35,7 +35,7 @@ namespace labstor {
     const Error SHMEM_CREATE_FAILED(400, "Failed to allocate SHMEM");
 
     const Error INVALID_MODULE_ID(500, "Failed to find module {}");
-    const Error INVALID_NAMESPACE_ENTRY(501, "Failed to find namespace entry");
+    const Error INVALID_NAMESPACE_ENTRY(501, "Failed to find namespace entry {}");
     const Error WORK_ORCHESTRATOR_WORK_QUEUE_ALLOC_FAILED(502, "Failed to allocate work queue entries");
     const Error WORK_ORCHESTRATOR_WORK_QUEUE_MMAP_FAILED(503, "Failed to mmap work queue entries");
     const Error IPC_MANAGER_CANT_REGISTER_QP(504, "IPCManager failed to register qp");

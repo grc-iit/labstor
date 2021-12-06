@@ -64,11 +64,13 @@ int main() {
         mq_driver.Register();
 
         //Write to device
-        mq_driver.Write(dev_id, user_buf, buf_size, sector, hctx);
-        memset(user_buf, 0, buf_size);
+        for(int i = 0; i < 2048; ++i) {
+            mq_driver.Write(dev_id, user_buf, buf_size, sector, hctx);
+            memset(user_buf, 0, buf_size);
 
-        //Read from device
-        mq_driver.Read(dev_id, user_buf, buf_size, sector, hctx);
+            //Read from device
+            mq_driver.Read(dev_id, user_buf, buf_size, sector, hctx);
+        }
 
         //Verify I/O completed
         verify_buf(nonce, (char*)user_buf, buf_size, path.c_str());

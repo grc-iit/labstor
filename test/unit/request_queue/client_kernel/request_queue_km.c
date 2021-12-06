@@ -52,14 +52,14 @@ inline int dequeue_requests(struct request_queue_test_request *req) {
         if(rq == NULL) {
             break;
         }
-        pr_info("DEQUEUE IN KM(a): %lu\n", (size_t)rq);
+        pr_debug("DEQUEUE IN KM(a): %lu\n", (size_t)rq);
         if(i == 10) {
             pr_err("ERROR: dequeue failed: %lu %lu\n", q.header_->enqueued_, q.header_->dequeued_);
             return -1;
         }
-        pr_info("DEQUEUE IN KM(b): %d\n", rq->data);
+        pr_debug("DEQUEUE IN KM(b): %d\n", rq->data);
     }
-    pr_info("FINISHED DEQUEUEING!");
+    pr_debug("FINISHED DEQUEUEING!");
 
     //Enqueueing queue data
     for(i = 0; i < 10; ++i) {
@@ -69,7 +69,7 @@ inline int dequeue_requests(struct request_queue_test_request *req) {
             return -1;
         }
         rq->data = i + 100;
-        pr_info("ENQUEUE IN KM: %d\n", rq->data);
+        pr_debug("ENQUEUE IN KM: %d\n", rq->data);
         labstor_request_queue_enqueue(&q, (struct labstor_request*)rq, 1);
     }
     return 0;

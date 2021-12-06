@@ -15,7 +15,10 @@ int main() {
     printf("PID: %d\n", getpid());
     ipc_manager_->Connect();
     client.Register();
-    client.GetValue();
+
+    for(int i = 0; i < 2048; ++i) {
+        client.GetValue();
+    }
 
     LABSTOR_ERROR_HANDLE_END()
 }

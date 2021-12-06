@@ -400,7 +400,7 @@ static blk_status_t __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
         return -1;
     }
 
-    pr_info("GET DRIVER TAG: %d\n", rq->tag);
+    pr_debug("GET DRIVER TAG: %d\n", rq->tag);
     return __blk_mq_issue_directly(hctx, rq, cookie, last);
 }
 
@@ -442,7 +442,7 @@ static void labstor_complete_io(struct labstor_submit_mq_driver_request *rq, int
 static void io_complete(struct bio *bio) {
     struct labstor_submit_mq_driver_request *rq = bio->bi_private;
     labstor_complete_io(rq, bio->bi_status == BLK_STS_OK);
-    pr_info("I/O complete with status: %d\n", bio->bi_status == BLK_STS_OK);
+    pr_debug("I/O complete with status: %d\n", bio->bi_status == BLK_STS_OK);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -517,7 +517,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     struct request_queue *q;
     struct bio *bio;
 
-    pr_info("Received %s request\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ");
+    pr_debug("Received %s request\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ");
 
     //Convert user's buffer to pages
     pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
@@ -552,7 +552,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
         labstor_complete_io(rq, success);
         return;
     }
-    pr_info("SUCCESS: %d\n", success);
+    pr_debug("SUCCESS: %d\n", success);
 }
 
 inline int get_stats(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {

@@ -96,7 +96,7 @@ public:
         if(0 <= ns_id && ns_id < private_state_.size()) {
             return private_state_[ns_id];
         }
-        throw INVALID_NAMESPACE_ENTRY.format();
+        throw INVALID_NAMESPACE_ENTRY.format(ns_id);
     }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {

@@ -254,7 +254,7 @@ int labstor_mmap(struct file *filp, struct vm_area_struct *vma) {
 }
 
 static int labstor_open(struct inode *inode, struct file *filp) {
-    pr_info("labstor_open\n");
+    pr_debug("labstor_open\n");
     return 0;
 }
 
@@ -269,7 +269,7 @@ void shmem_process_request_fn_netlink(int pid, struct secure_shmem_request *rq) 
     int code = 0;
     switch(rq->header.op_) {
         case RESERVE_SHMEM: {
-            pr_info("Reserving shared memory of size %lu\n", rq->reserve.size);
+            pr_debug("Reserving shared memory of size %lu\n", rq->reserve.size);
             if(reserve_shmem(rq->reserve.size, rq->reserve.user_owned, &code)) {}
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -277,7 +277,7 @@ void shmem_process_request_fn_netlink(int pid, struct secure_shmem_request *rq) 
         }
 
         case GRANT_PID_SHMEM: {
-            pr_info("Granting %d permission for region %d\n", rq->grant.pid, rq->grant.region_id);
+            pr_debug("Granting %d permission for region %d\n", rq->grant.pid, rq->grant.region_id);
             if(grant_pid_shmem(rq->grant.region_id, rq->grant.pid)) { code = 0; }
             else { code = -1; }
             labstor_msg_trusted_server(&code, sizeof(code), pid);
@@ -285,7 +285,7 @@ void shmem_process_request_fn_netlink(int pid, struct secure_shmem_request *rq) 
         }
 
         case FREE_SHMEM: {
-            pr_info("Freeing region %d\n", rq->free.region_id);
+            pr_debug("Freeing region %d\n", rq->free.region_id);
             free_shmem_region_by_id(rq->free.region_id);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
@@ -316,10 +316,10 @@ struct file_operations shmem_fs = {
 static int __init init_secure_shmem(void) {
     int ret;
     dev_t cur_dev;
-    pr_info("Starting the SHMEM module");
+    pr_debug("Starting the SHMEM module");
     atomic_set(&cur_region_id, 0);
 
-    pr_info("Creating chrdev class");
+    pr_debug("Creating chrdev class");
     shmem_class = class_create(THIS_MODULE, "labstor_shmem_class");
     if(IS_ERR(shmem_class)) {
         pr_err("Could not create shmem class");
@@ -328,18 +328,18 @@ static int __init init_secure_shmem(void) {
         return -1;
     }
 
-    pr_info("Allocating chrdev region");
+    pr_debug("Allocating chrdev region");
     ret = alloc_chrdev_region(&shmem_dev, 0, N_MINORS, "labstor_shmem_driver");
     if(ret < 0) {
         pr_err("Could not open chardev");
         return -1;
     }
 
-    pr_info("Creating chrdev");
+    pr_debug("Creating chrdev");
     cdev_init(shmem_cdev, &shmem_fs);
     cur_dev = MKDEV(MAJOR(shmem_dev), MINOR(shmem_dev));
 
-    pr_info("Creating device in proc");
+    pr_debug("Creating device in proc");
     shmem_dev_struct = device_create(shmem_class, NULL, cur_dev, NULL, "labstor_shared_shmem%d", 0);
     if(IS_ERR(shmem_dev_struct)) {
         pr_err("Could not creat device node");
@@ -355,8 +355,8 @@ static int __init init_secure_shmem(void) {
         return -1;
     }
 
-    pr_info("Device is registered!");
     register_labstor_module(&shmem_module);
+    pr_info("Secure shmem has started");
     return 0;
 }
 
@@ -367,6 +367,7 @@ static void __exit exit_secure_shmem(void) {
     free_all_regions();
     unregister_chrdev_region(shmem_dev, N_MINORS);
     unregister_labstor_module(&shmem_module);
+    pr_info("Secure shmem has ended");
 }
 
 module_init(init_secure_shmem)

@@ -43,7 +43,7 @@ static int start_server(void) {
         pr_alert("Error creating socket.\n");
         return -1;
     }
-    pr_info("Netlink socket initialized");
+    pr_debug("Netlink socket initialized");
 
     return 0;
 }
@@ -60,7 +60,7 @@ static void server_loop(struct sk_buff *skb) {
     pid = nlh->nlmsg_pid;
 
     //Load labstor module
-    pr_info("Received a request: %d\n", rq->ns_id_);
+    pr_debug("Received a request: %d\n", rq->ns_id_);
     pkg = get_labstor_module_by_runtime_id(rq->ns_id_);
     if(pkg == NULL) {
         pr_err("Could not find module %d\n", rq->ns_id_);
@@ -108,7 +108,7 @@ static int __init init_labstor_kernel_server(void) {
         free_labstor_module_manager();
         return -1;
     }
-    pr_info("SERVER IS RUNNING!\n");
+    pr_debug("SERVER IS RUNNING!\n");
     return 0;
 }
 

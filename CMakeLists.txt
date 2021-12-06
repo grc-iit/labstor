@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
 
-set(CMAKE_C_FLAGS "-g -fPIC")
-set(CMAKE_CXX_FLAGS "-g -fPIC")
-#set(CMAKE_C_FLAGS "-g -fPIC -O3")
-#set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
+#set(CMAKE_C_FLAGS "-g -fPIC")
+#set(CMAKE_CXX_FLAGS "-g -fPIC")
+set(CMAKE_C_FLAGS "-g -fPIC -O3")
+set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 ######CUSTOM DATA STRUCTURES
@@ -72,6 +72,7 @@ target_link_libraries(labstor_client_library
         registrar_client)
 
 ######UTIL
+add_executable(proc_partition util/partitioner.cpp)
 add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)
 add_custom_target(stop_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/stop_kernel_server.sh)
 add_custom_target(start_trusted_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_server.sh)

@@ -5,7 +5,7 @@
 #ifndef LABSTOR_DEBUG_H
 #define LABSTOR_DEBUG_H
 
-#define LABSTOR_DEBUG
+//#define LABSTOR_DEBUG
 #if defined(LABSTOR_DEBUG) && defined(__cplusplus)
 #define AUTO_TRACE(...) labstor::AutoTrace auto_tracer(false, __VA_ARGS__);
 #define TRACEPOINT(...) labstor::AutoTrace(true, __VA_ARGS__);

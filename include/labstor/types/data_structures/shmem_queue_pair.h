@@ -136,7 +136,6 @@ static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, st
     struct labstor_request_map_bucket b;
     msg->req_id_ = rq->req_id_;
     labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
-    TRACEPOINT("queue_pair_Complete", b.off_);
     labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b);
 }
 
