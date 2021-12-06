@@ -15,7 +15,7 @@ int main() {
     printf("PID: %d\n", getpid());
     ipc_manager_->Connect();
     client.Register();
-    client.AddBdev("/dev/sda");
+    client.RegisterBlkdev("/dev/sda");
 
     LABSTOR_ERROR_HANDLE_END()
 }

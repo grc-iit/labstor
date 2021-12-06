@@ -35,7 +35,6 @@ public:
     void RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit);
     void UnregisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit);
 };
-LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Server)
 
 }
 

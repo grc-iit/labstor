@@ -12,3 +12,8 @@ target_link_libraries(test_dummy_exec labstor_client_library dummy_client)
 add_executable(test_blkdev_table_exec blkdev_table/test.cpp)
 add_dependencies(test_blkdev_table_exec labstor_client_library blkdev_table_client)
 target_link_libraries(test_blkdev_table_exec labstor_client_library blkdev_table_client)
+
+#MQ driver client
+add_executable(test_mq_driver_exec mq_driver/test.cpp)
+add_dependencies(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)
+target_link_libraries(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)

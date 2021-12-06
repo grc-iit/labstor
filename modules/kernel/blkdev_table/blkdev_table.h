@@ -8,6 +8,8 @@
 #define BLKDEV_TABLE_MODULE_ID "BlkdevTable"
 
 #define MAX_MOUNTED_BDEVS 64
+#define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
+#define MAX_PAGES_PER_GET 128
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>

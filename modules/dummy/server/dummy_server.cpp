@@ -14,6 +14,7 @@ void labstor::test::Dummy::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
             rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_complete_request)));
             rq_complete->Init(25);
             qp->Complete(rq_submit, rq_complete);
+            ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
             break;
         }
     }

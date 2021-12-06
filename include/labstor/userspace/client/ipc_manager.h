@@ -27,7 +27,10 @@ private:
 public:
     IPCManager() = default;
     void Connect();
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags) {
+    inline int GetPid() {
+        return pid_;
+    }
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, sched_getcpu(), shmem_qps_.size(), 0)];
@@ -38,7 +41,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags, int hash) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, hash, shmem_qps_.size(), 0)];
@@ -49,7 +52,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint32_t flags, const std::string &str, uint32_t ns_id) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, str, ns_id, shmem_qps_.size(), 0)];

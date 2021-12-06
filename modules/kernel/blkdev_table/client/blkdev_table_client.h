@@ -25,10 +25,9 @@ namespace labstor::BlkdevTable {
             ipc_manager_ = LABSTOR_IPC_MANAGER;
         }
         void Register();
-        void AddBdev(std::string path);
+        int RegisterBlkdev(std::string path);
         void UnregisterBlkdev(int dev_id);
     };
-    LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Client)
 
 }
 

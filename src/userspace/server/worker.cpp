@@ -16,6 +16,8 @@ void labstor::Server::Worker::DoWork() {
     labstor::credentials *creds;
     uint32_t work_queue_depth = work_queue_.GetDepth(), qp_depth;
     void *base;
+
+    LABSTOR_ERROR_HANDLE_START()
     for(uint32_t i = 0; i < work_queue_depth; ++i) {
         if(!work_queue_.Dequeue(ptr)) { break; }
         base = ipc_manager_->GetRegion(ptr, creds);
@@ -26,9 +28,9 @@ void labstor::Server::Worker::DoWork() {
             TRACEPOINT("labstor::Server::Worker::DoWork", rq->ns_id_, rq->op_, rq->req_id_, creds->pid);
             labstor::Module *module = namespace_->Get(rq->ns_id_);
             module->ProcessRequest(&qp, rq, creds);
-            ipc_manager_->FreeRequest(&qp, rq);
         }
         qp.GetPointer(ptr, base);
         work_queue_.Enqueue(ptr);
     }
+    LABSTOR_ERROR_HANDLE_END()
 }

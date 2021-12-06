@@ -38,10 +38,10 @@ MODULE_DESCRIPTION("A kernel module for storing block device pointers");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("blkdev_table");
 
-//Macros
-#define BDEV_ACCESS_FLAGS FMODE_READ | FMODE_WRITE | FMODE_PREAD | FMODE_PWRITE //| FMODE_EXCL
-
+//Data structures
 struct block_device *bdevs[MAX_MOUNTED_BDEVS];
+struct kmem_cache *page_cache;
+EXPORT_SYMBOL(page_cache);
 
 inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
@@ -92,6 +92,7 @@ struct labstor_module blkdev_table_pkg = {
 
 static int __init init_blkdev_table(void) {
     register_labstor_module(&blkdev_table_pkg);
+    page_cache = kmem_cache_create("labstor_pgcache", MAX_PAGES_PER_GET*sizeof(struct page*), sizeof(struct page*), SLAB_HWCACHE_ALIGN, NULL);
     pr_info("Blkdev table has started");
     return 0;
 }

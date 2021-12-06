@@ -46,6 +46,7 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     //Create message for the USER
     rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request *>(
             ipc_manager_->AllocRequest(qp, sizeof(labstor_complete_blkdev_table_register_request)));
+    rq_complete->header.op_ = kern_submit->dev_id_;
     rq_complete->header.ns_id_ = -1;
 
     //Complete SERVER -> USER interaction
@@ -53,8 +54,15 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     qp->Complete(
             reinterpret_cast<labstor::ipc::request*>(rq_submit),
             reinterpret_cast<labstor::ipc::request*>(rq_complete));
+
+    //Release requests
+    ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
+    ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_submit));
+    ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_complete));
 }
 
 void labstor::BlkdevTable::Server::UnregisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit) {
     AUTO_TRACE("labstor::BlkdevTable::RemoveBdev")
 }
+
+LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Server)

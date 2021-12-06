@@ -2,20 +2,24 @@
 // Created by lukemartinlogan on 9/7/21.
 //
 
-#ifndef LABSTOR_REQUEST_LAYER_H
-#define LABSTOR_REQUEST_LAYER_H
+#ifndef LABSTOR_MQ_DRIVER_H
+#define LABSTOR_MQ_DRIVER_H
+
+#include <labstor/types/basics.h>
+#include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
 
 #define MQ_DRIVER_MODULE_ID "MQ_DRIVER"
 
-#ifdef __cpluplus
-namespace labstor::drivers {
-enum class MQOps {
+#ifdef __cplusplus
+namespace labstor::MQDriver {
+enum class Ops {
     kRegister,
     kWrite,
     kRead,
     kIOComplete
-}
 };
+}
 #endif
 
 #ifdef KERNEL_BUILD
@@ -29,28 +33,36 @@ enum {
 struct labstor_submit_mq_driver_request {
     struct labstor_request header_;
     int dev_id_;
-    char *user_buf_;
-    size_t lba_;
-    size_t off_;
+    void *user_buf_;
+    size_t sector_;
+    size_t buf_size_;
     int hctx_;
+    int pid_;
+
 #ifdef __cplusplus
-    inline void Init(int ns_id, Ops op, int dev_id, char *user_buf, size_t lba, size_t off, int hctx) {
-        Init(ns_id, static_cast<int>(op);, dev_id, user_buf, lba, off, hctx);
+    inline void Init(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        Init(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
     }
-    inline void Init(int ns_id, int op, int dev_id, char *user_buf, size_t lba, size_t off, int hctx) {
+    inline void Init(int ns_id, struct labstor_submit_mq_driver_request *rq) {
+        Init(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
+    }
+    inline void Init(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         header_.ns_id_ = ns_id;
         header_.op_ = op;
+        pid_ = pid;
         dev_id_ = dev_id;
         user_buf_ = user_buf;
-        lba_ = lba;
-        off_ = off;
+        buf_size_ = buf_size;
+        sector_ = sector;
         hctx_ = hctx;
     }
 #endif
+
+    struct labstor_queue_pair *qp_;
 };
 
-struct labstor_complet_mq_driver_request {
-    struct labstor_request header;
+struct labstor_complete_mq_driver_request {
+    struct labstor_request header_;
 };
 
-#endif //LABSTOR_REQUEST_LAYER_H
+#endif //LABSTOR_MQ_DRIVER_H

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo dmesg --clear
+sudo rmmod mq_driver
 sudo rmmod blkdev_table
 sudo rmmod work_orchestrator
 sudo rmmod ipc_manager

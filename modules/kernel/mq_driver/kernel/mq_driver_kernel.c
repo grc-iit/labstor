@@ -6,7 +6,7 @@
  * A kernel module that constructs bio and request objects, and submits them to the underlying drivers.
  * */
 
-#include "../mq_driver.h"
+#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -25,20 +25,24 @@
 #include <linux/cpumask.h>
 #include <linux/timer.h>
 #include <linux/delay.h>
+#include <linux/sched.h>
+
+#include <labstor/constants/constants.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/kernel/server/module_manager.h>
+#include <labstor/kernel/server/kernel_server.h>
+
+#include <mq_driver/kernel/mq_driver_kernel.h>
+#include <blkdev_table/kernel/blkdev_table_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("request_layer_km");
 
-
-//Macros
-void *virt_mem;
-struct request_queue *q;
-
 //Prototypes
-static int __init init_request_layer_km(void);
-static void __exit exit_request_layer_km(void);
+static int __init init_mq_driver_km(void);
+static void __exit exit_mq_driver_km(void);
 
 
 /**
@@ -396,41 +400,77 @@ static blk_status_t __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
         return -1;
     }
 
-    printk("request_layer_km: GET DRIVER TAG: %d\n", rq->tag);
+    pr_info("GET DRIVER TAG: %d\n", rq->tag);
     return __blk_mq_issue_directly(hctx, rq, cookie, last);
 }
 
-static void blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
+static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
 {
     blk_status_t ret;
     int srcu_idx;
     struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
+    int success = 0;
 
     might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 
     hctx_lock(hctx, &srcu_idx);
 
     ret = __blk_mq_try_issue_directly(hctx, rq, cookie, true, true); //TODO: May not be last...
-    if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE)
+    if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE) {
         blk_mq_end_request(rq, ret); //TODO: theoretically requeue
-    else if (ret != BLK_STS_OK)
+        success = -1;
+    }
+    else if (ret != BLK_STS_OK) {
         blk_mq_end_request(rq, ret);
+        success = -2;
+    }
 
     hctx_unlock(hctx, srcu_idx);
+
+    return success;
 }
 
 /**
  * I/O REQUEST FUNCTIONS
  * */
 
-static inline struct bio *create_bio(struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op)
-{
+static void labstor_complete_io(struct labstor_submit_mq_driver_request *rq, int code) {
+    rq->header_.op_ = code;
+    labstor_queue_pair_Complete(rq->qp_, (struct labstor_request*)rq, (struct labstor_request*)rq);
+}
+
+static void io_complete(struct bio *bio) {
+    struct labstor_submit_mq_driver_request *rq = bio->bi_private;
+    labstor_complete_io(rq, bio->bi_status == BLK_STS_OK);
+    pr_info("I/O complete with status: %d\n", bio->bi_status == BLK_STS_OK);
+}
+
+static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
+    struct task_struct *task;
+    struct page **pages;
+    int num_pages;
+
+    task = pid_task(find_vpid(pid), PIDTYPE_PID);
+    num_pages = (length % PAGE_SIZE) ? length/PAGE_SIZE + 1 : length/PAGE_SIZE;
+    pages = (struct page **)kmem_cache_alloc(page_cache, GFP_KERNEL);
+    if(pages == NULL) {
+        pr_err("Could not allocate space for the user's pages");
+        *num_pagesp = 0;
+        return NULL;
+    }
+    get_user_pages_remote(task, task->mm, (long unsigned)user_buf, num_pages, 0, pages, NULL, NULL);
+
+    *num_pagesp = num_pages;
+    return pages;
+}
+
+static inline struct bio *create_bio(struct labstor_submit_mq_driver_request *rq, struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op) {
     struct bio *bio;
     int i;
 
     bio = bio_alloc(GFP_KERNEL, num_pages);
     if(bio == NULL) {
-        printk(KERN_INFO "create_bio: Could not allocate bio request (%ld bytes)\n", sizeof(struct bio)+num_pages*sizeof(struct bio_vec));
+        pr_err("Could not allocate bio request (%ld bytes)\n", sizeof(struct bio)+num_pages*sizeof(struct bio_vec));
         return NULL;
     }
     bio_set_dev(bio, bdev);
@@ -439,11 +479,11 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     //bio_set_flag(bio, BIO_USER_MAPPED);
     //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
-    bio->bi_end_io = NULL;
     for(i = 0; i < num_pages; ++i) {
         bio_add_page(bio, pages[i], PAGE_SIZE, 0);
     }
-    bio->bi_private = NULL;
+    bio->bi_private = rq;
+    bio->bi_end_io = &io_complete;
     bio->bi_status = BLK_STS_OK;
     bio->bi_ioprio = 0;
     bio->bi_write_hint = 0;
@@ -452,9 +492,12 @@ static inline struct bio *create_bio(struct block_device *bdev, struct page **pa
     return bio;
 }
 
-struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs)
-{
+struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs) {
     struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, hctx_idx);
+    if(rq == NULL) {
+        pr_err("Could not allocate request on HCTX");
+        return NULL;
+    }
     rq->rq_flags &= ~RQF_IO_STAT;
     rq->bio = rq->biotail = NULL;
     rq->rq_disk = bio->bi_disk;
@@ -465,75 +508,76 @@ struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio
     return rq;
 }
 
-static inline struct page **convert_usr_buf(void *usr_buf, size_t length, int *num_pagesp)
-{
+inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {
     struct page **pages;
-    int num_pages;
-
-    num_pages = length/PAGE_SIZE;
-    pages = vmalloc(num_pages*sizeof(struct page *), GFP_KERNEL);
-    if(pages == NULL) {
-        printk(KERN_INFO "time_linux_driver_io_km: Could not allocate space for %d pages\n", num_pages);
-        return NULL;
-    }
-    get_user_pages_fast((long unsigned)usr_buf, num_pages, 0, pages);
-
-    *num_pagesp = num_pages;
-    return pages;
-}
-
-blk_qc_t submit_io_rq_layer(char *dev, int op, void *user_buf) {
-    struct block_device *bdev;
-    int nr_hw_queues;
-    struct bio *bio;
-    struct request *rq;
-    struct page *page;
+    struct request *dev_rq;
     blk_qc_t cookie;
+    int success, num_pages;
+    struct block_device *bdev;
+    struct request_queue *q;
+    struct bio *bio;
 
-    blk_mq_try_issue_directly(rq, &cookie);
-
-    return cookie;
-}
-
-inline void submit_req_layer_io(struct queue_pair *qp, struct request_layer_request *req) {
-    struct page *pages;
     //Convert user's buffer to pages
+    pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
     //Get block device associated with semantic label
-    bdev = blkdev_get_by_path(dev, BDEV_ACCESS_FLAGS, NULL);
-    printk("request_layer_km: Acquried bdev %p %s\n", bdev, bdev->bd_disk->disk_name);
+    bdev = labstor_get_bdev(rq->dev_id_);
+    if(bdev == NULL) {
+        pr_err("Invalid block device id: %d\n", rq->dev_id_);
+        labstor_complete_io(rq, -100);
+        return;
+    }
     //Get request queue associated with device
     q = bdev->bd_disk->queue;
-    printk("request_layer_km: Queue %p\n", q);
     //Disable stats
     q->queue_flags &= ~QUEUE_FLAG_STATS;
     //Create bio
-    bio = create_bio(bdev, &page, 1, 0, REQ_OP_WRITE);
-    printk("request_layer_km: Create bio %p\n", bio);
-    nr_hw_queues = q->nr_hw_queues;
-    printk("request_layer_km: nr_hw_queues %d\n", nr_hw_queues);
+    rq->qp_ = qp;
+    bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
+    kmem_cache_free(page_cache, pages);
+    if(bio == NULL) {
+        labstor_complete_io(rq, -101);
+        return;
+    }
     //Create request to hctx
-    rq = bio_to_rq(q, 0, bio, 1);
-    printk("request_layer_km: bio_to_rq\n");
-    //Add monitor request
+    dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
+    if(dev_rq == NULL) {
+        labstor_complete_io(rq, -102);
+        return;
+    }
+    //Submit I/O
+    success = blk_mq_try_issue_directly(dev_rq, &cookie);
+    if(!success) {
+        labstor_complete_io(rq, success);
+        return;
+    }
+    pr_info("SUCCESS: %d\n", success);
 }
 
-void mq_process_request_fn(struct labstor_queue_pair *qp, struct request_layer_request *rq) {
-    switch(rq->header.op_) {
-        case MQ_SUBMIT_REQUEST: {
-            submit_req_layer_io(qp, rq);
+inline int get_stats(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {
+    //int nr_hw_queues;
+    //nr_hw_queues = q->nr_hw_queues;
+    return 0;
+}
+
+void mq_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
+    switch(rq->op_) {
+        case LABSTOR_MQ_DRIVER_WRITE:
+        case LABSTOR_MQ_DRIVER_READ: {
+            submit_mq_driver_io(qp, (struct labstor_submit_mq_driver_request*)rq);
             break;
         }
         default: {
-            pr_error("Invalid MQ request: %d\n", rq->header.op_);
+            pr_err("Invalid MQ request: %d\n", rq->op_);
+            break;
         }
     }
 }
 
-struct labstor_module worker_module = {
-        .module_id = WORKER_MODULE_ID,
-        .runtime_id = WORKER_MODULE_RUNTIME_ID,
-        .process_request_fn = (process_request_fn_netlink_type)mq_process_request_fn,
-        .process_request_fn_netlink = NULL,
+struct labstor_module mq_driver_module = {
+        .module_id = MQ_DRIVER_MODULE_ID,
+        .runtime_id = MQ_DRIVER_RUNTIME_ID,
+        .process_request_fn = mq_process_request_fn,
+        .process_request_fn_netlink = NULL
 };
 
 /**
@@ -541,13 +585,14 @@ struct labstor_module worker_module = {
  * */
 
 
-static int __init init_request_layer_km(void) {
-    register_labstor_module(&reqest_layer_pkg);
+static int __init init_mq_driver_km(void) {
+    register_labstor_module(&mq_driver_module);
+    return 0;
 }
 
-static void __exit exit_request_layer_km(void) {
-    unregister_labstor_module(&request_layer_pkg);
+static void __exit exit_mq_driver_km(void) {
+    unregister_labstor_module(&mq_driver_module);
 }
 
-module_init(init_request_layer_km)
-module_exit(exit_request_layer_km)
+module_init(init_mq_driver_km)
+module_exit(exit_mq_driver_km)

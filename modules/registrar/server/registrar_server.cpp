@@ -17,6 +17,7 @@ void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair *qp, la
             register_complete->Init(namespace_->AddKey(register_rq->key_, module));
             TRACEPOINT("labstor::Registrar::Server::ProcessRequest", "NamespaceID", register_complete->ns_id_);
             qp->Complete(register_rq, register_complete);
+            ipc_manager_->FreeRequest(qp, register_rq);
             break;
         }
         case Ops::kGetNamespaceId : {
@@ -26,6 +27,8 @@ void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair *qp, la
             ns_get_complete = reinterpret_cast<namespace_id_complete_request*>(ipc_manager_->AllocRequest(qp, sizeof(namespace_id_complete_request)));
             ns_get_complete->Init(ns_id);
             qp->Complete(ns_get, ns_get_complete);
+            ipc_manager_->FreeRequest(qp, ns_get);
+            break;
         }
     }
 

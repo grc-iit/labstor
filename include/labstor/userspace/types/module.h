@@ -88,7 +88,7 @@ public:
 
     create_module_fn GetModuleConstructor(labstor::id module_id) {
         ModuleHandle module_info;
-        TRACEPOINT("Finding module", module_id.key, std::hash<labstor::id>()(module_id))
+        TRACEPOINT("GetModuleConstructor::GetModuleConstructor", module_id.key, std::hash<labstor::id>()(module_id))
         mutex_.lock();
         if(pkg_pool_.find(module_id) == pkg_pool_.end()) {
             mutex_.unlock();

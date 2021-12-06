@@ -8,8 +8,9 @@ include_directories(include kernel io_systems)
 ######MODULES
 add_subdirectory(kernel/secure_shmem)
 add_subdirectory(kernel/ipc_manager)
-add_subdirectory(kernel/blkdev_table)
 add_subdirectory(kernel/work_orchestrator)
+add_subdirectory(kernel/blkdev_table)
+add_subdirectory(kernel/mq_driver)
 add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_custom_target(clean_modules COMMAND

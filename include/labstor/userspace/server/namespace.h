@@ -92,7 +92,12 @@ public:
         region_size = region_size_;
     }
     inline uint32_t Get(labstor::ipc::string key) { return key_to_ns_id_[key]; }
-    inline labstor::Module *Get(uint32_t ns_id) { return private_state_[ns_id]; }
+    inline labstor::Module *Get(uint32_t ns_id) {
+        if(0 <= ns_id && ns_id < private_state_.size()) {
+            return private_state_[ns_id];
+        }
+        throw INVALID_NAMESPACE_ENTRY.format();
+    }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {
         return module_id_to_instance_[module_id];
