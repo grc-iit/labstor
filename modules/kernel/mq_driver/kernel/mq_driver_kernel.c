@@ -492,8 +492,8 @@ static inline struct bio *create_bio(struct labstor_submit_mq_driver_request *rq
     return bio;
 }
 
-struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs) {
-    struct request *rq = blk_mq_alloc_request_hctx(q, REQ_OP_WRITE, BLK_MQ_REQ_NOWAIT, hctx_idx);
+struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs, int op) {
+    struct request *rq = blk_mq_alloc_request_hctx(q, op, BLK_MQ_REQ_NOWAIT, hctx_idx);
     if(rq == NULL) {
         pr_err("Could not allocate request on HCTX");
         return NULL;
@@ -517,6 +517,8 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     struct request_queue *q;
     struct bio *bio;
 
+    pr_info("Received %s request\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ");
+
     //Convert user's buffer to pages
     pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
     //Get block device associated with semantic label
@@ -539,7 +541,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
         return;
     }
     //Create request to hctx
-    dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
+    dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages, bio->bi_opf);
     if(dev_rq == NULL) {
         labstor_complete_io(rq, -102);
         return;
@@ -587,11 +589,13 @@ struct labstor_module mq_driver_module = {
 
 static int __init init_mq_driver_km(void) {
     register_labstor_module(&mq_driver_module);
+    pr_info("MQ driver module started");
     return 0;
 }
 
 static void __exit exit_mq_driver_km(void) {
     unregister_labstor_module(&mq_driver_module);
+    pr_info("MQ driver module ended");
 }
 
 module_init(init_mq_driver_km)
