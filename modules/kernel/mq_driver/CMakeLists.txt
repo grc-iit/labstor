@@ -13,7 +13,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/kernel)
             cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make
             CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
             CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
-    add_dependencies(build_${MODULE_NAME} build_labstor_kernel_server)
+    add_dependencies(build_${MODULE_NAME} build_labstor_kernel_server build_blkdev_table)
     add_custom_target(clean_${MODULE_NAME} COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make clean)
 endif()
 

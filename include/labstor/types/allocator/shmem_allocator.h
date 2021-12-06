@@ -127,7 +127,9 @@ static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator
 
 static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *alloc, void *data) {
     int core = ((struct labstor_shmem_allocator_entry*)data - 1)->core_;
-    labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], data);
+    while(!labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], data)) {
+        core = (core + 1)%alloc->concurrency_;
+    }
 }
 
 static inline void labstor_shmem_allocator_Release(struct labstor_shmem_allocator *alloc) {

@@ -12,7 +12,8 @@ void labstor::test::Dummy::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
             dummy_complete_request *rq_complete;
             rq_submit = reinterpret_cast<dummy_submit_request*>(request);
             rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_complete_request)));
-            rq_complete->Init(25);
+            TRACEPOINT("labstor::test::Dummy::Server", "SUBMIT ID", ((size_t)rq_complete - (size_t)ipc_manager_->GetRegion(creds->pid))/128);
+            rq_complete->Init(5543);
             qp->Complete(rq_submit, rq_complete);
             ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
             break;

@@ -30,6 +30,9 @@ public:
     inline int GetPid() {
         return pid_;
     }
+    inline void* GetBaseRegion() {
+        return shmem_alloc_->GetRegion();
+    }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {

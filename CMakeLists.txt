@@ -5,10 +5,17 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
 
-#set(CMAKE_C_FLAGS "-g -fPIC")
-#set(CMAKE_CXX_FLAGS "-g -fPIC")
-set(CMAKE_C_FLAGS "-g -fPIC -O3")
-set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
+option(DEBUG OFF)
+
+if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    set(CMAKE_C_FLAGS "-g -fPIC -DLABSTOR_DEBUG")
+    set(CMAKE_CXX_FLAGS "-g -fPIC -DLABSTOR_DEBUG")
+    message("Debug mode")
+else()
+    set(CMAKE_C_FLAGS "-g -fPIC -O3")
+    set(CMAKE_CXX_FLAGS "-g -fPIC -O3")
+    message("Optimized mode")
+endif()
 option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 ######CUSTOM DATA STRUCTURES

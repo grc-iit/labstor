@@ -47,7 +47,7 @@ static inline void labstor_private_shmem_allocator_Init(struct labstor_private_s
     void *remainder;
     uint32_t remainder_size, remainder_objs;
 
-    max_objs = 2 * region_size / request_unit;
+    max_objs = region_size / request_unit;
     i = 0;
 
     alloc->header_ = (struct labstor_private_shmem_allocator_header*)region;
@@ -75,8 +75,8 @@ static inline void* labstor_private_shmem_allocator_Alloc(struct labstor_private
     return LABSTOR_REGION_ADD(off, alloc->header_);
 }
 
-static inline void labstor_private_shmem_allocator_Free(struct labstor_private_shmem_allocator *alloc, void *data) {
-    labstor_ring_buffer_labstor_off_t_Enqueue_simple(&alloc->objs_, LABSTOR_REGION_SUB(data, alloc->header_));
+static inline bool labstor_private_shmem_allocator_Free(struct labstor_private_shmem_allocator *alloc, void *data) {
+    return labstor_ring_buffer_labstor_off_t_Enqueue_simple(&alloc->objs_, LABSTOR_REGION_SUB(data, alloc->header_));
 }
 
 #ifdef __cplusplus

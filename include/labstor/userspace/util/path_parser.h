@@ -21,7 +21,11 @@ std::string path_parser(std::string path) {
     for(auto &env_name_re : env_names) {
         std::string to_replace = std::string(env_name_re);
         std::string env_name = to_replace.substr(2, to_replace.size()-3);
-        std::string env_val = getenv(env_name.c_str());
+        std::string env_val = env_name;
+        try {
+            env_val = getenv(env_name.c_str());
+        } catch(...) {
+        }
         std::regex replace_expr("\\$\\{" + env_name + "\\}");
         path = std::regex_replace(path, replace_expr, env_val);
     }
