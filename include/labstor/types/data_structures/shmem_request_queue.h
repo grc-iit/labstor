@@ -36,6 +36,7 @@ struct labstor_request_queue {
     inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq);
     inline bool Dequeue(labstor::ipc::request *&rq);
     inline uint32_t GetDepth();
+    inline uint32_t GetMaxDepth();
     inline uint32_t GetFlags();
     inline void MarkPaused();
     inline bool IsPaused();
@@ -60,6 +61,11 @@ static inline void* labstor_request_queue_GetRegion(struct labstor_request_queue
 static inline uint32_t labstor_request_queue_GetDepth(struct labstor_request_queue *lrq) {
     return labstor_ring_buffer_labstor_off_t_GetDepth(&lrq->queue_);
 }
+
+static inline uint32_t labstor_request_queue_GetMaxDepth(struct labstor_request_queue *lrq) {
+    return labstor_ring_buffer_labstor_off_t_GetMaxDepth(&lrq->queue_);
+}
+
 static inline labstor_qid_t labstor_request_queue_GetFlags(struct labstor_request_queue *lrq) {
     return lrq->header_->qid_;
 }
@@ -152,6 +158,9 @@ bool labstor_request_queue::Dequeue(labstor::ipc::request *&rq) {
 }
 uint32_t labstor_request_queue::GetDepth() {
     return labstor_request_queue_GetDepth(this);
+}
+uint32_t labstor_request_queue::GetMaxDepth() {
+    return labstor_request_queue_GetMaxDepth(this);
 }
 uint32_t labstor_request_queue::GetFlags() {
     return labstor_request_queue_GetFlags(this);

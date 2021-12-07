@@ -25,8 +25,8 @@ void labstor::test::Dummy::Client::GetValue() {
     ipc_manager_->GetQueuePair(qp, 0);
     rq_submit = reinterpret_cast<dummy_submit_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_submit_request)));
     rq_submit->Init(ns_id_);
-    TRACEPOINT("labstor::test::Dummy::Client", "SubmitRequestID",
-               ((size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion()));
+    TRACEPOINT("labstor::test::Dummy::Client", "SubmitRequestID", rq_submit->req_id_,
+               ((size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion()),qp->sq.GetDepth(), qp->sq.GetMaxDepth());
     qtok = qp->Enqueue(rq_submit);
     rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->Wait(qtok));
     printf("COMPLETE: %d\n", rq_complete->num_);
