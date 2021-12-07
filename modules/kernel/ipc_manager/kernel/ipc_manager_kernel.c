@@ -42,7 +42,7 @@ inline bool ipc_manager_register(struct labstor_ipc_manager_register_request *rq
     }
     pr_info("IPCManager region: %p\n", ipc_manager_.region);
     ipc_manager_.region_id = rq->region_id;
-    labstor_shmem_allocator_Attach(&ipc_manager_.alloc, ipc_manager_.region); 
+    labstor_shmem_allocator_Attach(&ipc_manager_.alloc, ipc_manager_.region, ipc_manager_.region);
     return true;
 }
 

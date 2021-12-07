@@ -42,7 +42,7 @@ void labstor::Server::IPCManager::InitializeKernelIPCManager() {
     //Initialize allocator
     labstor::ipc::shmem_allocator *kernel_alloc;
     kernel_alloc = new labstor::ipc::shmem_allocator();
-    kernel_alloc->Init(region, region_size, request_unit);
+    kernel_alloc->Init(region, region, region_size, request_unit);
     client_ipc->alloc_ = kernel_alloc;
     TRACEPOINT("Kernel allocator created")
 
@@ -116,7 +116,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     //Initialize allocator
     labstor::ipc::shmem_allocator *private_alloc;
     private_alloc = new labstor::ipc::shmem_allocator();
-    private_alloc->Init(private_mem_, region_size, request_unit);
+    private_alloc->Init(private_mem_, private_mem_, region_size, request_unit);
     private_alloc_ = private_alloc;
     TRACEPOINT("Private allocator")
 
@@ -165,7 +165,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
 
     //Create SHMEM allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
-    alloc->Init(region, per_process_shmem_, allocator_unit_);
+    alloc->Init(region, region, per_process_shmem_, allocator_unit_);
     client_ipc->alloc_ = alloc;
 
     //Send shared memory to client

@@ -92,6 +92,7 @@ namespace labstor {
         std::shared_ptr<Serializeable> obj_shared_;
         int type_;
     public:
+        /*
         Arg(char num) : type_(0) { num_.d8 = num; }
         Arg(short int num) : type_(0) { num_.d16 = num; }
         Arg(int num) : type_(0) { num_.d32 = num; }
@@ -101,55 +102,69 @@ namespace labstor {
         Arg(unsigned short int num) : type_(3) { num_.u16 = num; }
         Arg(unsigned int num) : type_(3) { num_.u32 = num; }
         Arg(unsigned long num) : type_(4) { num_.u64 = num; }
-        Arg(unsigned long long num) : type_(5) { num_.u128 = num; }
-        Arg(float num) : type_(6) { num_.f32 = num; }
-        Arg(double num) : type_(7) { num_.f64 = num; }
-        Arg(long double num) : type_(8) { num_.f96 = num; }
-        Arg(char *str) : type_(9) { if(str) str_ = std::string(str); else str_ = ""; }
-        Arg(const char *str) : type_(9) { if(str) str_ = std::string(str); else str_ = ""; }
-        Arg(std::string str) : type_(9) { str_ = str; }
-        Arg(Serializeable *obj) : type_(10) { obj_ = obj; }
-        Arg(std::shared_ptr<Serializeable> obj) : type_(11) { obj_shared_ = obj; }
+        Arg(unsigned long long num) : type_(5) { num_.u128 = num; }*/
+        Arg(int8_t num) : type_(0) { num_.d8 = num; }
+        Arg(int16_t num) : type_(1) { num_.d16 = num; }
+        Arg(int32_t num) : type_(2) { num_.d32 = num; }
+        Arg(int64_t num) : type_(3) { num_.d64 = num; }
+        Arg(uint8_t num) : type_(4) { num_.u8 = num; }
+        Arg(uint16_t num) : type_(5) { num_.u16 = num; }
+        Arg(uint32_t num) : type_(6) { num_.u32 = num; }
+        Arg(uint64_t num) : type_(7) { num_.u64 = num; }
+        Arg(float num) : type_(8) { num_.f32 = num; }
+        Arg(double num) : type_(9) { num_.f64 = num; }
+        Arg(long double num) : type_(10) { num_.f96 = num; }
+        Arg(char *str) : type_(11) { if(str) str_ = std::string(str); else str_ = ""; }
+        Arg(const char *str) : type_(11) { if(str) str_ = std::string(str); else str_ = ""; }
+        Arg(std::string str) : type_(11) { str_ = str; }
+        Arg(Serializeable *obj) : type_(12) { obj_ = obj; }
+        Arg(std::shared_ptr<Serializeable> obj) : type_(13) { obj_shared_ = obj; }
         template<typename T>
         Arg(T obj) : type_(11) { obj_shared_ = std::shared_ptr<Serializeable>(new T(obj)); }
 
         size_t serialize(char *buf) {
             switch(type_) {
                 case 0: {
-                    NUMBER_SERIAL(d32)
+                    NUMBER_SERIAL(d8)
                 }
                 case 1: {
-                    NUMBER_SERIAL(d64)
+                    NUMBER_SERIAL(d16)
                 }
                 case 2: {
-                    NUMBER_SERIAL(d128)
+                    NUMBER_SERIAL(d32)
                 }
                 case 3: {
-                    NUMBER_SERIAL(u32)
+                    NUMBER_SERIAL(d64)
                 }
                 case 4: {
-                    NUMBER_SERIAL(u64)
+                    NUMBER_SERIAL(u8)
                 }
                 case 5: {
-                    NUMBER_SERIAL(u128)
+                    NUMBER_SERIAL(u16)
                 }
                 case 6: {
-                    NUMBER_SERIAL(f32)
+                    NUMBER_SERIAL(u32)
                 }
                 case 7: {
-                    NUMBER_SERIAL(f64)
+                    NUMBER_SERIAL(u64)
                 }
                 case 8: {
-                    NUMBER_SERIAL(f96)
+                    NUMBER_SERIAL(f32)
                 }
                 case 9: {
+                    NUMBER_SERIAL(f64)
+                }
+                case 10: {
+                    NUMBER_SERIAL(f96)
+                }
+                case 11: {
                     memcpy(buf, str_.c_str(), str_.size());
                     return str_.size();
                 }
-                case 10: {
+                case 12: {
                     return obj_->serialize(buf);
                 }
-                case 11: {
+                case 13: {
                     return obj_shared_->serialize(buf);
                 }
             }

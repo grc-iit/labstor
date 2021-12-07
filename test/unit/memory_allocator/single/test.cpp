@@ -13,13 +13,13 @@ void *region;
 
 labstor::GenericAllocator* private_allocator_test() {
     labstor::ipc::private_shmem_allocator *allocator = new labstor::ipc::private_shmem_allocator();
-    allocator->Init(region, region_size, page_size);
+    allocator->Init(region, region, region_size, page_size);
     return allocator;
 }
 
 labstor::GenericAllocator* multicore_allocator_test() {
     labstor::ipc::shmem_allocator *allocator = new labstor::ipc::shmem_allocator();
-    allocator->Init(region, region_size, page_size, 4);
+    allocator->Init(region, region, region_size, page_size, 4);
     return allocator;
 }
 

@@ -5,6 +5,8 @@
 #ifndef LABSTOR_ERROR_H
 #define LABSTOR_ERROR_H
 
+#ifdef __cplusplus
+
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -43,5 +45,7 @@ namespace labstor {
         }
     };
 }
+
+#endif
 
 #endif //LABSTOR_ERROR_H

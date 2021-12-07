@@ -4,6 +4,7 @@
 
 #include <labstor/userspace/util/debug.h>
 #include <modules/registrar/registrar.h>
+#include <labstor/types/allocator/shmem_allocator.h>
 
 #include "dummy.h"
 #include "dummy_client.h"
@@ -25,8 +26,8 @@ void labstor::test::Dummy::Client::GetValue() {
     ipc_manager_->GetQueuePair(qp, 0);
     rq_submit = reinterpret_cast<dummy_submit_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_submit_request)));
     rq_submit->Init(ns_id_);
-    TRACEPOINT("labstor::test::Dummy::Client", "SubmitRequestID",
-               ((size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion()));
+    TRACEPOINT("labstor::test::Dummy::Client", "SUBMIT ID",
+               ((size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion())/128, GET_SHMEM_ALLOC_REFCNT(rq_submit));
     qtok = qp->Enqueue(rq_submit);
     rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->Wait(qtok));
     printf("COMPLETE: %d\n", rq_complete->num_);

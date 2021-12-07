@@ -50,7 +50,7 @@ labstor::Server::Namespace::Namespace() {
     TRACEPOINT("labstor::Server::Namespace::Namespace", "Allocator")
     labstor::ipc::shmem_allocator *alloc;
     alloc = new labstor::ipc::shmem_allocator();
-    alloc->Init(section, remainder, request_unit);
+    alloc->Init(region_, section, remainder, request_unit);
     shmem_alloc_ = alloc;
     TRACEPOINT("labstor::Server::Namespace::Namespace", "Allocator")
 }

@@ -20,6 +20,7 @@ void labstor::Client::IPCManager::Connect() {
     int serverfd;
     struct sockaddr_un client_addr;
     struct sockaddr_un server_addr;
+    void *region;
 
     //Get our pid
     pid_ = getpid();
@@ -56,9 +57,9 @@ void labstor::Client::IPCManager::Connect() {
     //Attach SHMEM allocator
     TRACEPOINT("Attach SHMEM allocator")
     labstor::ipc::shmem_allocator *shmem_alloc;
-    void *region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
+    region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
     shmem_alloc = new labstor::ipc::shmem_allocator();
-    shmem_alloc->Attach(region);
+    shmem_alloc->Attach(region, region);
     shmem_alloc_ = shmem_alloc;
     TRACEPOINT("SHMEM allocator", (size_t)shmem_alloc->GetRegion())
 
@@ -66,7 +67,7 @@ void labstor::Client::IPCManager::Connect() {
     TRACEPOINT("Initialize internal allocator")
     labstor::ipc::shmem_allocator *internal_alloc;
     internal_alloc = new labstor::ipc::shmem_allocator();
-    internal_alloc->Init(malloc(reply.region_size), reply.region_size, reply.request_unit);
+    internal_alloc->Init(region=malloc(reply.region_size), region, reply.region_size, reply.request_unit);
     private_alloc_ = internal_alloc;
     TRACEPOINT("Internal allocator", (size_t)internal_alloc->GetRegion())
 

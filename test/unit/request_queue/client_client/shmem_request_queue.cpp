@@ -54,13 +54,13 @@ int main(int argc, char **argv) {
 
     //Initialize memory allocator and queue
     if(rank == 0) {
-        alloc.Init(region, alloc_region_size, 256);
+        alloc.Init(region, region, alloc_region_size, 256);
         region = alloc.GetNextSection();
         q.Init(region, region, queue_region_size, 1);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
-        alloc.Attach(region);
+        alloc.Attach(region, region);
         region = alloc.GetNextSection();
         q.Attach(region, region);
     }

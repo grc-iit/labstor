@@ -16,11 +16,11 @@ void *region;
 labstor::GenericAllocator* private_allocator_init(int rank) {
     labstor::ipc::private_shmem_allocator *allocator = new labstor::ipc::private_shmem_allocator();
     if(rank == 0) {
-        allocator->Init(region, region_size, page_size);
+        allocator->Init(region, region, region_size, page_size);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
-        allocator->Attach(region);
+        allocator->Attach(region, region);
     }
     return allocator;
 }
@@ -28,11 +28,11 @@ labstor::GenericAllocator* private_allocator_init(int rank) {
 labstor::GenericAllocator* multicore_allocator_init(int rank) {
     labstor::ipc::shmem_allocator *allocator = new labstor::ipc::shmem_allocator();
     if(rank == 0) {
-        allocator->Init(region, region_size, page_size, 4);
+        allocator->Init(region, region, region_size, page_size, 4);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {
-        allocator->Attach(region);
+        allocator->Attach(region, region);
     }
     return allocator;
 }

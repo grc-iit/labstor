@@ -20,6 +20,8 @@
 #include "stdio.h"
 #include "timer.h"
 #include "serializeable.h"
+#include <sched.h>
+#include <unistd.h>
 
 namespace labstor {
 
@@ -40,7 +42,7 @@ public:
         }
         base_text_ = std::string(buffer, off);
         if(!tracepoint) { printf("%s\n", (base_text_ + "start").c_str()); }
-        else { printf("%s\n", (base_text_).c_str()); }
+        else { printf("%d;%s\n", gettid(),(base_text_).c_str()); }
     }
 
     ~AutoTrace() {
