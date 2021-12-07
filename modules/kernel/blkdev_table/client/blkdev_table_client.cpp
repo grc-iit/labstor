@@ -33,6 +33,9 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
     rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
     dev_id = rq_complete->header.op_;
     TRACEPOINT("Complete", (int)rq_complete->header.ns_id_, rq_complete->header.op_);
+    TRACEPOINT("labstor::BlkdevTable::Client::IO", "Complete",
+               "rq_complete",
+               (size_t)rq_complete - (size_t)ipc_manager_->GetBaseRegion());
     ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
     return dev_id;
 }

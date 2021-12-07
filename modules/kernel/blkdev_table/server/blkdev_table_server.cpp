@@ -9,7 +9,7 @@ void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
     AUTO_TRACE("labstor::BlkdevTable::ProcessRequest", request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kRegisterBdev: {
-            RegisterBlkdev(qp, reinterpret_cast<labstor_submit_blkdev_table_register_request *>(request));
+            RegisterBlkdev(qp, reinterpret_cast<labstor_submit_blkdev_table_register_request *>(request), creds);
             break;
         }
         case Ops::kUnregisterBdev: {
@@ -19,8 +19,8 @@ void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
     }
 }
 
-void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit) {
-    AUTO_TRACE("labstor::BlkdevTable::AddBdev", rq_submit->path_);
+void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit, labstor::credentials *creds) {
+    AUTO_TRACE("labstor::BlkdevTable::Server::AddBdev", rq_submit->path_);
     labstor_complete_blkdev_table_register_request *rq_complete;
     labstor_submit_blkdev_table_register_request *kern_submit;
     labstor_complete_blkdev_table_register_request *kern_complete;
@@ -50,15 +50,21 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     rq_complete->header.ns_id_ = -1;
 
     //Complete SERVER -> USER interaction
-    TRACEPOINT("labstor::BlkdevTable::AddBdev", "Kernel Complete", (size_t)kern_complete, (int)kern_complete->header.ns_id_);
+    TRACEPOINT("labstor::BlkdevTable::Server::AddBdev", "Kernel Complete", (size_t)kern_complete, (int)kern_complete->header.ns_id_);
     qp->Complete(
             reinterpret_cast<labstor::ipc::request*>(rq_submit),
             reinterpret_cast<labstor::ipc::request*>(rq_complete));
 
     //Release requests
+    TRACEPOINT("labstor::BlkdevTable::Server::IO", "Complete",
+               "rq_submit",
+               (size_t)rq_submit - (size_t)ipc_manager_->GetRegion(creds->pid),
+               "kern_submit",
+               (size_t)kern_submit - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
+               "kern_complete",
+               (size_t)kern_complete - (size_t)ipc_manager_->GetRegion(KERNEL_PID));
     ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
     ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_submit));
-    ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_complete));
 }
 
 void labstor::BlkdevTable::Server::UnregisterBlkdev(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq_submit) {

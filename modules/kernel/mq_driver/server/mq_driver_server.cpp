@@ -13,7 +13,7 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kWrite:
         case Ops::kRead: {
-            IOStart(qp, reinterpret_cast<labstor_submit_mq_driver_request*>(request));
+            IOStart(qp, reinterpret_cast<labstor_submit_mq_driver_request*>(request), creds);
             break;
         }
         case Ops::kIOComplete: {
@@ -23,7 +23,7 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
     }
 }
 
-void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_submit_mq_driver_request *rq_submit) {
+void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_submit_mq_driver_request *rq_submit, labstor::credentials *creds) {
     AUTO_TRACE("labstor::MQDriver::Server::IOStart", rq_submit->dev_id_);
     labstor_complete_mq_driver_request *rq_complete;
     labstor_submit_mq_driver_request *kern_submit;
@@ -56,9 +56,16 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_su
             reinterpret_cast<labstor::ipc::request*>(rq_complete));
 
     //Free used requests
+    TRACEPOINT("labstor::MQDriver::Server::IO", "Complete",
+               "rq_submit",
+               (size_t)rq_submit - (size_t)ipc_manager_->GetRegion(creds->pid),
+               "kern_submit",
+               (size_t)kern_submit - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
+               "kern_complete",
+               (size_t)kern_complete - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
+               (int)rq_complete->header_.op_);
     ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
     ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_submit));
-    ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_complete));
 }
 
 void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *qp, labstor_complete_mq_driver_request *rq_complete) {

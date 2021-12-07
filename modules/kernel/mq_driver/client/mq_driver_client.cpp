@@ -35,7 +35,11 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
     //Complete CLIENT -> SERVER interaction
     qtok = qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
     rq_complete = reinterpret_cast<labstor_complete_mq_driver_request *>(ipc_manager_->Wait(qtok));
-    TRACEPOINT("labstor::MQDriver::Client::IO", "Complete", (size_t)rq_complete, (int)rq_complete->header_.op_);
+    TRACEPOINT("labstor::MQDriver::Client::IO", "Complete",
+               "rq_submit",
+               (size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion(),
+               "return_code",
+               (int)rq_complete->header_.op_);
 
     //Free requests
     ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
