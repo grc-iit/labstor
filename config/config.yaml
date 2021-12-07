@@ -13,11 +13,11 @@ work_orchestrator:
   work_queue_depth: 128
   policy: round-robin
   kernel_workers:
-    - {worker_id: 0, cpu_id: 1}
-    - {worker_id: 1, cpu_id: 2}
-  server_workers:
     - {worker_id: 0, cpu_id: 3}
     - {worker_id: 1, cpu_id: 4}
+  server_workers:
+    - {worker_id: 0, cpu_id: 1}
+    - {worker_id: 1, cpu_id: 2}
 ipc_manager:
   pid_to_ipc_size_mb: 2
   qps_by_id_size_mb: 2

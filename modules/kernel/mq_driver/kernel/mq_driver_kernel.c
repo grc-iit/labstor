@@ -546,6 +546,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     struct block_device *bdev;
     struct request_queue *q;
     struct bio *bio;
+    rq->qp_ = qp;
 
     pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
 
@@ -557,38 +558,44 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     pr_debug("BDEV device: %p\n", bdev);
     if(bdev == NULL) {
         pr_err("Invalid block device id: %d\n", rq->dev_id_);
-        labstor_complete_io(rq, -100);
-        return;
+        success = -100;
+        goto err_complete;
     }
     //Get request queue associated with device
     q = bdev->bd_disk->queue;
     //Disable stats
     q->queue_flags &= ~QUEUE_FLAG_STATS;
     //Create bio
-    rq->qp_ = qp;
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
-    kmem_cache_free(page_cache, pages);
     pr_debug("Create BIO: %p\n", bio);
     if(bio == NULL) {
-        labstor_complete_io(rq, -101);
-        return;
+        success = -101;
+        goto err_complete;
     }
     //Create request to hctx
     dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages, bio->bi_opf);
     pr_debug("Create HCTX request: %p\n", dev_rq);
     if(dev_rq == NULL) {
-        labstor_complete_io(rq, -102);
-        return;
+        success = -102;
+        goto err_complete;
     }
     //Submit I/O
     pr_debug("Submitting I/O\n");
     success = blk_mq_try_issue_directly(dev_rq, &cookie);
-    success = false;
-    if(!success) {
-        labstor_complete_io(rq, success);
-        return;
-    }
     pr_debug("SUCCESS: %d\n", success);
+    if(!success) {
+        success = - 103;
+        goto err_complete;
+    }
+
+    //I/O was successfully submitted
+    kmem_cache_free(page_cache, pages);
+    return;
+
+    //I/O was not successfully submitted
+    err_complete:
+    kmem_cache_free(page_cache, pages);
+    labstor_complete_io(rq, success);
 }
 
 inline int get_stats(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {

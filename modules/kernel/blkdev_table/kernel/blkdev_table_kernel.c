@@ -25,6 +25,7 @@
 #include <linux/cpumask.h>
 #include <linux/timer.h>
 #include <linux/delay.h>
+#include <linux/sched.h>
 
 #include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_queue_pair.h>
@@ -47,12 +48,33 @@ inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_b
     struct block_device *bdev;
     bdev = blkdev_get_by_path(rq->path_, BDEV_ACCESS_FLAGS, NULL);
     pr_debug("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
-    if(bdev == NULL) {
-        rq->header_.ns_id_ = -2;
-        pr_warn("Could not find bdev: %s\n", rq->path_);
+    rq->header_.ns_id_ = -1;
+    if(bdev == NULL || IS_ERR(bdev)) {
+        switch(PTR_ERR(bdev)) {
+            case -EACCES: {
+                rq->header_.ns_id_ = -2;
+                pr_err("BDEV %s may be read-only\n", rq->path_);
+                break;
+            }
+            case -ENOTBLK: {
+                rq->header_.ns_id_ = -3;
+                pr_err("BDEV %s is not a block device\n", rq->path_);
+                break;
+            }
+            case -ENOMEM: {
+                rq->header_.ns_id_ = -4;
+                pr_err("BDEV %s has ran into some memory error...\n", rq->path_);
+                break;
+            }
+            default: {
+                rq->header_.ns_id_ = -4;
+                pr_err("BDEV %s ran into an error: %ld?\n", rq->path_, PTR_ERR(bdev));
+                break;
+            }
+        }
+        bdev = NULL;
     }
     bdevs[rq->dev_id_] = bdev;
-    rq->header_.ns_id_ = -1;
     pr_debug("Finished assigning bdev\n");
     labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
     pr_debug("Completed request\n");

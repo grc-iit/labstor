@@ -44,7 +44,7 @@ int main() {
         ipc_manager_->Connect();
 
         //Register BDEV
-        std::string path = "/dev/sdb";
+        std::string path = "/dev/nvme0n1";
         labstor::BlkdevTable::Client blkdev_table;
         printf("PID: %d\n", getpid());
         blkdev_table.Register();
