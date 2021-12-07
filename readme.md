@@ -13,6 +13,7 @@ C11 compiler
 yaml-cpp
 
 ```
+git clone git@github.com:lukemartinlogan/scspkg.git
 scspkg create yaml-cpp
 cd `scspkg pkg-src yaml-cpp` 
 git clone https://github.com/jbeder/yaml-cpp.git

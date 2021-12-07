@@ -7,7 +7,11 @@
 
 #include <unistd.h>
 
-int main() {
+int main(int argc, char **argv) {
+    if(argc != 2) {
+        printf("./server_thrpt [server-cores] [nprocs] []")
+    }
+
     LABSTOR_ERROR_HANDLE_START()
 
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;

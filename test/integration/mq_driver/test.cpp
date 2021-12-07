@@ -64,7 +64,7 @@ int main() {
         mq_driver.Register();
 
         //Write to device
-        for(int i = 0; i < 2048; ++i) {
+        for(int i = 0; i < 256; ++i) {
             mq_driver.Write(dev_id, user_buf, buf_size, sector, hctx);
             memset(user_buf, 0, buf_size);
 

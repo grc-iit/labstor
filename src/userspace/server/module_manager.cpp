@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 11/4/21.
 //
 
+#include <filesystem>
 #include <labstor/userspace/util/errors.h>
 #include <labstor/userspace/util/debug.h>
 #include <labstor/userspace/util/path_parser.h>
@@ -19,9 +20,15 @@ void labstor::Server::ModuleManager::LoadDefaultModules() {
             labstor::ModulePath paths;
             if (module.second["client"]) {
                 paths.client = scs::path_parser(module.second["client"].as<std::string>());
+                if(!std::filesystem::exists(paths.client)) {
+                    throw MODULE_DOES_NOT_EXIST.format(paths.client);
+                }
             }
             if (module.second["server"]) {
                 paths.server = scs::path_parser(module.second["server"].as<std::string>());
+                if(!std::filesystem::exists(paths.client)) {
+                    throw MODULE_DOES_NOT_EXIST.format(paths.server);
+                }
             }
             AddModulePaths(module_id, paths);
             UpdateModule(paths.server);

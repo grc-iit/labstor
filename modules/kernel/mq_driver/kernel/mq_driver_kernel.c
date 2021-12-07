@@ -440,9 +440,18 @@ static void labstor_complete_io(struct labstor_submit_mq_driver_request *rq, int
 }
 
 static void io_complete(struct bio *bio) {
-    struct labstor_submit_mq_driver_request *rq = bio->bi_private;
+    struct labstor_submit_mq_driver_request *rq;
+    if(!bio || IS_ERR(bio)) {
+        pr_err("io_complete was passed NULL bio");
+        return;
+    }
+    rq = bio->bi_private;
+    if(rq == NULL) {
+        pr_err("io_complete request is NULL\n");
+        return;
+    }
+    pr_debug("Bio: %p, Request: %p\n", bio, rq);
     labstor_complete_io(rq, bio->bi_status == BLK_STS_OK);
-    pr_debug("I/O complete with status: %d\n", bio->bi_status == BLK_STS_OK);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -494,9 +503,30 @@ static inline struct bio *create_bio(struct labstor_submit_mq_driver_request *rq
 
 struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs, int op) {
     struct request *rq = blk_mq_alloc_request_hctx(q, op, BLK_MQ_REQ_NOWAIT, hctx_idx);
-    if(rq == NULL) {
-        pr_err("Could not allocate request on HCTX");
-        return NULL;
+    pr_debug("Request: %p\n", rq);
+    if(IS_ERR(rq)) {
+        switch (PTR_ERR(rq)) {
+            case -EINVAL: {
+                pr_err("Could not allocate request on HCTX, invalid flags?");
+                return NULL;
+            }
+            case -EIO: {
+                pr_err("Invalid HCTX ID? %d\n", hctx_idx);
+                return NULL;
+            }
+            case -EBUSY: {
+                pr_err("HCTX is busy");
+                return NULL;
+            }
+            case -ENODEV: {
+                pr_err("HCTX queue dying?\n");
+                return NULL;
+            }
+            default: {
+                pr_err("Some other error: %ld\n", PTR_ERR(rq));
+                return NULL;
+            }
+        }
     }
     rq->rq_flags &= ~RQF_IO_STAT;
     rq->bio = rq->biotail = NULL;
@@ -517,12 +547,14 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     struct request_queue *q;
     struct bio *bio;
 
-    pr_debug("Received %s request\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ");
+    pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
 
     //Convert user's buffer to pages
+    pr_debug("Converting user pages: %p %lu\n", rq->user_buf_, rq->buf_size_);
     pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
     //Get block device associated with semantic label
     bdev = labstor_get_bdev(rq->dev_id_);
+    pr_debug("BDEV device: %p\n", bdev);
     if(bdev == NULL) {
         pr_err("Invalid block device id: %d\n", rq->dev_id_);
         labstor_complete_io(rq, -100);
@@ -536,18 +568,22 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     rq->qp_ = qp;
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
     kmem_cache_free(page_cache, pages);
+    pr_debug("Create BIO: %p\n", bio);
     if(bio == NULL) {
         labstor_complete_io(rq, -101);
         return;
     }
     //Create request to hctx
     dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages, bio->bi_opf);
+    pr_debug("Create HCTX request: %p\n", dev_rq);
     if(dev_rq == NULL) {
         labstor_complete_io(rq, -102);
         return;
     }
     //Submit I/O
+    pr_debug("Submitting I/O\n");
     success = blk_mq_try_issue_directly(dev_rq, &cookie);
+    success = false;
     if(!success) {
         labstor_complete_io(rq, success);
         return;
