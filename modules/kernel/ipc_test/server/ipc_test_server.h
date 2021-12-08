@@ -19,11 +19,10 @@ namespace labstor::IPCTest {
 class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
-    labstor::ipc::ring_buffer_uint32_t dev_ids_;
 public:
     Server() : labstor::Module(IPC_TEST_MODULE_ID) {
+        ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
     void Start(labstor::ipc::queue_pair *qp, labstor_submit_ipc_test_request *rq_submit);
     void End(labstor::ipc::queue_pair *qp, labstor_poll_ipc_test_request *rq_submit);

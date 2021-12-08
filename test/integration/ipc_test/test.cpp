@@ -16,7 +16,7 @@ int main() {
     ipc_manager_->Connect();
     client.Register();
 
-    for(int i = 0; i < 1; ++i) {
+    for(int i = 0; i < 1024; ++i) {
         client.Start();
     }
 

@@ -156,13 +156,15 @@ static inline void labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *
 }
 
 static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, uint32_t req_id, struct labstor_request **rq) {
-    return labstor_unordered_map_uint32_t_request_Find(&qp->cq, req_id, rq);
+    if(labstor_unordered_map_uint32_t_request_Find(&qp->cq, req_id, rq)) {
+        return labstor_unordered_map_uint32_t_request_Remove(&qp->cq, req_id);
+    }
+    return false;
 }
 
 static inline struct labstor_request* labstor_queue_pair_Wait(struct labstor_queue_pair *qp, uint32_t req_id) {
     struct labstor_request *ret = NULL;
     while(!labstor_queue_pair_IsComplete(qp, req_id, &ret)) {}
-    labstor_unordered_map_uint32_t_request_Remove(&qp->cq, req_id);
     return ret;
 }
 

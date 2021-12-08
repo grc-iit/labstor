@@ -2,6 +2,9 @@ modules:
   Dummy:
     client: ${LABSTOR_BUILD_DIR}/modules/dummy/libdummy_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/dummy/libdummy_server.so
+  IPCTest:
+    client: ${LABSTOR_BUILD_DIR}/modules/kernel/ipc_test/libipc_test_client.so
+    server: ${LABSTOR_BUILD_DIR}/modules/kernel/ipc_test/libipc_test_server.so
   BlkdevTable:
     client: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_server.so
