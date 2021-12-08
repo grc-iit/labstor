@@ -40,8 +40,10 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     //Create SERVER -> KERNEL message
     kern_submit = ipc_manager_->AllocRequest<labstor_submit_blkdev_table_register_request>(kern_qp);
     kern_submit->Init(BLKDEV_TABLE_RUNTIME_ID, rq_submit);
-    dev_ids_.Dequeue(kern_submit->dev_id_);
-    TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdev", "KERN SUBMIT", kern_submit->path_);
+    if(!dev_ids_.Dequeue(kern_submit->dev_id_)) {
+        //TODO; reply error to user
+    }
+    TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdev", "KERN SUBMIT", kern_submit->path_, "dev_id", kern_submit->dev_id_);
     qtok = kern_qp->Enqueue<labstor_submit_blkdev_table_register_request>(kern_submit);
 
     //Poll SERVER -> KERNEL interaction
@@ -74,10 +76,10 @@ void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pa
     }
 
     //Create message for the USER
-    TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "Create message for user", poll_rq->uqtok_.req_id)
+    TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "Device id", kern_complete->GetDeviceID())
     ipc_manager_->GetQueuePair(qp, poll_rq->uqtok_);
     rq_complete = ipc_manager_->AllocRequest<labstor_complete_blkdev_table_register_request>(qp);
-    rq_complete->header_.op_ = kern_complete->header_.op_;
+    rq_complete->SetDeviceID(kern_complete);
 
     //Complete SERVER -> USER interaction
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "request complete")
@@ -87,7 +89,10 @@ void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pa
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "Free",
                "kern_complete",
                (size_t)kern_complete - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
-               (int)rq_complete->header_.op_);
+               "dev_id",
+               rq_complete->GetDeviceID(),
+               "return_code",
+               rq_complete->GetReturnCode());
     ipc_manager_->FreeRequest<labstor_complete_blkdev_table_register_request>(kern_qp, kern_complete);
     ipc_manager_->FreeRequest<labstor_poll_blkdev_table_register>(private_qp, poll_rq);
 }

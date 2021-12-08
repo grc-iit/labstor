@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
-#ifndef LABSTOR_DUMMY_SERVER_H
-#define LABSTOR_DUMMY_SERVER_H
+#ifndef LABSTOR_BLKDEV_TABLE_SERVER_H
+#define LABSTOR_BLKDEV_TABLE_SERVER_H
 
 #include "blkdev_table.h"
 #include <labstor/userspace/types/module.h>
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif //LABSTOR_DUMMY_SERVER_H
+#endif //LABSTOR_BLKDEV_TABLE_SERVER_H

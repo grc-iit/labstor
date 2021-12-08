@@ -8,6 +8,11 @@ add_executable(test_dummy_exec registrar/test.cpp)
 add_dependencies(test_dummy_exec labstor_client_library dummy_client)
 target_link_libraries(test_dummy_exec labstor_client_library dummy_client)
 
+#IPC Test
+add_executable(test_ipc_exec ipc_test/test.cpp)
+add_dependencies(test_ipc_exec labstor_client_library ipc_test_client)
+target_link_libraries(test_ipc_exec labstor_client_library ipc_test_client)
+
 #Blkdev table client
 add_executable(test_blkdev_table_exec blkdev_table/test.cpp)
 add_dependencies(test_blkdev_table_exec labstor_client_library blkdev_table_client)

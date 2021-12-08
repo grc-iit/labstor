@@ -553,6 +553,10 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     //Convert user's buffer to pages
     pr_debug("Converting user pages: %p %lu\n", rq->user_buf_, rq->buf_size_);
     pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
+    if(pages == NULL) {
+        pr_err("Not enough space to allocate user pages\n");
+        goto err_complete_before;
+    }
     //Get block device associated with semantic label
     bdev = labstor_get_bdev(rq->dev_id_);
     pr_debug("BDEV device: %p\n", bdev);
@@ -592,9 +596,12 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     kmem_cache_free(page_cache, pages);
     return;
 
-    //I/O was not successfully submitted
+    //I/O was not successfully submitted (after page cache)
     err_complete:
     kmem_cache_free(page_cache, pages);
+
+    //I/O was not successfully submitted (before page cache)
+    err_complete_before:
     labstor_complete_io(rq, success);
 }
 

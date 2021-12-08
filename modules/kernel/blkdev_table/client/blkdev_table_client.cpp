@@ -30,9 +30,10 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "path", rq_submit->path_, "qp_id", qp->GetQid());
     qtok = qp->Enqueue<labstor_submit_blkdev_table_register_request>(rq_submit);
     rq_complete = ipc_manager_->Wait<labstor_complete_blkdev_table_register_request>(qtok);
-    dev_id = rq_complete->header_.op_;
+    dev_id = rq_complete->GetDeviceID();
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "Complete",
-               (int)rq_complete->header_.ns_id_, rq_complete->header_.op_);
+               "return_code", rq_complete->GetReturnCode(),
+               "device_id", rq_complete->GetDeviceID());
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "Free",
                "rq_complete",
                (size_t)rq_complete - (size_t)ipc_manager_->GetBaseRegion());

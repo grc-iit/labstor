@@ -62,7 +62,19 @@ struct labstor_submit_blkdev_table_register_request {
 };
 
 struct labstor_complete_blkdev_table_register_request {
-    struct labstor_request header_;
+    struct labstor_submit_blkdev_table_register_request wrapper;
+#ifdef __cplusplus
+    void SetDeviceID(labstor_complete_blkdev_table_register_request *rq) {
+        wrapper.dev_id_ = rq->GetDeviceID();
+        wrapper.header_.ns_id_ = rq->GetReturnCode();
+    }
+    int GetDeviceID() {
+        return wrapper.dev_id_;
+    }
+    int GetReturnCode() {
+        return wrapper.header_.ns_id_;
+    }
+#endif
 };
 
 struct labstor_poll_blkdev_table_register {
