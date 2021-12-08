@@ -34,7 +34,7 @@ ipc_manager:
   private_mem_mb: 2
   num_private_queues: 48
   private_queue_size_kb: 4
-  private_request_unit_bytes: 128
+  private_request_unit_bytes: 256
 
 namespace:
   max_entries: 1024

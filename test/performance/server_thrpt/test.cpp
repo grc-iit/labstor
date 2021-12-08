@@ -2,12 +2,14 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
+#include <mpi.h>
 #include <labstor/userspace/client/client.h>
 #include <modules/dummy/client/dummy_client.h>
 
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+    MPI_Init(&argc, &argv);
     if(argc != 2) {
         printf("./server_thrpt [server-cores] [nprocs] []")
     }

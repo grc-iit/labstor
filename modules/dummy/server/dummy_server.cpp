@@ -11,13 +11,13 @@ void labstor::test::Dummy::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
             dummy_submit_request *rq_submit;
             dummy_complete_request *rq_complete;
             rq_submit = reinterpret_cast<dummy_submit_request*>(request);
-            rq_complete = reinterpret_cast<dummy_complete_request*>(ipc_manager_->AllocRequest(qp, sizeof(dummy_complete_request)));
+            rq_complete = ipc_manager_->AllocRequest<dummy_complete_request>(qp);
             TRACEPOINT("labstor::test::Dummy::Server", "CompleteRequestID", request->req_id_,
                        ((size_t)rq_complete - (size_t)ipc_manager_->GetRegion(creds->pid)));
             rq_complete->Init(5543);
             TRACEPOINT("labstor::test::Dummy::Server", "Starting completion")
             qp->Complete(rq_submit, rq_complete);
-            ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
+            ipc_manager_->FreeRequest<dummy_submit_request>(qp, rq_submit);
             break;
         }
     }

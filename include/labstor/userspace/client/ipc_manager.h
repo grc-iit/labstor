@@ -73,36 +73,46 @@ public:
             qp = private_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
         }
     }
-    inline labstor::ipc::request* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
         if(LABSTOR_QP_IS_SHMEM(qid)) {
-            return (labstor::ipc::request*)shmem_alloc_->Alloc(size);
+            return reinterpret_cast<T*>(shmem_alloc_->Alloc(size));
         } else {
-            return (labstor::ipc::request*)private_alloc_->Alloc(size);
+            return reinterpret_cast<T*>(private_alloc_->Alloc(size));
         }
     }
-    inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
-        return AllocRequest(qp->GetQid(), size);
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
+        return reinterpret_cast<T*>(AllocRequest<T>(qp->GetQid(), size));
     }
-    inline void FreeRequest(labstor::ipc::qid_t qid, labstor::ipc::request *rq) {
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::queue_pair *qp) {
+        return reinterpret_cast<T*>(AllocRequest<T>(qp->GetQid(), sizeof(T)));
+    }
+    template<typename T>
+    inline void FreeRequest(labstor::ipc::qid_t qid, T *rq) {
         if(LABSTOR_QP_IS_SHMEM(qid)) {
-            shmem_alloc_->Free(rq);
+            shmem_alloc_->Free(reinterpret_cast<void*>(rq));
         } else {
-            private_alloc_->Free(rq);
+            private_alloc_->Free(reinterpret_cast<void*>(rq));
         }
     }
-    inline void FreeRequest(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
+    template<typename T>
+    inline void FreeRequest(labstor::ipc::qtok_t &qtok, T *rq) {
         return FreeRequest(qtok.qid, rq);
     }
-    labstor::ipc::request* Wait(labstor::ipc::qtok_t &qtok) {
-        labstor::ipc::request *rq;
+    template<typename T>
+    T* Wait(labstor::ipc::qtok_t &qtok) {
+        T *rq;
         labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
-        rq = qp->Wait(qtok.req_id);
+        rq = qp->Wait<T>(qtok.req_id);
         return rq;
     }
+    template<typename T>
     void Wait(labstor::ipc::qtok_set &qtoks) {
         for(int i = 0; i < qtoks.GetLength(); ++i) {
-            FreeRequest(qtoks[i], Wait(qtoks[i]));
+            FreeRequest(qtoks[i], Wait<T>(qtoks[i]));
         }
     }
 

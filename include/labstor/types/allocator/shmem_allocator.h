@@ -15,10 +15,12 @@
 #define GET_SHMEM_ALLOC_REFCNT(x) (((struct labstor_shmem_allocator_entry*)x - 1)->refcnt_)
 
 struct labstor_shmem_allocator_entry {
-    uint32_t stamp_;
-    uint16_t refcnt_;
     uint16_t core_;
+#ifdef LABSTOR_MEM_DEBUG
+    uint16_t refcnt_;
+    uint32_t stamp_;
     int last_owner;
+#endif
 };
 
 struct labstor_shmem_allocator_header {
@@ -137,8 +139,8 @@ static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator
     do {
         page = (struct labstor_shmem_allocator_entry *)labstor_private_shmem_allocator_Alloc(&alloc->per_core_allocs_[core], size, core);
         if(page) {
+#if defined(__cplusplus) && defined(LABSTOR_MEM_DEBUG)
             __atomic_add_fetch(&page->refcnt_, 1, __ATOMIC_RELAXED);
-#ifdef __cplusplus
             page->last_owner = gettid();
             if(page->stamp_ == 0) {
                 TRACEPOINT("Initializing page", ((size_t)page - (size_t)labstor_shmem_allocator_GetBaseRegion(alloc)))
@@ -172,7 +174,6 @@ static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator
                            (size_t)labstor_shmem_allocator_GetBaseRegion(alloc));
                 exit(1);
             }
-#endif
             TRACEPOINT("Page was allocated",
                        "true_stamp",
                        ((size_t)page - (size_t)labstor_shmem_allocator_GetBaseRegion(alloc)),
@@ -184,7 +185,7 @@ static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator
                        page->last_owner,
                        "base_region",
                        (size_t)labstor_shmem_allocator_GetBaseRegion(alloc));
-
+#endif
             page->core_ = core;
             return (void*)(page + 1);
         }
@@ -197,7 +198,8 @@ static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *
     AUTO_TRACE("Allocator free start")
     struct labstor_shmem_allocator_entry *page = ((struct labstor_shmem_allocator_entry*)data) - 1;
     int core = page->core_;
-#ifdef __cplusplus
+
+#if defined(__cplusplus) && defined(LABSTOR_MEM_DEBUG)
     if(page->stamp_ != ((size_t)page - (size_t)labstor_shmem_allocator_GetBaseRegion(alloc))) {
         TRACEPOINT("Page free integrity invalid (invalid stamp)",
                    "true_stamp",
@@ -226,7 +228,6 @@ static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *
                    (size_t)labstor_shmem_allocator_GetBaseRegion(alloc));
         exit(1);
     }
-#endif
     __atomic_sub_fetch(&page->refcnt_, 1, __ATOMIC_RELAXED);
     TRACEPOINT("Page was freed",
                "true_stamp",
@@ -239,11 +240,13 @@ static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *
                page->last_owner,
                "base_region",
                (size_t)labstor_shmem_allocator_GetBaseRegion(alloc));
+#endif
+
     while(!labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], page)) {
         core = (core + 1)%alloc->concurrency_;
     }
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && defined(LABSTOR_MEM_DEBUG)
     if(page->stamp_ != ((size_t)page - (size_t)labstor_shmem_allocator_GetBaseRegion(alloc))) {
         TRACEPOINT("Page after free integrity invalid (invalid stamp)",
                    "true_stamp",

@@ -28,13 +28,12 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
 
     //Create CLIENT -> SERVER message
     TRACEPOINT("Creating MQ driver submission request")
-    rq_submit = reinterpret_cast<labstor_submit_mq_driver_request *>(
-            ipc_manager_->AllocRequest(qp, sizeof(labstor_submit_mq_driver_request)));
+    rq_submit = ipc_manager_->AllocRequest<labstor_submit_mq_driver_request>(qp);
     rq_submit->Init(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Complete CLIENT -> SERVER interaction
-    qtok = qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
-    rq_complete = reinterpret_cast<labstor_complete_mq_driver_request *>(ipc_manager_->Wait(qtok));
+    qtok = qp->Enqueue<labstor_submit_mq_driver_request>(rq_submit);
+    rq_complete = ipc_manager_->Wait<labstor_complete_mq_driver_request>(qtok);
     TRACEPOINT("labstor::MQDriver::Client::IO", "Complete",
                "rq_submit",
                (size_t)rq_submit - (size_t)ipc_manager_->GetBaseRegion(),
@@ -42,7 +41,7 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
                (int)rq_complete->header_.op_);
 
     //Free requests
-    ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
+    ipc_manager_->FreeRequest<labstor_complete_mq_driver_request>(qtok, rq_complete);
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Client);

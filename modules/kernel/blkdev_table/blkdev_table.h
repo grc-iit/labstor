@@ -13,6 +13,8 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/shmem_qtok.h>
 
 enum BlkdevTableOps {
     LABSTOR_BLKDEV_TABLE_REGISTER,
@@ -27,6 +29,7 @@ namespace labstor::BlkdevTable {
         kRegister,
         kUnregister,
         kRegisterBdev,
+        kRegisterBdevComplete,
         kUnregisterBdev
     };
 }
@@ -59,16 +62,31 @@ struct labstor_submit_blkdev_table_register_request {
 };
 
 struct labstor_complete_blkdev_table_register_request {
-    struct labstor_request header;
+    struct labstor_request header_;
+};
+
+struct labstor_poll_blkdev_table_register {
+    struct labstor_request header_;
+    struct labstor_qtok_t kqtok_;
+    struct labstor_qtok_t uqtok_;
+#ifdef __cplusplus
+    void Init(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq, labstor::ipc::qtok_t &qtok) {
+        header_.ns_id_ = rq->header_.ns_id_;
+        header_.op_ = static_cast<int>(labstor::BlkdevTable::Ops::kRegisterBdevComplete);
+        kqtok_ = qtok;
+        uqtok_.qid = qp->GetQid();
+        uqtok_.req_id = rq->header_.req_id_;
+    }
+#endif
 };
 
 struct labstor_submit_blkdev_table_unregister_request {
-    struct labstor_request header;
-    int dev_id;
+    struct labstor_request header_;
+    int dev_id_;
 };
 
 struct labstor_complete_blkdev_table_unregister_request {
-    struct labstor_request header;
+    struct labstor_request header_;
 };
 
 

@@ -110,6 +110,10 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     uint32_t request_unit = labstor_config_->config_["ipc_manager"]["private_request_unit_bytes"].as<uint32_t>();
     uint32_t queue_size = request_unit;
 
+    //Create new IPC for private queues
+    pid_to_ipc_.Set(pid_, new PerProcessIPC());
+    PerProcessIPC *client_ipc = pid_to_ipc_[pid_];
+
     //Allocator internal memory
     private_mem_ = malloc(region_size);
 
@@ -117,10 +121,11 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     labstor::ipc::shmem_allocator *private_alloc;
     private_alloc = new labstor::ipc::shmem_allocator();
     private_alloc->Init(private_mem_, private_mem_, region_size, request_unit);
+    client_ipc->alloc_ = private_alloc;
     private_alloc_ = private_alloc;
-    TRACEPOINT("Private allocator")
+    TRACEPOINT("Private allocator", (size_t)private_alloc_)
 
-    //Allocate & register PRIVATE intermediate queues for modules to communicate internally
+    //Allocate & register PRIVATE intermediate streaming queues for modules to communicate internally
     labstor::ipc::queue_pair *qp;
     for(int i = 0; i < num_queues; ++i) {
         //Initialize QP
@@ -129,7 +134,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
                 LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
                 num_queues,
-                KERNEL_PID);
+                pid_);
         void *sq_region = private_alloc_->Alloc(queue_size);
         void *cq_region = private_alloc_->Alloc(queue_size);
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
@@ -138,6 +143,9 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
         if(!RegisterQueuePair(qp)) {
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
         }
+
+        //Schedule queue pair
+        work_orchestrator_->AssignQueuePair(qp, i);
     }
 }
 

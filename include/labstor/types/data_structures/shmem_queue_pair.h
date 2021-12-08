@@ -82,10 +82,18 @@ struct labstor_queue_pair {
     inline void Init(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
     inline void Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region);
     inline labstor::ipc::qid_t GetQid();
-    inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq);
-    inline bool Dequeue(labstor::ipc::request *&rq);
-    inline void Complete(labstor::ipc::request *rq, labstor::ipc::request *msg);
-    inline labstor::ipc::request* Wait(uint32_t req_id);
+    template<typename T>
+    inline labstor::ipc::qtok_t Enqueue(T *rq);
+    template<typename T>
+    inline bool Dequeue(T *&rq);
+    template<typename S, typename T=S>
+    inline void Complete(S *rq, T *msg);
+    template<typename T>
+    inline void Complete(labstor::ipc::qtok_t &qtok, T *msg);
+    template<typename T>
+    inline bool IsComplete(labstor::ipc::qtok_t &qtok, T *&rq);
+    template<typename T>
+    inline T* Wait(uint32_t req_id);
     static inline uint64_t GetStreamQueuePairID(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid);
     static inline uint64_t GetStreamQueuePairID(labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid);
     static inline uint64_t GetStreamQueuePairOff(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid);
@@ -136,12 +144,24 @@ static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, st
     struct labstor_request_map_bucket b;
     msg->req_id_ = rq->req_id_;
     labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
-    labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b);
+    do {} while(!labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b));
+}
+
+static inline void labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *msg) {
+    struct labstor_request_map_bucket b;
+    msg->req_id_ = qtok->req_id;
+    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
+    TRACEPOINT("labstor_queue_pair_CompleteByQtok", msg->req_id_, b.off_, labstor_request_map_bucket_NullKey())
+    do {} while(!labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b));
+}
+
+static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, uint32_t req_id, struct labstor_request **rq) {
+    return labstor_unordered_map_uint32_t_request_Find(&qp->cq, req_id, rq);
 }
 
 static inline struct labstor_request* labstor_queue_pair_Wait(struct labstor_queue_pair *qp, uint32_t req_id) {
     struct labstor_request *ret = NULL;
-    while(!labstor_unordered_map_uint32_t_request_Find(&qp->cq, req_id, &ret)) {}
+    while(!labstor_queue_pair_IsComplete(qp, req_id, &ret)) {}
     labstor_unordered_map_uint32_t_request_Remove(&qp->cq, req_id);
     return ret;
 }
@@ -186,20 +206,34 @@ labstor::ipc::qid_t labstor::ipc::queue_pair::GetQid() {
     return labstor_queue_pair_GetQid(this);
 }
 
-labstor::ipc::qtok_t labstor::ipc::queue_pair::Enqueue(labstor::ipc::request *rq) {
-    return labstor_request_queue_Enqueue(&sq, rq);
+template<typename T>
+labstor::ipc::qtok_t labstor::ipc::queue_pair::Enqueue(T *rq) {
+    return labstor_request_queue_Enqueue(&sq, reinterpret_cast<labstor::ipc::request*>(rq));
 }
 
-bool labstor::ipc::queue_pair::Dequeue(labstor::ipc::request *&rq) {
-    return labstor_request_queue_Dequeue(&sq, reinterpret_cast<labstor_request**>(&rq));
+template<typename T>
+bool labstor::ipc::queue_pair::Dequeue(T *&rq) {
+    return labstor_request_queue_Dequeue(&sq, reinterpret_cast<labstor::ipc::request**>(&rq));
 }
 
-void labstor::ipc::queue_pair::Complete(labstor::ipc::request *rq, labstor::ipc::request *msg) {
-    labstor_queue_pair_Complete(this, rq, msg);
+template<typename S, typename T=S>
+void labstor::ipc::queue_pair::Complete(S *rq, T *msg) {
+    labstor_queue_pair_Complete(this, reinterpret_cast<labstor::ipc::request*>(rq), reinterpret_cast<labstor::ipc::request*>(msg));
 }
 
-labstor::ipc::request* labstor::ipc::queue_pair::Wait(uint32_t req_id) {
-    return reinterpret_cast<labstor::ipc::request*>(labstor_queue_pair_Wait(this, req_id));
+template<typename T>
+void labstor::ipc::queue_pair::Complete(labstor::ipc::qtok_t &qtok, T *msg) {
+    labstor_queue_pair_CompleteByQtok(this, &qtok, reinterpret_cast<labstor::ipc::request*>(msg));
+}
+
+template<typename T>
+bool labstor::ipc::queue_pair::IsComplete(labstor::ipc::qtok_t &qtok, T *&rq) {
+    return labstor_queue_pair_IsComplete(this, qtok.req_id, reinterpret_cast<labstor::ipc::request**>(&rq));
+}
+
+template<typename T>
+T* labstor::ipc::queue_pair::Wait(uint32_t req_id) {
+    return reinterpret_cast<T*>(labstor_queue_pair_Wait(this, req_id));
 }
 
 uint64_t labstor::ipc::queue_pair::GetStreamQueuePairID(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid) {

@@ -61,6 +61,21 @@ struct labstor_submit_mq_driver_request {
     struct labstor_queue_pair *qp_;
 };
 
+struct labstor_mq_driver_poll_request {
+    struct labstor_request header_;
+    struct labstor_qtok_t kqtok_;
+    struct labstor_qtok_t uqtok_;
+#ifdef __cplusplus
+    void Init(labstor_queue_pair *qp, labstor_submit_mq_driver_request *rq, labstor::ipc::qtok_t &qtok) {
+        header_.ns_id_ = rq->header_.ns_id_;
+        header_.op_ = static_cast<int>(labstor::MQDriver::Ops::kIOComplete);
+        kqtok_ = qtok;
+        uqtok_.qid = qp->GetQid();
+        uqtok_.req_id = rq->header_.req_id_;
+    }
+#endif
+};
+
 struct labstor_complete_mq_driver_request {
     struct labstor_request header_;
 };

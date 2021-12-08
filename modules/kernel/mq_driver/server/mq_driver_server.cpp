@@ -17,7 +17,7 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
             break;
         }
         case Ops::kIOComplete: {
-            IOComplete(qp, reinterpret_cast<labstor_complete_mq_driver_request*>(request));
+            IOComplete(qp, reinterpret_cast<labstor_mq_driver_poll_request*>(request));
             break;
         }
     }
@@ -25,51 +25,68 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
 
 void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_submit_mq_driver_request *rq_submit, labstor::credentials *creds) {
     AUTO_TRACE("labstor::MQDriver::Server::IOStart", rq_submit->dev_id_);
-    labstor_complete_mq_driver_request *rq_complete;
+    labstor_mq_driver_poll_request *poll_rq;
     labstor_submit_mq_driver_request *kern_submit;
-    labstor_complete_mq_driver_request *kern_complete;
-    labstor::ipc::queue_pair *kern_qp;
+    labstor::ipc::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
     //Get KERNEL QP
-    ipc_manager_->GetQueuePair(kern_qp,
+    ipc_manager_->GetQueuePairByPid(kern_qp,
                                LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
-                               0, KERNEL_PID);
+                               KERNEL_PID);
+    ipc_manager_->GetNextQueuePair(private_qp,
+                               LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
 
     //Create SERVER -> KERNEL message
-    kern_submit = reinterpret_cast<labstor_submit_mq_driver_request*>(
-            ipc_manager_->AllocRequest(kern_qp, sizeof(labstor_submit_mq_driver_request)));
+    kern_submit = ipc_manager_->AllocRequest<labstor_submit_mq_driver_request>(kern_qp);
     kern_submit->Init(MQ_DRIVER_RUNTIME_ID, rq_submit);
+    qtok = kern_qp->Enqueue<labstor_submit_mq_driver_request>(kern_submit);
 
-    //Complete SERVER -> KERNEL interaction
-    qtok = kern_qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(kern_submit));
-    kern_complete = reinterpret_cast<labstor_complete_mq_driver_request*>(ipc_manager_->Wait(qtok));
-
-    //Create message for the USER
-    rq_complete = reinterpret_cast<labstor_complete_mq_driver_request*>(
-            ipc_manager_->AllocRequest(qp, sizeof(labstor_complete_mq_driver_request)));
-    rq_complete->header_.op_ = kern_complete->header_.op_;
-
-    //Complete SERVER -> USER interaction
-    qp->Complete(
-            reinterpret_cast<labstor::ipc::request*>(rq_submit),
-            reinterpret_cast<labstor::ipc::request*>(rq_complete));
+    //Poll SERVER -> KERNEL interaction
+    poll_rq = ipc_manager_->AllocRequest<labstor_mq_driver_poll_request>(private_qp);
+    poll_rq->Init(qp, rq_submit, qtok);
+    private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq);
 
     //Free used requests
-    TRACEPOINT("labstor::MQDriver::Server::IO", "Complete",
+    TRACEPOINT("labstor::MQDriver::Server::IO",
                "rq_submit",
                (size_t)rq_submit - (size_t)ipc_manager_->GetRegion(creds->pid),
                "kern_submit",
-               (size_t)kern_submit - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
+               (size_t)kern_submit - (size_t)ipc_manager_->GetRegion(KERNEL_PID));
+    ipc_manager_->FreeRequest<labstor_submit_mq_driver_request>(qp, rq_submit);
+}
+
+void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+    AUTO_TRACE("labstor::MQDriver::Server::IOComplete", poll_rq->header_.op_);
+    labstor::ipc::queue_pair *qp, *kern_qp;
+    labstor_complete_mq_driver_request *kern_complete;
+    labstor_complete_mq_driver_request *rq_complete;
+
+    //Check if the QTOK has been completed
+    TRACEPOINT("labstor::MQDriver::Server::IOComplete", "Check if I/O has completed")
+    ipc_manager_->GetQueuePair(kern_qp, poll_rq->kqtok_);
+    if(!kern_qp->IsComplete<labstor_complete_mq_driver_request>(poll_rq->kqtok_, kern_complete)) {
+        private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq);
+        return;
+    }
+
+    //Create message for the USER
+    TRACEPOINT("labstor::MQDriver::Server::IOComplete", "Create message for user")
+    ipc_manager_->GetQueuePair(qp, poll_rq->uqtok_);
+    rq_complete = ipc_manager_->AllocRequest<labstor_complete_mq_driver_request>(qp);
+    rq_complete->header_.op_ = kern_complete->header_.op_;
+
+    //Complete SERVER -> USER interaction
+    TRACEPOINT("labstor::MQDriver::Server::IOComplete", "request complete!")
+    qp->Complete<labstor_complete_mq_driver_request>(poll_rq->uqtok_, rq_complete);
+
+    //Free completed requests
+    TRACEPOINT("labstor::MQDriver::Server::IO", "Complete",
                "kern_complete",
                (size_t)kern_complete - (size_t)ipc_manager_->GetRegion(KERNEL_PID),
                (int)rq_complete->header_.op_);
-    ipc_manager_->FreeRequest(qp, reinterpret_cast<labstor::ipc::request*>(rq_submit));
-    ipc_manager_->FreeRequest(kern_qp, reinterpret_cast<labstor::ipc::request*>(kern_submit));
-}
-
-void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *qp, labstor_complete_mq_driver_request *rq_complete) {
-    AUTO_TRACE("labstor::MQDriver::Server::IOComplete", rq_complete->header_.op_);
+    ipc_manager_->FreeRequest<labstor_complete_mq_driver_request>(kern_qp, kern_complete);
+    ipc_manager_->FreeRequest<labstor_mq_driver_poll_request>(private_qp, poll_rq);
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Server);

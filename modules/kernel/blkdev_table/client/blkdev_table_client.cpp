@@ -23,20 +23,20 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    rq_submit = reinterpret_cast<labstor_submit_blkdev_table_register_request*>(
-            ipc_manager_->AllocRequest(qp, labstor_submit_blkdev_table_register_request::GetSize(path.size())));
+    rq_submit = ipc_manager_->AllocRequest<labstor_submit_blkdev_table_register_request>(qp,
+         labstor_submit_blkdev_table_register_request::GetSize(path.size()));
     rq_submit->Init(ns_id_, path.c_str(), path.size(), -1);
 
-    TRACEPOINT("path", rq_submit->path_);
-    qtok = qp->Enqueue(reinterpret_cast<labstor::ipc::request*>(rq_submit));
-    TRACEPOINT("Enqueued");
-    rq_complete = reinterpret_cast<labstor_complete_blkdev_table_register_request*>(ipc_manager_->Wait(qtok));
-    dev_id = rq_complete->header.op_;
-    TRACEPOINT("Complete", (int)rq_complete->header.ns_id_, rq_complete->header.op_);
+    TRACEPOINT("labstor::BlkdevTable::Client::IO", "path", rq_submit->path_, "qp_id", qp->GetQid());
+    qtok = qp->Enqueue<labstor_submit_blkdev_table_register_request>(rq_submit);
+    rq_complete = ipc_manager_->Wait<labstor_complete_blkdev_table_register_request>(qtok);
+    dev_id = rq_complete->header_.op_;
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "Complete",
+               (int)rq_complete->header_.ns_id_, rq_complete->header_.op_);
+    TRACEPOINT("labstor::BlkdevTable::Client::IO", "Free",
                "rq_complete",
                (size_t)rq_complete - (size_t)ipc_manager_->GetBaseRegion());
-    ipc_manager_->FreeRequest(qtok, reinterpret_cast<labstor::ipc::request*>(rq_complete));
+    ipc_manager_->FreeRequest<labstor_complete_blkdev_table_register_request>(qtok, rq_complete);
     return dev_id;
 }
 

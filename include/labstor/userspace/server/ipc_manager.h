@@ -96,15 +96,7 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int hash) {
-        if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
-            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid_)];
-            return;
-        }
-        throw INVALID_QP_QUERY.format();
-    }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
+    inline void GetQueuePairByName(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
             qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, pid_)];
@@ -112,13 +104,24 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, uint32_t depth=0, int pid=-1) {
-        if(pid >= 0) {
+    inline void GetQueuePairByPidHash(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int pid, int hash) {
+        if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid]->num_stream_qps_;
-            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid);
-            qp = qps_by_id_[qid];
+            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid)];
             return;
         }
+        throw INVALID_QP_QUERY.format();
+    }
+    inline void GetQueuePairByHash(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int hash) {
+        return GetQueuePairByPidHash(qp, flags, pid_, hash);
+    }
+    inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int pid) {
+        return GetQueuePairByPidHash(qp, flags, pid, sched_getcpu());
+    }
+    inline void GetNextQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
+        return GetQueuePairByPidHash(qp, flags, pid_, sched_getcpu() + 1);
+    }
+    inline void GetBatchQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, uint32_t depth) {
         if(LABSTOR_QP_IS_BATCH(flags)) {
             uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
             uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth, 4);
@@ -130,34 +133,48 @@ public:
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
         qp = qps_by_id_[qtok.qid];
     }
-    inline labstor::ipc::request* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
+
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
-        return (labstor::ipc::request*)alloc->Alloc(size);
+        return (T*)alloc->Alloc(size);
     }
-    inline labstor::ipc::request* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
-        return AllocRequest(qp->GetQid(), size);
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
+        return AllocRequest<T>(qp->GetQid(), size);
     }
-    inline void FreeRequest(labstor::ipc::qid_t qid, labstor::ipc::request *rq) {
+    template<typename T>
+    inline T* AllocRequest(labstor::ipc::queue_pair *qp) {
+        return AllocRequest<T>(qp->GetQid(), sizeof(T));
+    }
+    template<typename T>
+    inline void FreeRequest(labstor::ipc::qid_t qid, T *rq) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
         alloc->Free((void*)rq);
     }
-    inline void FreeRequest(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
+    template<typename T>
+    inline void FreeRequest(labstor::ipc::qtok_t &qtok, T *rq) {
         return FreeRequest(qtok.qid, rq);
     }
-    inline void FreeRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *rq) {
+    template<typename T>
+    inline void FreeRequest(labstor::ipc::queue_pair *qp, T *rq) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qp->GetQid())]->alloc_;
         alloc->Free((void*)rq);
     }
-    inline labstor::ipc::request* Wait(labstor::ipc::qtok_t &qtok) {
-        labstor::ipc::request *rq;
+
+    template<typename T>
+    inline T* Wait(labstor::ipc::qtok_t &qtok) {
+        T *rq;
         labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
-        rq = qp->Wait(qtok.req_id);
+        rq = qp->Wait<T>(qtok.req_id);
         return rq;
     }
+
+    template<typename T>
     inline void Wait(labstor::ipc::qtok_set &qtoks) {
         for(int i = 0; i < qtoks.GetLength(); ++i) {
-            FreeRequest(qtoks[i], Wait(qtoks[i]));
+            FreeRequest(qtoks[i], Wait<T>(qtoks[i]));
         }
     }
     inline std::vector<int> &GetConnectedProcesses() {
