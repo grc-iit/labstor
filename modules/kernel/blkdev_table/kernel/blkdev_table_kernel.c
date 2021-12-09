@@ -46,28 +46,30 @@ EXPORT_SYMBOL(page_cache);
 
 inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
     struct block_device *bdev;
+    struct labstor_complete_blkdev_table_register_request *rq_complete;
+    int code;
     bdev = blkdev_get_by_path(rq->path_, BDEV_ACCESS_FLAGS, NULL);
     pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
-    rq->header_.ns_id_ = -1;
+    code = -1;
     if(bdev == NULL || IS_ERR(bdev)) {
         switch(PTR_ERR(bdev)) {
             case -EACCES: {
-                rq->header_.ns_id_ = -2;
+                code = -2;
                 pr_err("BDEV %s may be read-only\n", rq->path_);
                 break;
             }
             case -ENOTBLK: {
-                rq->header_.ns_id_ = -3;
+                code = -3;
                 pr_err("BDEV %s is not a block device\n", rq->path_);
                 break;
             }
             case -ENOMEM: {
-                rq->header_.ns_id_ = -4;
+                code = -4;
                 pr_err("BDEV %s has ran into some memory error...\n", rq->path_);
                 break;
             }
             default: {
-                rq->header_.ns_id_ = -4;
+                code = -5;
                 pr_err("BDEV %s ran into an error: %ld?\n", rq->path_, PTR_ERR(bdev));
                 break;
             }
@@ -77,11 +79,13 @@ inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_b
     if(rq->dev_id_ < MAX_MOUNTED_BDEVS) {
         bdevs[rq->dev_id_] = bdev;
     } else {
-        rq->header_.ns_id_ = -5;
+        code = -5;
         pr_err("Dev id %d is too large\n", rq->dev_id_);
     }
     pr_debug("Finished assigning bdev\n");
-    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
+    rq_complete = (struct labstor_complete_blkdev_table_register_request*)rq;
+    rq_complete->header_.code_ = code;
+    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete);
     pr_debug("Completed request\n");
 }
 

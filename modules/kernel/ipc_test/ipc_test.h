@@ -12,6 +12,8 @@
 #include <labstor/types/data_structures/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 
+#define IPC_TEST_SUCCESS 1234
+
 enum IPCTestOps {
     LABSTOR_START_IPC_TEST,
     LABSTOR_COMPLETE_IPC_TEST
@@ -50,7 +52,19 @@ struct labstor_submit_ipc_test_request {
 #endif
 };
 
-typedef struct labstor_submit_ipc_test_request labstor_complete_ipc_test_request;
+struct labstor_complete_ipc_test_request {
+    struct labstor_reply header_;
+    int nonce_;
+#ifdef __cplusplus
+    inline void Copy(labstor_complete_ipc_test_request *rq) {
+        header_.Init(rq->header_.req_id_, rq->header_.code_);
+        nonce_ = rq->nonce_;
+    }
+    int GetReturnCode() {
+        return header_.code_;
+    }
+#endif
+};
 
 struct labstor_poll_ipc_test_request {
     struct labstor_request header_;

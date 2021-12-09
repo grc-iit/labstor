@@ -25,7 +25,7 @@ void labstor::Server::Worker::DoWork() {
         qp_depth = qp.GetDepth();
         for(uint32_t j = 0; j < qp_depth; ++j) {
             if(!qp.Dequeue(rq)) { break; }
-            TRACEPOINT("labstor::Server::Worker::DoWork", rq->ns_id_, rq->op_, rq->req_id_, creds->pid);
+            //TRACEPOINT("labstor::Server::Worker::DoWork", rq->ns_id_, rq->op_, rq->req_id_, creds->pid);
             labstor::Module *module = namespace_->Get(rq->ns_id_);
             module->ProcessRequest(&qp, rq, creds);
         }

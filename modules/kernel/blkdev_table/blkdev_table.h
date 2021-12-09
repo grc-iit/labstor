@@ -62,17 +62,18 @@ struct labstor_submit_blkdev_table_register_request {
 };
 
 struct labstor_complete_blkdev_table_register_request {
-    struct labstor_submit_blkdev_table_register_request wrapper;
+    struct labstor_reply header_;
+    int dev_id_;
 #ifdef __cplusplus
-    void SetDeviceID(labstor_complete_blkdev_table_register_request *rq) {
-        wrapper.dev_id_ = rq->GetDeviceID();
-        wrapper.header_.ns_id_ = rq->GetReturnCode();
+    void Copy(labstor_complete_blkdev_table_register_request *rq) {
+        dev_id_ = rq->GetDeviceID();
+        header_.SetCode(rq->GetReturnCode());
     }
     int GetDeviceID() {
-        return wrapper.dev_id_;
+        return dev_id_;
     }
     int GetReturnCode() {
-        return wrapper.header_.ns_id_;
+        return header_.GetCode();
     }
 #endif
 };

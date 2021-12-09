@@ -40,9 +40,13 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("ipc_test");
 
 inline void complete_test(struct labstor_queue_pair *qp, struct labstor_submit_ipc_test_request *rq) {
+    struct labstor_complete_ipc_test_request *rq_complete = (struct labstor_complete_ipc_test_request*)rq;
     pr_debug("Finished assigning bdev\n");
-    rq->header_.ns_id_ = 1234;
-    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq);
+    pr_info("Finished request: %llu %u\n", labstor_queue_pair_GetQid(qp), rq->header_.req_id_);
+    rq_complete->header_.code_ = IPC_TEST_SUCCESS;
+    if(!labstor_queue_pair_CompleteQuick(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete)) {
+        pr_err("Could not complete invalid request\n");
+    }
 }
 
 void ipc_test_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {

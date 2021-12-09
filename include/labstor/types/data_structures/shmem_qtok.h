@@ -7,9 +7,17 @@
 
 typedef uint64_t labstor_qid_t;
 
+typedef uint32_t labstor_req_id_t;
 struct labstor_qtok_t {
     labstor_qid_t qid;
-    uint32_t req_id;
+    labstor_req_id_t req_id;
+#ifdef __cplusplus
+    labstor_qtok_t() = default;
+    void Init(labstor_qid_t qid_, labstor_req_id_t req_id_) {
+        qid = qid_;
+        req_id = req_id_;
+    }
+#endif
 };
 
 
@@ -21,6 +29,7 @@ namespace labstor::ipc {
 
 typedef uint64_t qid_t;
 typedef labstor_qtok_t qtok_t;
+typedef labstor_req_id_t req_id_t;
 
 class qtok_set {
 private:

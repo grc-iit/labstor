@@ -18,7 +18,11 @@ void init_labstor_module_manager(void) {
 }
 
 void register_labstor_module(struct labstor_module *pkg) {
-    modules[pkg->runtime_id] = pkg;
+    if(0 <= pkg->runtime_id && pkg->runtime_id < MAX_LABSTOR_MODULES) {
+        modules[pkg->runtime_id] = pkg;
+        return;
+    }
+    pr_err("Module %s has invalid runtime id %d\n", pkg->module_id.key, pkg->runtime_id);
 }
 EXPORT_SYMBOL(register_labstor_module);
 
@@ -28,7 +32,10 @@ void unregister_labstor_module(struct labstor_module *pkg) {
 EXPORT_SYMBOL(unregister_labstor_module);
 
 struct labstor_module *get_labstor_module_by_runtime_id(int runtime_id) {
-    return modules[runtime_id];
+    if(0 <= runtime_id && runtime_id < MAX_LABSTOR_MODULES) {
+        return modules[runtime_id];
+    }
+    return NULL;
 }
 EXPORT_SYMBOL(get_labstor_module_by_runtime_id);
 

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
+find_package(OpenMP)
+
 
 #Dummy & Registration
 add_executable(test_dummy_exec registrar/test.cpp)

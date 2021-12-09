@@ -79,7 +79,7 @@ void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pa
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "Device id", kern_complete->GetDeviceID())
     ipc_manager_->GetQueuePair(qp, poll_rq->uqtok_);
     rq_complete = ipc_manager_->AllocRequest<labstor_complete_blkdev_table_register_request>(qp);
-    rq_complete->SetDeviceID(kern_complete);
+    rq_complete->Copy(kern_complete);
 
     //Complete SERVER -> USER interaction
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "request complete")

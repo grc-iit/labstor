@@ -49,6 +49,12 @@ typedef int (*kthread_fn)(void*);
 #define MS_TO_NS(x) x * 1000000
 size_t time_slice_us;
 
+inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labstor_request *rq) {
+    struct labstor_reply *rq_complete = (struct labstor_reply*)rq;
+    rq_complete->code_ = LABSTOR_REQUEST_FAILED;
+    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete);
+}
+
 int worker_runtime(struct labstor_worker_struct *worker) {
     int work_depth, qp_depth, i, j;
     struct labstor_queue_pair_ptr ptr;
@@ -80,14 +86,20 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             //pr_debug("Dequeing a supervisor queue: %llu %d\n", labstor_queue_pair_GetQid(&qp), qp_depth);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
-                pr_debug("Dequeued a request: %p %d!\n", rq, rq->ns_id_);
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 if(module == NULL) {
-                    pr_warn("An invalid module was requested: %d\n", rq->ns_id_);
+                    pr_warn("An invalid module was requested: %d (req_id=%u, qid=%llu, rq_off=%u)\n",
+                            rq->ns_id_,
+                            rq->req_id_,
+                            labstor_queue_pair_GetQid(&qp),
+                            LABSTOR_REGION_SUB(rq, region));
+                    complete_invalid_request(&qp, rq);
                     continue;
                 }
                 if(!module->process_request_fn) {
-                    pr_warn("A module without a kernel worker component was selected: %d %s\n", module->runtime_id, module->module_id.key);
+                    pr_warn("A module without a kernel worker component was selected: %d %s (rq_ptr=%u)\n",
+                            module->runtime_id, module->module_id.key, LABSTOR_REGION_SUB(rq, region));
+                    complete_invalid_request(&qp, rq);
                     continue;
                 }
                 module->process_request_fn(&qp, rq);

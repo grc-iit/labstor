@@ -147,6 +147,19 @@ static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, st
     do {} while(!labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b));
 }
 
+static inline bool labstor_queue_pair_CompleteQuick(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
+    struct labstor_request_map_bucket b;
+    int i;
+    msg->req_id_ = rq->req_id_;
+    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
+    for(i = 0; i < 1000; ++i) {
+        if(labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static inline void labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *msg) {
     struct labstor_request_map_bucket b;
     msg->req_id_ = qtok->req_id;

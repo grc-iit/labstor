@@ -26,12 +26,18 @@ int labstor::IPCTest::Client::Start() {
     rq_submit = ipc_manager_->AllocRequest<labstor_submit_ipc_test_request>(qp);
     rq_submit->Init(ns_id_, 24);
 
-    TRACEPOINT("labstor::IPCTest::Client::Enqueue");
+    TRACEPOINT("labstor::IPCTest::Client::Enqueue", rq_submit->header_.ns_id_);
     qtok = qp->Enqueue<labstor_submit_ipc_test_request>(rq_submit);
     rq_complete = ipc_manager_->Wait<labstor_complete_ipc_test_request>(qtok);
-    TRACEPOINT("labstor::IPCTest::Client::IO", "Complete",
-               "return_code", rq_complete->GetReturnCode())
+    int ret = rq_complete->GetReturnCode();
+    TRACEPOINT("labstor::IPCTest::Client::Start", "Complete",
+               "return_code", ret)
     ipc_manager_->FreeRequest<labstor_complete_ipc_test_request>(qtok, rq_complete);
+
+    if(ret != IPC_TEST_SUCCESS) {
+        printf("IPC test failed: return code %d\n", ret);
+        exit(1);
+    }
     return dev_id;
 }
 LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Client)

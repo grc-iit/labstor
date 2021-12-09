@@ -12,6 +12,8 @@
 
 //{T_NAME}: The semantic name of the type
 //{T}: The type being buffered
+//{NullValue}: The empty key to indiciate ring buffer still being modified
+//{IsNull}: The empty key to indiciate ring buffer still being modified
 
 struct labstor_ring_buffer_{T_NAME}_header {
     uint64_t enqueued_, dequeued_;
@@ -90,13 +92,15 @@ static inline void labstor_ring_buffer_{T_NAME}_Attach(struct labstor_ring_buffe
 
 static inline bool labstor_ring_buffer_{T_NAME}_Enqueue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} data, uint32_t *req_id) {
     uint64_t enqueued;
+    uint32_t off;
     do {
         enqueued = rbuf->header_->enqueued_;
         if(labstor_ring_buffer_{T_NAME}_GetDepth(rbuf) > rbuf->header_->max_depth_) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     *req_id = (uint32_t)(enqueued % (1u << 31));
-    rbuf->queue_[*req_id % rbuf->header_->max_depth_] = data;
+    off = (*req_id) % rbuf->header_->max_depth_;
+    rbuf->queue_[off] = data;
     return true;
 }
 
@@ -107,12 +111,14 @@ static inline bool labstor_ring_buffer_{T_NAME}_Enqueue_simple(struct labstor_ri
 
 static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} *data) {
     uint64_t dequeued;
+    uint32t_t off;
     do {
         dequeued = rbuf->header_->dequeued_;
         if(rbuf->header_->enqueued_ == dequeued) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    *data = rbuf->queue_[dequeued % rbuf->header_->max_depth_];
+    off = dequeued % rbuf->header_->max_depth_;
+    *data = rbuf->queue_[off];
     return true;
 }
 
