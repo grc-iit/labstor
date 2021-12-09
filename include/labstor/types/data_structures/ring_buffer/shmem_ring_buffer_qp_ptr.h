@@ -6,6 +6,7 @@
 #define labstor_ring_buffer_qp_ptr_H
 
 #include <labstor/types/basics.h>
+#include <labstor/types/data_structures/bitmap.h>
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 #endif
@@ -16,8 +17,9 @@
 //{IsNull}: The empty key to indiciate ring buffer still being modified
 
 struct labstor_ring_buffer_qp_ptr_header {
-    uint64_t enqueued_, dequeued_;
+    uint32_t enqueued_, dequeued_;
     uint32_t max_depth_;
+    labstor_bitmap_t bitmap_[];
 };
 
 #ifdef __cplusplus
@@ -26,6 +28,7 @@ struct labstor_ring_buffer_qp_ptr : public labstor::shmem_type {
 struct labstor_ring_buffer_qp_ptr {
 #endif
     struct labstor_ring_buffer_qp_ptr_header *header_;
+    labstor_bitmap_t *bitmap_;
     struct labstor_queue_pair_ptr *queue_;
 
 #ifdef __cplusplus
@@ -43,7 +46,9 @@ struct labstor_ring_buffer_qp_ptr {
 };
 
 static inline uint32_t labstor_ring_buffer_qp_ptr_GetSize_global(uint32_t max_depth) {
-    return sizeof(struct labstor_ring_buffer_qp_ptr_header) + sizeof(struct labstor_queue_pair_ptr)*max_depth;
+    return sizeof(struct labstor_ring_buffer_qp_ptr_header) +
+            sizeof(struct labstor_queue_pair_ptr)*max_depth
+            + labstor_bitmap_GetSize(max_depth);
 }
 
 static inline uint32_t labstor_ring_buffer_qp_ptr_GetSize(struct labstor_ring_buffer_qp_ptr *rbuf) {
@@ -68,39 +73,44 @@ static inline uint32_t labstor_ring_buffer_qp_ptr_GetMaxDepth(struct labstor_rin
 
 static inline bool labstor_ring_buffer_qp_ptr_Init(struct labstor_ring_buffer_qp_ptr *rbuf, void *region, uint32_t region_size, uint32_t max_depth) {
     uint32_t min_region_size;
+    int header_size;
     rbuf->header_ = (struct labstor_ring_buffer_qp_ptr_header*)region;
-    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(rbuf->header_ + 1);
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
     if(max_depth > 0) {
         min_region_size = labstor_ring_buffer_qp_ptr_GetSize_global(max_depth);
         if(min_region_size > region_size) {
-            //pr_warn("labstor_ring_buffer_qp_ptr_Init: depth of %u requires at least %u bytes", max_depth, min_region_size);
             return false;
         }
         rbuf->header_->max_depth_ = max_depth;
     } else {
-        rbuf->header_->max_depth_ = (region_size - sizeof(struct labstor_ring_buffer_qp_ptr_header)) / sizeof(struct labstor_queue_pair_ptr);
+        header_size = sizeof(struct labstor_ring_buffer_qp_ptr_header) + labstor_bitmap_GetSize(max_depth);
+        rbuf->header_->max_depth_ = (region_size - header_size) / sizeof(struct labstor_queue_pair_ptr);
     }
+    rbuf->bitmap_ = rbuf->header_->bitmap_;
+    labstor_bitmap_Init(rbuf->bitmap_, rbuf->header_->max_depth_);
+    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(labstor_bitmap_GetNextSection(rbuf->bitmap_, rbuf->header_->max_depth_));
     return true;
 }
 
 static inline void labstor_ring_buffer_qp_ptr_Attach(struct labstor_ring_buffer_qp_ptr *rbuf, void *region) {
     rbuf->header_ = (struct labstor_ring_buffer_qp_ptr_header*)region;
-    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(rbuf->header_ + 1);
+    rbuf->bitmap_ = rbuf->header_->bitmap_;
+    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(labstor_bitmap_GetNextSection(rbuf->bitmap_, rbuf->header_->max_depth_));
 }
 
 static inline bool labstor_ring_buffer_qp_ptr_Enqueue(struct labstor_ring_buffer_qp_ptr *rbuf, struct labstor_queue_pair_ptr data, uint32_t *req_id) {
-    uint64_t enqueued;
-    uint32_t off;
+    uint32_t enqueued;
+    uint32_t entry;
     do {
         enqueued = rbuf->header_->enqueued_;
         if(labstor_ring_buffer_qp_ptr_GetDepth(rbuf) > rbuf->header_->max_depth_) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    *req_id = (uint32_t)(enqueued % (1u << 31));
-    off = (*req_id) % rbuf->header_->max_depth_;
-    rbuf->queue_[off] = data;
+    *req_id = enqueued;
+    entry = (*req_id) % rbuf->header_->max_depth_;
+    rbuf->queue_[entry] = data;
+    labstor_bitmap_Set(rbuf->bitmap_, entry);
     return true;
 }
 
@@ -109,17 +119,31 @@ static inline bool labstor_ring_buffer_qp_ptr_Enqueue_simple(struct labstor_ring
     return labstor_ring_buffer_qp_ptr_Enqueue(rbuf, data, &enqueued);
 }
 
+static inline bool labstor_ring_buffer_qp_ptr_BusyWait(struct labstor_ring_buffer_qp_ptr *rbuf, uint32_t bit) {
+    int max_retries = 10000, i = 0;
+    while(!labstor_bitmap_IsSet(rbuf->bitmap_, bit) && i < max_retries) { ++i; LABSTOR_YIELD(); }
+    return i < max_retries;
+}
+
 static inline bool labstor_ring_buffer_qp_ptr_Dequeue(struct labstor_ring_buffer_qp_ptr *rbuf, struct labstor_queue_pair_ptr *data) {
-    uint64_t dequeued;
-    uint32_t off;
+    uint32_t dequeued;
+    uint32_t entry;
     do {
         dequeued = rbuf->header_->dequeued_;
         if(rbuf->header_->enqueued_ == dequeued) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    off = dequeued % rbuf->header_->max_depth_;
-    *data = rbuf->queue_[off];
-    return true;
+    entry = dequeued % rbuf->header_->max_depth_;
+    if(labstor_ring_buffer_qp_ptr_BusyWait(rbuf, entry)) {
+        *data = rbuf->queue_[entry];
+        labstor_bitmap_Unset(rbuf->bitmap_, entry);
+        return true;
+    } else {
+        *data = rbuf->queue_[entry];
+        labstor_bitmap_Unset(rbuf->bitmap_, entry);
+        TRACEPOINT("For some reason, a ring buffer's data was invalid. Process may have died during enqueue.\n");
+        return false;
+    }
 }
 
 #ifdef __cplusplus

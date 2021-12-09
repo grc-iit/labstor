@@ -14,7 +14,6 @@
 #define TRACEPOINT(...)
 #endif
 
-
 #ifdef __cplusplus
 
 #include "stdio.h"

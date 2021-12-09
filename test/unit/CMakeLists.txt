@@ -3,6 +3,8 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
+find_package(OpenMP)
+
 include_directories(include ${CMAKE_SOURCE_DIR}/modules/kernel)
 
 ######BASICS
@@ -18,6 +20,11 @@ target_link_libraries(client_to_trusted_server_exec labstor_client_library)
 add_executable(client_to_kernel_exec sockets/client_to_kernel/test_kernel_client.cpp)
 add_dependencies(client_to_kernel_exec labstor_kernel_client)
 target_link_libraries(client_to_kernel_exec labstor_kernel_client)
+
+######BITMAP
+add_executable(test_bitmap_exec bitmap/test.cpp)
+target_compile_options(test_bitmap_exec PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_bitmap_exec "${OpenMP_CXX_FLAGS}")
 
 ######IN-MEMORY REQUEST QUEUE
 add_executable(test_request_queue_exec request_queue/single/request_queue.cpp)
@@ -51,8 +58,9 @@ add_dependencies(test_shmem_request_queue_exec labstor_server_library)
 target_link_libraries(test_shmem_request_queue_exec labstor_server_library mpi)
 add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_request_queue_exec)
 
-######SHARED MEMORY REQUEST QUEUE (USER - KERNEL)
-#add_subdirectory(request_queue/client_kernel)
+add_executable(test_shmem_queue_mpsc request_queue/mpsc/test.cpp)
+target_compile_options(test_shmem_queue_mpsc PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_queue_mpsc "${OpenMP_CXX_FLAGS}")
 
 ######MODULE MANAGER
 add_executable(test_module_manager_exec module_manager/test.cpp)

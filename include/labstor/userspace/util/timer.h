@@ -25,6 +25,11 @@ public:
         time_ns_ += std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();
         return time_ns_;
     }
+    double GetMsecFromStart() {
+        end_ = std::chrono::high_resolution_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();
+        return elapsed/1000000;
+    }
 
     double GetNsec() {
         return time_ns_;

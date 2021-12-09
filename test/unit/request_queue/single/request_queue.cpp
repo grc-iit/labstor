@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     printf("REQUEST QUEUE START!\n");
     q.Init(region, region, region_size, 10);
     for(int i = 0; i < 10; ++i) {
-        req_region[i].ns_id_ = i;
+        req_region[i].ns_id_ = i+1;
         q.Enqueue(req_region + i);
         printf("ENQUEUED REQUEST[%lu]: %d\n", (size_t)(req_region + i), i);
     }

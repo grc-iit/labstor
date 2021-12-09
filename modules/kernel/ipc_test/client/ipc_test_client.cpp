@@ -28,6 +28,7 @@ int labstor::IPCTest::Client::Start() {
 
     TRACEPOINT("labstor::IPCTest::Client::Enqueue", rq_submit->header_.ns_id_);
     qtok = qp->Enqueue<labstor_submit_ipc_test_request>(rq_submit);
+    TRACEPOINT("labstor::IPCTest::Client::Enqueue", "req_id", qtok.req_id, "qid", qtok.qid);
     rq_complete = ipc_manager_->Wait<labstor_complete_ipc_test_request>(qtok);
     int ret = rq_complete->GetReturnCode();
     TRACEPOINT("labstor::IPCTest::Client::Start", "Complete",

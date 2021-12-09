@@ -30,6 +30,7 @@ struct labstor_request {
         op_ = op;
     }
     inline uint32_t GetNamespaceID() { return ns_id_; }
+    inline uint32_t GetRequestID() { return req_id_; }
     inline uint16_t GetOp() { return op_; }
 #endif
 };
