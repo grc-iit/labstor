@@ -12,6 +12,10 @@
 
 //labstor_off_t: The semantic name of the type
 //labstor_off_t: The type being buffered
+//{NullValue}: The empty key to indiciate ring buffer still being modified
+//{IsNull}: The empty key to indiciate ring buffer still being modified
+
+#define MAX_TICK 10000
 
 struct labstor_ring_buffer_labstor_off_t_header {
     uint64_t enqueued_, dequeued_;
@@ -90,13 +94,16 @@ static inline void labstor_ring_buffer_labstor_off_t_Attach(struct labstor_ring_
 
 static inline bool labstor_ring_buffer_labstor_off_t_Enqueue(struct labstor_ring_buffer_labstor_off_t *rbuf, labstor_off_t data, uint32_t *req_id) {
     uint64_t enqueued;
+    uint32_t off;
     do {
         enqueued = rbuf->header_->enqueued_;
         if(labstor_ring_buffer_labstor_off_t_GetDepth(rbuf) > rbuf->header_->max_depth_) { return false; }
+        off = (uint32_t)(enqueued % rbuf->header_->max_depth_);
+        rbuf->queue_[off] = 0;
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     *req_id = (uint32_t)(enqueued % (1u << 31));
-    rbuf->queue_[*req_id % rbuf->header_->max_depth_] = data;
+    rbuf->queue_[off] = data;
     return true;
 }
 
@@ -107,12 +114,15 @@ static inline bool labstor_ring_buffer_labstor_off_t_Enqueue_simple(struct labst
 
 static inline bool labstor_ring_buffer_labstor_off_t_Dequeue(struct labstor_ring_buffer_labstor_off_t *rbuf, labstor_off_t *data) {
     uint64_t dequeued;
+    uint32_t off, tick=0;
     do {
         dequeued = rbuf->header_->dequeued_;
         if(rbuf->header_->enqueued_ == dequeued) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    *data = rbuf->queue_[dequeued % rbuf->header_->max_depth_];
+    off = dequeued % rbuf->header_->max_depth_;
+    do { *data = rbuf->queue_[off]; ++tick; } while(*data == 0 && tick < MAX_TICK);
+    if(tick == MAX_TICK) { return false; }
     return true;
 }
 

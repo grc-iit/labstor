@@ -111,7 +111,7 @@ static inline bool labstor_ring_buffer_{T_NAME}_Enqueue_simple(struct labstor_ri
 
 static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} *data) {
     uint64_t dequeued;
-    uint32t_t off;
+    uint32_t off;
     do {
         dequeued = rbuf->header_->dequeued_;
         if(rbuf->header_->enqueued_ == dequeued) { return false; }

@@ -36,7 +36,7 @@ void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_submi
     //Create SERVER -> KERNEL message
     kern_submit = ipc_manager_->AllocRequest<labstor_submit_ipc_test_request>(kern_qp);
     kern_submit->Init(IPC_TEST_MODULE_RUNTIME_ID);
-    TRACEPOINT("labstor::IPCTest::Server::Start", "rq_ptr", LABSTOR_REGION_SUB(kern_submit, ipc_manager_->GetRegion(KERNEL_PID)));
+    TRACEPOINT("labstor::IPCTest::Server::Start", "rq_ptr", LABSTOR_REGION_SUB(kern_submit, ipc_manager_->GetRegion(KERNEL_PID)), "rq_depth", kern_qp->GetDepth());
     qtok = kern_qp->Enqueue<labstor_submit_ipc_test_request>(kern_submit);
 
     //Poll SERVER -> KERNEL interaction

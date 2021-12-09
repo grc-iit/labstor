@@ -52,7 +52,9 @@ size_t time_slice_us;
 inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labstor_request *rq) {
     struct labstor_reply *rq_complete = (struct labstor_reply*)rq;
     rq_complete->code_ = LABSTOR_REQUEST_FAILED;
-    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete);
+    if(!labstor_queue_pair_CompleteQuick(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete)) {
+        pr_err("Could not complete invalid request quickly! Giving up.\n");
+    }
 }
 
 int worker_runtime(struct labstor_worker_struct *worker) {
@@ -83,7 +85,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             //pr_debug("Dequeing a supervisor queue? %d %d %p %p\n", ptr.sq_off, ptr.cq_off, (char*)region + ptr.sq_off, (char*)region + ptr.cq_off);
             labstor_queue_pair_Attach(&qp, &ptr, region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
-            //pr_debug("Dequeing a supervisor queue: %llu %d\n", labstor_queue_pair_GetQid(&qp), qp_depth);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
