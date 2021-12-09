@@ -13,6 +13,9 @@
 #include <stdlib.h>
 #include <sys/sysinfo.h>
 #include <sched.h>
+#include <string.h>
+#include <errno.h>
+#include <string>
 
 class ProcessPartitioner {
 public:
@@ -31,9 +34,37 @@ public:
     }
 
     void InitCoreMap(std::vector<bool> &core_map, int n_cpu) {
+        core_map.resize(n_cpu);
         for(int i = 0; i < n_cpu; ++i) {
             core_map[i] = false;
         }
+    }
+
+    void PrintAffinity(std::string prefix, int pid, int n_cpu, cpu_set_t *cpus) {
+        std::string affinity = "";
+        for(int i = 0; i < n_cpu; ++i) {
+            if(CPU_ISSET(i, cpus)) {
+                affinity += std::to_string(i) + ", ";
+            }
+        }
+        printf("%s: CPU affinity: %s\n", prefix.c_str(), affinity.c_str());
+    }
+
+    void PrintAffinity(std::string prefix, int pid, int n_cpu) {
+        cpu_set_t cpus[n_cpu];
+        sched_getaffinity(pid, n_cpu, cpus);
+        PrintAffinity(prefix, pid, n_cpu, cpus);
+    }
+
+    bool SetAffinitySafe(int pid, int n_cpu, cpu_set_t *cpus) {
+        int ret = sched_setaffinity(pid, n_cpu, cpus);
+        if(ret == -1) {
+            /*printf("%s: Could not set %d's affinity\n", strerror(errno), pid);
+            PrintAffinity("proposed", pid, n_cpu, cpus);
+            PrintAffinity("current", pid, n_cpu);*/
+            return false;
+        }
+        return true;
     }
 
     bool Partition(int isol_pid, std::vector<bool> &core_map, int n_cpu) {
@@ -69,8 +100,9 @@ public:
                         CPU_CLR(i, cpus);
                     }
                 }
-                sched_setaffinity(proc_pid, n_cpu, cpus);
+                SetAffinitySafe(proc_pid, n_cpu, cpus);
             } else {
+                printf("Should be setting the isolated process's affinity\n");
                 for(int i = 0; i < n_cpu; ++i) {
                     if(core_map[i]) {
                         CPU_SET(i, cpus);
@@ -78,7 +110,7 @@ public:
                         CPU_CLR(i, cpus);
                     }
                 }
-                sched_setaffinity(proc_pid, n_cpu, cpus);
+                SetAffinitySafe(proc_pid, n_cpu, cpus);
             }
         }
         closedir(procdir);

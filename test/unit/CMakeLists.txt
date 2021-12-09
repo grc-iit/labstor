@@ -65,6 +65,9 @@ add_custom_target(test_module_manager ${CMAKE_CURRENT_BINARY_DIR}/test_module_ma
 #######CHARVEC
 add_executable(test_charvec charvec/test.cpp)
 
+#######PROC PARTITION
+add_executable(test_proc_partition proc_partition/test.cpp)
+
 ######CLEAN ALL TESTS
 add_custom_target(clean_tests COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean_build_request_queue_client_kernel)

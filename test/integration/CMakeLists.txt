@@ -22,3 +22,9 @@ target_link_libraries(test_blkdev_table_exec labstor_client_library blkdev_table
 add_executable(test_mq_driver_exec mq_driver/test.cpp)
 add_dependencies(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)
 target_link_libraries(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)
+
+#Server throughput
+add_executable(test_server_conn_exec server_conn/test.cpp)
+add_dependencies(test_server_conn_exec labstor_client_library ipc_test_client)
+target_compile_options(test_server_conn_exec PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_server_conn_exec labstor_client_library ipc_test_client "${OpenMP_CXX_FLAGS}")

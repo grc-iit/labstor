@@ -8,7 +8,7 @@ class LabStorConfigurator:
         self.conf = None
         return
     def _not0(self, num):
-        if num == 0:
+        if num < 1:
             return 1
         return int(num)
     def _num(self, num):
