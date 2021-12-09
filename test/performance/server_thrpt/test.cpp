@@ -5,17 +5,16 @@
 #include <omp.h>
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/util/timer.h>
-#include <modules/dummy/client/dummy_client.h>
+#include <modules/kernel/ipc_test/client/ipc_test_client.h>
 
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-    if(argc != 2) {
-        printf("./server_thrpt [n_server_cores] [server_core_mult] [n_kernel_cores] [dedicated] [n_clients] [n_msgs]\n");
+    if(argc != 7) {
+        printf("./server_thrpt [n_server_cores] [oversubscribe] [n_kernel_cores] [dedicated] [n_clients] [n_msgs]\n");
         exit(1);
     }
 
-    printf("Server throughput test starting\n");
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     char *n_server_cores = argv[1];
     char *server_core_mult = argv[2];
@@ -23,8 +22,9 @@ int main(int argc, char **argv) {
     char *dedicated = argv[4];
     int n_clients = atoi(argv[5]);
     int n_msgs = atoi(argv[6]);
-    labstor::test::Dummy::Client client;
+    labstor::IPCTest::Client client;
     labstor::Timer t;
+    printf("Server throughput test starting (%d clients)\n", n_clients);
 
     //Register client with trusted server
     LABSTOR_ERROR_HANDLE_START()
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
     //Spam the trusted server
     omp_set_dynamic(0);
-    #pragma omp parallel shared(n_server_cores, server_core_mult, n_kernel_cores, dedicated, n_clients, n_msgs, client, t) num_threads(nclients)
+    #pragma omp parallel shared(n_server_cores, server_core_mult, n_kernel_cores, dedicated, n_clients, n_msgs, client, t) num_threads(n_clients)
     {
         LABSTOR_ERROR_HANDLE_START()
         int rank;
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
             t.Resume();
         }
         for (int i = 0; i < n_msgs; ++i) {
-            client.GetValue();
+            client.Start();
         }
         #pragma omp barrier
         if(rank == 0) {

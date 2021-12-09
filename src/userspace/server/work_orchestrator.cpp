@@ -31,6 +31,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     for (const auto &worker_conf : config["server_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
+        TRACEPOINT("labstor::Server::WorkOrchestrator::CreateWorkers", "id", worker_id, "cpu", cpu_id)
         std::shared_ptr<labstor::UserspaceDaemon> worker_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
         std::shared_ptr<labstor::Server::Worker> worker = std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth));
         worker_daemon->SetWorker(worker);
@@ -60,9 +61,10 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     //Worker queues
     worker_pool_.emplace(KERNEL_PID, nworkers);
     auto &kernel_workers = worker_pool_[KERNEL_PID];
-    for (const auto &worker_conf : config["server_workers"]) {
+    for (const auto &worker_conf : config["kernel_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
+        TRACEPOINT("labstor::Server::WorkOrchestrator::CreateKernelWorkers", "id", worker_id, "cpu", cpu_id)
         std::shared_ptr<labstor::kernel::netlink::WorkerClient> worker_daemon =
                 std::shared_ptr<labstor::kernel::netlink::WorkerClient>(new labstor::kernel::netlink::WorkerClient(worker_id));
         std::shared_ptr<labstor::Server::Worker> worker =
