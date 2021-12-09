@@ -4,7 +4,6 @@ from scsbench.test_tracker.test_tracker import TestTracker
 from config import LabStorConfigurator
 from commands import *
 import os,sys
-import pandas as pd
 
 #Run tests
 class ServerScalabilityTest(TestTracker):
@@ -14,9 +13,12 @@ class ServerScalabilityTest(TestTracker):
         LabStorKernelServer().Kill()
 
     def Trial(self, n_server_cores, oversubscribe, frac_kernel_cores, dedicated_cores, n_client_procs, n_msgs, labstor_conf):
+        print(f"Trial Start: {n_server_cores}, {oversubscribe}, {frac_kernel_cores}, {dedicated_cores}, {n_client_procs}, {n_msgs}, {labstor_conf}")
         #Create LabStor config
         labstor_conf.SetFractionalWorkers(n_server_cores, oversubscribe, frac_kernel_cores)
         labstor_conf.SaveTemp()
+        labstor_conf.PrintConfig()
+        raise Exception("235")
 
         #Start kernel server
         print("Starting kernel server")
@@ -38,7 +40,7 @@ class ServerScalabilityTest(TestTracker):
         test_app = BashRuntime(
             f'{os.environ["LABSTOR_BUILD_DIR"]}/test/performance/test_server_thrpt_exec {n_server_cores} {oversubscribe} {frac_kernel_cores} {dedicated_cores} {n_client_procs} {n_msgs}',
             affinity=labstor_conf.GetApplicationAffinity(),
-            max_retry_ms=5000).Run()
+            max_retry_ms=10000).Run()
         if test_app.GetExitCode() != 0:
             test_app.PrintOutput()
             raise Exception(f'Error code {test_app.GetExitCode()}')
@@ -68,20 +70,24 @@ class ServerScalabilityTest(TestTracker):
             fp.write(csv)
 
 #Set environment variables
+IS_CHAMELEON=True
 os.environ["LABSTOR_ROOT"] = f'{os.environ["HOME"]}/labstor'
 os.environ["LABSTOR_CONF"] = f'{os.environ["LABSTOR_ROOT"]}/config'
 os.environ["LABSTOR_UTIL"] = f'{os.environ["LABSTOR_ROOT"]}/util'
-#os.environ["LABSTOR_BUILD_DIR"] = f'{os.environ["HOME"]}/cmake-build-release-chameleon'
-os.environ["LABSTOR_BUILD_DIR"] = f'{os.environ["LABSTOR_ROOT"]}/cmake-build-release-virtalbox'
+if IS_CHAMELEON:
+    os.environ["LABSTOR_BUILD_DIR"] = f'{os.environ["LABSTOR_ROOT"]}/cmake-build-release-chameleon'
+else:
+    os.environ["LABSTOR_BUILD_DIR"] = f'{os.environ["LABSTOR_ROOT"]}/cmake-build-release-virtalbox'
 
 #Set testing parameters
 BIG_TEST=True
 if BIG_TEST:
-    N_SERVER_CORES = [0, 1, 2, 4, 8, 16]
+    N_SERVER_CORES = [1, 2, 4, 8, 16]
     FRAC_KERNEL_CORES = [.25, .5, .75]
     DEDICATED_CORES = [0,1]
+    OVERSUBSCRIBE=[1]
     N_CLIENT_PROCS = [1, 2, 4, 8, 16]
-    REQS_PER_CLIENT = 2048
+    REQS_PER_CLIENT = [2048]
 else:
     N_SERVER_CORES = [2]
     OVERSUBSCRIBE=[1]

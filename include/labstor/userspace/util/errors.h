@@ -41,9 +41,10 @@ namespace labstor {
     const Error INVALID_NAMESPACE_ENTRY(501, "Failed to find namespace entry {}");
     const Error WORK_ORCHESTRATOR_WORK_QUEUE_ALLOC_FAILED(502, "Failed to allocate work queue entries");
     const Error WORK_ORCHESTRATOR_WORK_QUEUE_MMAP_FAILED(503, "Failed to mmap work queue entries");
-    const Error IPC_MANAGER_CANT_REGISTER_QP(504, "IPCManager failed to register qp");
-    const Error KERNEL_IPC_MANAGER_FAILED_TO_REGISTER(505, "IPCManager failed to initialize: {}");
-    const Error MODULE_DOES_NOT_EXIST(506, "Module does not exist: {}");
+    const Error WORK_ORCHESTRATOR_HAS_NO_WORKERS(504, "Work orchestrator has no {} workers");
+    const Error IPC_MANAGER_CANT_REGISTER_QP(505, "IPCManager failed to register qp");
+    const Error KERNEL_IPC_MANAGER_FAILED_TO_REGISTER(506, "IPCManager failed to initialize: {}");
+    const Error MODULE_DOES_NOT_EXIST(507, "Module does not exist: {}");
 
     const Error NOT_YET_IMPLEMENTED(1000, "{} is not yet implemented");
 }

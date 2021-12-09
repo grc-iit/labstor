@@ -26,6 +26,9 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
 
     //Server worker threads
     nworkers = config["server_workers"].size();
+    if(nworkers == 0) {
+        throw WORK_ORCHESTRATOR_HAS_NO_WORKERS.format("server");
+    }
     worker_pool_.emplace(pid_, nworkers);
     auto &server_workers = worker_pool_[pid_];
     for (const auto &worker_conf : config["server_workers"]) {
@@ -43,6 +46,9 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     //Create kernel work queue region
     labstor::kernel::netlink::ShmemClient shmem;
     nworkers = config["kernel_workers"].size();
+    if(nworkers == 0) {
+        throw WORK_ORCHESTRATOR_HAS_NO_WORKERS.format("kernel");
+    }
     uint32_t region_size = nworkers * labstor::ipc::work_queue::GetSize(queue_depth);
     int region_id = shmem.CreateShmem(region_size, true);
     if(region_id < 0) {

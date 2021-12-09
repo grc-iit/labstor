@@ -62,3 +62,5 @@ class LabStorConfigurator:
             yaml.safe_dump(self.conf, fp, default_flow_style=False, allow_unicode=True)
     def GetTemp(self):
         return "/tmp/labstor_conf.yaml"
+    def PrintConfig(self):
+        print(self.conf)
