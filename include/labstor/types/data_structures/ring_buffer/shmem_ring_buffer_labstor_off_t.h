@@ -111,19 +111,15 @@ static inline void labstor_ring_buffer_labstor_off_t_Attach(struct labstor_ring_
     rbuf->queue_ = (labstor_off_t*)(labstor_bitmap_GetNextSection(rbuf->bitmap_, rbuf->header_->max_depth_));
 }
 
-static inline bool labstor_ring_buffer_labstor_off_t_WaitForClear(struct labstor_ring_buffer_labstor_off_t *rbuf, uint32_t bit) {
-    int max_retries = 10000, i = 0;
-    while(labstor_bitmap_IsSet(rbuf->bitmap_, bit) && i < max_retries) { ++i; LABSTOR_YIELD(); }
-    return i < max_retries;
-}
-
 static inline bool labstor_ring_buffer_labstor_off_t_Enqueue(struct labstor_ring_buffer_labstor_off_t *rbuf, labstor_off_t data, uint32_t *req_id) {
-    uint32_t enqueued;
+    uint32_t enqueued, dequeued;
     uint32_t entry;
     do {
         enqueued = rbuf->header_->enqueued_;
+        dequeued = rbuf->header_->dequeued_;
+        if(enqueued < dequeued) { continue; }
+        if(enqueued - dequeued == rbuf->header_->max_depth_ - 1) { return false; }
         entry = enqueued % rbuf->header_->max_depth_;
-        if(enqueued - rbuf->header_->dequeued_ == rbuf->header_->max_depth_) { return false; }
         if(labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
@@ -145,11 +141,13 @@ static inline bool labstor_ring_buffer_labstor_off_t_WaitForSet(struct labstor_r
 }
 
 static inline bool labstor_ring_buffer_labstor_off_t_Dequeue(struct labstor_ring_buffer_labstor_off_t *rbuf, labstor_off_t *data) {
-    uint32_t dequeued;
+    uint32_t enqueued, dequeued;
     uint32_t entry;
     do {
+        enqueued = rbuf->header_->enqueued_;
         dequeued = rbuf->header_->dequeued_;
-        if(rbuf->header_->enqueued_ == dequeued) { return false; }
+        if(enqueued < dequeued) { return false; }
+        if(enqueued == dequeued) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     entry = dequeued % rbuf->header_->max_depth_;
