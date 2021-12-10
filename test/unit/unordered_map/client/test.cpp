@@ -10,23 +10,26 @@
 
 int main() {
     uint32_t region_size = 8192;
-    uint32_t map_region_size = 2048;
+    int num_inserts = 50;
+    int max_collisions = 16;
+    int num_buckets = 2*num_inserts + max_collisions;
+    uint32_t map_region_size = labstor::ipc::string_map::GetSize(num_buckets);
     void *region = malloc(region_size);
     char *string_region = (char*)region;
     char *map_region = (char*)region + region_size - map_region_size;
     labstor::ipc::string_map map;
-    map.Init(region, map_region, map_region_size, 8);
     uint32_t value;
-    //int num_inserts = map.GetNumBuckets() + map.GetOverflow();
-    int num_inserts = 50;
-    printf("Num inserts/overflow: %d\n", num_inserts);
+    LABSTOR_ERROR_HANDLE_START()
+    map.Init(region, map_region, map_region_size, max_collisions);
+    printf("Num inserts: %d %d\n", num_inserts, map.GetNumBuckets());
+    LABSTOR_ERROR_HANDLE_END()
 
     //Test set
     for(int i = 0; i < num_inserts; ++i) {
         LABSTOR_ERROR_HANDLE_START()
         labstor::ipc::string str;
         str.Init(string_region + (i+16)*16, "hi" + std::to_string(i));
-        if(!map.Set(str, i+1)) {
+        if(!map.Set(str, i)) {
             printf("Failed: %d\n", i);
             exit(1);
         }
@@ -40,7 +43,7 @@ int main() {
         labstor::ipc::string str;
         str.Attach(string_region + (i+16)*16);
         value = map[str];
-        if(value != i + 1) {
+        if(value != i) {
             printf("Value not set properly: %d\n", i);
             exit(1);
         }
@@ -52,7 +55,10 @@ int main() {
     for(int i = 0; i < num_inserts; ++i) {
         labstor::ipc::string str;
         str.Attach(string_region + (i+16)*16);
-        map.Remove(str);
+        if(!map.Remove(str)) {
+            printf("Error removing %d\n", i);
+            exit(1);
+        }
     }
     printf("Finished removing\n");
 
@@ -61,7 +67,7 @@ int main() {
         labstor::ipc::string str;
         str.Attach(string_region + (i+16)*16);
         if(map.Find(str, value)) {
-            printf("Was still able to find the value %d\n", i);
+            printf("Was still able to find map[%d]\n", i);
             exit(1);
         }
     }

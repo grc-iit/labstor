@@ -30,6 +30,7 @@ struct labstor_request_queue {
     static inline uint32_t GetSize(uint32_t max_depth);
     inline uint32_t GetSize();
     inline void* GetRegion();
+    inline void Init(void *base_region, void *region, uint32_t region_size, uint32_t depth, labstor::ipc::qid_t qid);
     inline void Init(void *base_region, void *region, uint32_t region_size, labstor::ipc::qid_t qid);
     inline void Attach(void *base_region, void *region);
     inline labstor::ipc::qid_t GetQid();
@@ -70,12 +71,14 @@ static inline labstor_qid_t labstor_request_queue_GetFlags(struct labstor_reques
     return lrq->header_->qid_;
 }
 
-static inline void labstor_request_queue_Init(struct labstor_request_queue *lrq, void *base_region, void *region, uint32_t region_size, labstor_qid_t qid) {
+static inline void labstor_request_queue_Init(
+        struct labstor_request_queue *lrq, void *base_region, void *region,
+        uint32_t region_size, uint32_t depth, labstor_qid_t qid) {
     lrq->base_region_ = base_region;
     lrq->header_ = (struct labstor_request_queue_header*)region;
     lrq->header_->qid_ = qid;
     labstor_atomic_busy_Init(&lrq->update_lock_, &lrq->header_->update_lock_);
-    labstor_ring_buffer_labstor_off_t_Init(&lrq->queue_, lrq->header_+1, region_size - sizeof(struct labstor_request_queue_header), 0);
+    labstor_ring_buffer_labstor_off_t_Init(&lrq->queue_, lrq->header_+1, region_size - sizeof(struct labstor_request_queue_header), depth);
 }
 
 static inline void labstor_request_queue_Attach(struct labstor_request_queue *lrq, void *base_region, void *region) {
@@ -141,8 +144,11 @@ uint32_t labstor_request_queue::GetSize() {
 void* labstor_request_queue::GetRegion() {
     return labstor_request_queue_GetRegion(this);
 }
+void labstor_request_queue::Init(void *base_region, void *region, uint32_t region_size, uint32_t depth, labstor::ipc::qid_t qid) {
+    return labstor_request_queue_Init(this, base_region, region, region_size, depth,  qid);
+}
 void labstor_request_queue::Init(void *base_region, void *region, uint32_t region_size, labstor::ipc::qid_t qid) {
-    return labstor_request_queue_Init(this, base_region, region, region_size, qid);
+    return labstor_request_queue_Init(this, base_region, region, region_size, 0,  qid);
 }
 void labstor_request_queue::Attach(void *base_region, void *region) {
     return labstor_request_queue_Attach(this, base_region, region);

@@ -4,8 +4,6 @@ class LabStorDataStructures:
     def __init__(self, root):
         self.root = root
         self.data_structures = f"{self.root}/include/labstor/types/data_structures"
-        with open(f"{self.data_structures}/array/shmem_array.h") as fp:
-            self.array =  fp.read()
         with open(f"{self.data_structures}/ring_buffer/shmem_ring_buffer.h") as fp:
             self.rbuf = fp.read()
         with open(f"{self.data_structures}/unordered_map/shmem_unordered_map.h") as fp:
@@ -21,18 +19,6 @@ class LabStorDataStructures:
             str = str.replace(f"{{{key}}}", value)
         return str
 
-    def _create_array(self, T, T_NAME=None):
-        if T_NAME is None:
-            T_NAME = T
-        output = f"{self.data_structures}/array/shmem_array_{T_NAME}.h"
-        text = self.replace(
-            self.array,
-            T_NAME=T_NAME,
-            T=T
-        )
-        with open(output, 'w') as fp:
-            fp.write(text)
-
     def _create_ring_buffer(self, T, T_NAME=None):
         if T_NAME is None:
             T_NAME = T
@@ -47,7 +33,6 @@ class LabStorDataStructures:
 
     def _create_unordered_map(self, S, S_NAME, S_ATOMIC, T, T_NAME, BUCKET_T_NAME):
         BUCKET_T = f"struct {BUCKET_T_NAME}"
-        self._create_array(BUCKET_T, BUCKET_T_NAME)
         output = f"{self.data_structures}/unordered_map/shmem_unordered_map_{S_NAME}_{T_NAME}_impl.h"
         text = self.replace(self.unordered_map,
             S=S,
@@ -58,13 +43,10 @@ class LabStorDataStructures:
             BUCKET_T=BUCKET_T,
             BUCKET_T_NAME=BUCKET_T_NAME,
             KeyHash=f"{BUCKET_T_NAME}_hash",
-            GetAtomicKey=f"{BUCKET_T_NAME}_GetAtomicKey",
-            GetAtomicKeyRef=f"{BUCKET_T_NAME}_GetAtomicKeyRef",
             GetKey=f"{BUCKET_T_NAME}_GetKey",
             GetValue=f"{BUCKET_T_NAME}_GetValue",
             NullKey=f"{BUCKET_T_NAME}_NullKey",
-            KeyCompare=f"{BUCKET_T_NAME}_KeyCompare",
-            GetMarkedAtomicKey=f"{BUCKET_T_NAME}_GetMarkedAtomicKey")
+            KeyCompare=f"{BUCKET_T_NAME}_KeyCompare")
         with open(output, 'w') as fp:
             fp.write(text)
 
@@ -81,12 +63,6 @@ class LabStorDataStructures:
         )
         with open(output, 'w') as fp:
             fp.write(text)
-
-    def create_array_labstor_off_t(self):
-        self._create_array("labstor_off_t")
-
-    def create_array_labstor_qtok_t(self):
-        self._create_array("labstor_qtok_t")
 
     def create_ring_buffer_labstor_off_t(self):
         self._create_ring_buffer("labstor_off_t")
@@ -126,9 +102,6 @@ class LabStorDataStructures:
             T_NAME="qp"
         )
 
-    def create_array_uint32_t(self):
-        self._create_array("uint32_t")
-
     def create_ring_buffer_uint32_t(self):
         self._create_ring_buffer("uint32_t")
 
@@ -140,15 +113,12 @@ class LabStorDataStructures:
         )
 
     def compile(self):
-        self.create_array_labstor_off_t()
-        self.create_array_labstor_qtok_t()
         self.create_ring_buffer_labstor_off_t()
         self.create_request_queue()
         self.create_request_map()
         self.create_string_map()
         self.create_pid_to_ipc_map()
         self.create_id_to_qp_map()
-        self.create_array_uint32_t()
         self.create_ring_buffer_uint32_t()
         self.create_int_map_uint32_t()
 

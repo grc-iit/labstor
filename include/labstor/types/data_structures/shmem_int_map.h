@@ -24,29 +24,8 @@ static inline {T} labstor_{S}_{T_NAME}_bucket_GetValue(labstor_{S}_{T_NAME}_buck
 static inline {S} labstor_{S}_{T_NAME}_bucket_GetKey(labstor_{S}_{T_NAME}_bucket *bucket, void *region) {
     return bucket->key_;
 }
-static inline {T} labstor_{S}_{T_NAME}_bucket_GetAtomicValue(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return bucket->value_;
-}
-static inline {S} labstor_{S}_{T_NAME}_bucket_GetAtomicKey(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return bucket->key_;
-}
-static inline {S}* labstor_{S}_{T_NAME}_bucket_GetAtomicKeyRef(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return &bucket->key_;
-}
 static inline uint32_t labstor_{S}_{T_NAME}_bucket_hash(const {S} key, const void *region) {
     return key;
-}
-static inline bool labstor_{S}_{T_NAME}_bucket_IsMarked(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return labstor_{S}_{T_NAME}_bucket_GetAtomicKey(bucket) & null1_mark;
-}
-static inline bool labstor_{S}_{T_NAME}_bucket_IsNull(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return labstor_{S}_{T_NAME}_bucket_GetAtomicKey(bucket) == null1_null;
-}
-static inline {S} labstor_{S}_{T_NAME}_bucket_GetMarkedAtomicKey(labstor_{S}_{T_NAME}_bucket *bucket) {
-    return labstor_{S}_{T_NAME}_bucket_GetAtomicKey(bucket) | null1_mark;
-}
-static inline {S} labstor_{S}_{T_NAME}_bucket_NullKey() {
-    return null1_null;
 }
 static inline bool labstor_{S}_{T_NAME}_bucket_KeyCompare({S} key1, {S} key2) {
     return key1==key2;

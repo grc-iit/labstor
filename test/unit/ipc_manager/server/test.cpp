@@ -14,7 +14,7 @@ int main() {
 
     printf("QP SIZE: %lu\n", sizeof(labstor::ipc::queue_pair));
 
-    qps_by_id_.Init(region, region, region_size, 4);
+    qps_by_id_.Init(region, region, region_size, 16);
     labstor::ipc::queue_pair *qp;
     for(int i = 0; i < num_queues; ++i) {
         //Initialize QP
@@ -27,7 +27,7 @@ int main() {
         void *sq_region = region;
         void *cq_region = (char*)region + queue_size;
         qp->Init(qid, region, sq_region, queue_size, cq_region, queue_size);
-        printf("%d %d\n", qp->cq.GetNumBuckets(), qp->cq.GetOverflow());
+        printf("%d\n", qp->cq.GetNumBuckets());
 
         //Store QP internally
         qps_by_id_.Set(qid, qp);
@@ -40,5 +40,5 @@ int main() {
             num_queues,
             KERNEL_PID);
     kern_qp = qps_by_id_[qid];
-    printf("%d %d\n", kern_qp->cq.GetNumBuckets(), kern_qp->cq.GetOverflow());
+    printf("%d\n", kern_qp->cq.GetNumBuckets());
 }

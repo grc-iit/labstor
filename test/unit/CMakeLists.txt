@@ -22,9 +22,14 @@ add_dependencies(client_to_kernel_exec labstor_kernel_client)
 target_link_libraries(client_to_kernel_exec labstor_kernel_client)
 
 ######BITMAP
-add_executable(test_bitmap_exec bitmap/test.cpp)
+add_executable(test_bitmap_exec bitmap/test_mpsc.cpp)
 target_compile_options(test_bitmap_exec PUBLIC "${OpenMP_CXX_FLAGS}")
 target_link_libraries(test_bitmap_exec "${OpenMP_CXX_FLAGS}")
+
+######BIT2MAP
+add_executable(test_bit2map_exec bit2map/test_mpsc.cpp)
+target_compile_options(test_bit2map_exec PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_bit2map_exec "${OpenMP_CXX_FLAGS}")
 
 ######IN-MEMORY REQUEST QUEUE
 add_executable(test_request_queue_exec request_queue/single/request_queue.cpp)
@@ -41,6 +46,10 @@ add_executable(test_shmem_unordered_map2_exec unordered_map/client_client/test.c
 add_dependencies(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink)
 target_link_libraries(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_multicore_map mpirun -n 2 ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_unordered_map2_exec)
+
+add_executable(test_shmem_unordered_map_mpsc unordered_map/mpsc/test.cpp)
+target_compile_options(test_shmem_unordered_map_mpsc PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_unordered_map_mpsc "${OpenMP_CXX_FLAGS}")
 
 ######UNORDERED MAP FIND
 add_executable(test_shmem_unordered_map_find_exec ipc_manager/server/test.cpp)

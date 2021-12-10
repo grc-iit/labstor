@@ -9,6 +9,7 @@
 #include <labstor/types/data_structures/bitmap.h>
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
+#include <labstor/userspace/util/errors.h>
 #endif
 
 //{T_NAME}: The semantic name of the type
@@ -72,21 +73,32 @@ static inline uint32_t labstor_ring_buffer_{T_NAME}_GetMaxDepth(struct labstor_r
 }
 
 static inline bool labstor_ring_buffer_{T_NAME}_Init(struct labstor_ring_buffer_{T_NAME} *rbuf, void *region, uint32_t region_size, uint32_t max_depth) {
-    uint32_t min_region_size;
-    int header_size;
     rbuf->header_ = (struct labstor_ring_buffer_{T_NAME}_header*)region;
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
-    if(max_depth > 0) {
-        min_region_size = labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth);
-        if(min_region_size > region_size) {
-            return false;
-        }
-        rbuf->header_->max_depth_ = max_depth;
-    } else {
-        header_size = sizeof(struct labstor_ring_buffer_{T_NAME}_header) + labstor_bitmap_GetSize(max_depth);
-        rbuf->header_->max_depth_ = (region_size - header_size) / sizeof({T});
+    if(region_size < sizeof(struct labstor_ring_buffer_{T_NAME}_header) + sizeof(labstor_bitmap_t)) {
+#ifdef __cplusplus
+        throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
+#else
+        return false;
+#endif
     }
+    if(max_depth == 0) {
+        max_depth = region_size - sizeof(struct labstor_ring_buffer_{T_NAME}_header);
+        if(max_depth % LABSTOR_BITMAP_ENTRIES_PER_BLOCK) {
+            max_depth -= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
+        }
+        max_depth *= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
+        max_depth /= (sizeof({T})*LABSTOR_BITMAP_ENTRIES_PER_BLOCK + sizeof(labstor_bitmap_t));
+    }
+    if(region_size < labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth)) {
+#ifdef __cplusplus
+        throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
+#else
+        return false;
+#endif
+    }
+    rbuf->header_->max_depth_ = max_depth;
     rbuf->bitmap_ = rbuf->header_->bitmap_;
     labstor_bitmap_Init(rbuf->bitmap_, rbuf->header_->max_depth_);
     rbuf->queue_ = ({T}*)(labstor_bitmap_GetNextSection(rbuf->bitmap_, rbuf->header_->max_depth_));

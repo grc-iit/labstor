@@ -12,7 +12,8 @@
 int main(int argc, char **argv) {
     int rank, region_id;
     MPI_Init(&argc, &argv);
-    uint32_t region_size = (1<<20);
+    int num_entries = 8192;
+    uint32_t region_size = labstor::ipc::int_map_uint32_t_uint32_t::GetSize(num_entries);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     labstor::ipc::int_map_uint32_t_uint32_t map;
 
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 
     //Initialize memory allocator and queue
     if(rank == 0) {
-        map.Init(region, region, region_size, 16);
+        map.Init(region, region, region_size, num_entries, 16);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank != 0) {

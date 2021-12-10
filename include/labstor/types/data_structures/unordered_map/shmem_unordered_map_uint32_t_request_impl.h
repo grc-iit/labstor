@@ -6,38 +6,49 @@
 //request: The semantic name of type T
 //labstor_request_map_bucket: The semantic name of the bucket type
 //labstor_request_map_bucket_hash(struct labstor_request* key, void *region)
-//labstor_request_map_bucket_GetAtomicKey()
-//labstor_request_map_bucket_GetAtomicKeyRef()
 //labstor_request_map_bucket_GetKey
-//labstor_request_map_bucket_NullKey
 //labstor_request_map_bucket_KeyCompare
 
 #ifndef LABSTOR_UNORDERED_MAP_uint32_t_request
 #define LABSTOR_UNORDERED_MAP_uint32_t_request
 
-#include <labstor/types/data_structures/array/shmem_array_labstor_request_map_bucket.h>
+#include <labstor/constants/macros.h>
+#include <labstor/types/data_structures/bit2map.h>
 
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 #include <labstor/userspace/util/errors.h>
 #endif
 
+#ifndef UNORDERED_MAP_BEING_SET
+#define UNORDERED_MAP_BEING_SET 1
+#define UNORDERED_MAP_VALID 2
+#endif
+
+struct labstor_unordered_map_uint32_t_request_header {
+    uint32_t num_buckets_;
+    uint32_t max_collisions_;
+    labstor_bit2map_t bitmap_[];
+};
+
 #ifdef __cplusplus
 struct labstor_unordered_map_uint32_t_request : public labstor::shmem_type {
 #else
 struct labstor_unordered_map_uint32_t_request {
 #endif
+    struct labstor_unordered_map_uint32_t_request_header *header_;
     void *base_region_;
-    struct labstor_array_labstor_request_map_bucket buckets_;
-    struct labstor_array_labstor_request_map_bucket overflow_;
+    uint32_t num_buckets_;
+    struct labstor_request_map_bucket *buckets_;
+    labstor_bit2map_t *bitmap_;
 
 #ifdef __cplusplus
-    static inline uint32_t GetSize(uint32_t num_buckets, uint32_t max_collisions);
+    static inline uint32_t GetSize(uint32_t num_buckets);
     inline uint32_t GetSize();
     inline void* GetRegion();
     inline void* GetBaseRegion();
     inline uint32_t GetNumBuckets();
-    inline uint32_t GetOverflow();
+    inline void Init(void *base_region, void *region, uint32_t region_size, uint32_t num_buckets, uint32_t max_collisions);
     inline void Init(void *base_region, void *region, uint32_t region_size, uint32_t max_collisions);
     inline void Attach(void *base_region, void *region);
     inline int Set(struct labstor_request_map_bucket &bucket);
@@ -53,20 +64,20 @@ struct labstor_unordered_map_uint32_t_request {
 #endif
 };
 
-static inline int labstor_unordered_map_uint32_t_request_AtomicSetKeyValue(struct labstor_array_labstor_request_map_bucket *arr, int i, struct labstor_request_map_bucket *bucket);
-static inline int labstor_unordered_map_uint32_t_request_AtomicGetValueByKey(void *base_region, struct labstor_array_labstor_request_map_bucket *arr, int i, uint32_t key, struct labstor_request* *value);
-static inline int labstor_unordered_map_uint32_t_request_AtomicNullifyKey(void *base_region, struct labstor_array_labstor_request_map_bucket *arr, int i, uint32_t key);
+static inline uint32_t labstor_unordered_map_uint32_t_request_GetHeaderSize(uint32_t num_buckets) {
+    return sizeof(struct labstor_unordered_map_uint32_t_request_header) + labstor_bit2map_GetSize(num_buckets);
+}
 
-static inline uint32_t labstor_unordered_map_uint32_t_request_GetSize_global(uint32_t num_buckets, uint32_t max_collisions) {
-    return labstor_array_labstor_request_map_bucket_GetSize_global(num_buckets) + labstor_array_labstor_request_map_bucket_GetSize_global(max_collisions);
+static inline uint32_t labstor_unordered_map_uint32_t_request_GetSize_global(uint32_t num_buckets) {
+    return labstor_unordered_map_uint32_t_request_GetHeaderSize(num_buckets) + sizeof(struct labstor_request_map_bucket)*num_buckets;
 }
 
 static inline uint32_t labstor_unordered_map_uint32_t_request_GetSize(struct labstor_unordered_map_uint32_t_request *map) {
-    return labstor_array_labstor_request_map_bucket_GetSize(&map->buckets_) + labstor_array_labstor_request_map_bucket_GetSize(&map->overflow_);
+    return labstor_unordered_map_uint32_t_request_GetSize_global(map->num_buckets_);
 }
 
 static inline void* labstor_unordered_map_uint32_t_request_GetRegion(struct labstor_unordered_map_uint32_t_request *map) {
-    return labstor_array_labstor_request_map_bucket_GetRegion(&map->buckets_);
+    return (void*)map->header_;
 }
 
 static inline void* labstor_unordered_map_uint32_t_request_GetBaseRegion(struct labstor_unordered_map_uint32_t_request *map) {
@@ -74,135 +85,98 @@ static inline void* labstor_unordered_map_uint32_t_request_GetBaseRegion(struct 
 }
 
 static inline uint32_t labstor_unordered_map_uint32_t_request_GetNumBuckets(struct labstor_unordered_map_uint32_t_request *map) {
-    return labstor_array_labstor_request_map_bucket_GetLength(&map->buckets_);
+    return map->num_buckets_;
 }
 
-static inline uint32_t labstor_unordered_map_uint32_t_request_GetOverflow(struct labstor_unordered_map_uint32_t_request *map) {
-    return labstor_array_labstor_request_map_bucket_GetLength(&map->overflow_);
-}
-
-static inline void labstor_unordered_map_uint32_t_request_Init(
-        struct labstor_unordered_map_uint32_t_request *map, void *base_region,
-        void *region, uint32_t region_size, uint32_t max_collisions) {
-    uint32_t overflow_region_size;
-    uint32_t bucket_region_size;
-    int i;
-
+static inline bool labstor_unordered_map_uint32_t_request_Init(
+        struct labstor_unordered_map_uint32_t_request *map,
+        void *base_region, void *region, uint32_t region_size, uint32_t num_buckets, uint32_t max_collisions) {
     map->base_region_ = base_region;
-    overflow_region_size = labstor_array_labstor_request_map_bucket_GetSize_global(max_collisions);
-    bucket_region_size = region_size - overflow_region_size;
-    labstor_array_labstor_request_map_bucket_Init(&map->buckets_, region, bucket_region_size, 0);
-    region = labstor_array_labstor_request_map_bucket_GetNextSection(&map->buckets_);
-    labstor_array_labstor_request_map_bucket_Init(&map->overflow_, region, overflow_region_size, 0);
-
-    //Initialize buckets
-    for(i = 0; i < labstor_array_labstor_request_map_bucket_GetLength(&map->buckets_); ++i) {
-        *labstor_request_map_bucket_GetAtomicKeyRef(labstor_array_labstor_request_map_bucket_GetPtr(&map->buckets_, i)) = labstor_request_map_bucket_NullKey();
+    map->header_ = (struct labstor_unordered_map_uint32_t_request_header*)region;
+    if(region_size < sizeof(struct labstor_unordered_map_uint32_t_request_header) + sizeof(labstor_bit2map_t)) {
+#ifdef __cplusplus
+        throw labstor::INVALID_UNORDERED_MAP_SIZE.format(region_size, num_buckets);
+#else
+        return false;
+#endif
     }
-    for(i = 0; i < labstor_array_labstor_request_map_bucket_GetLength(&map->overflow_); ++i) {
-        *labstor_request_map_bucket_GetAtomicKeyRef(labstor_array_labstor_request_map_bucket_GetPtr(&map->overflow_, i)) = labstor_request_map_bucket_NullKey();
+    if(num_buckets == 0) {
+        num_buckets = region_size - sizeof(struct labstor_unordered_map_uint32_t_request_header);
+        if(num_buckets % LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK) {
+            num_buckets -= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
+        }
+        num_buckets *= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
+        num_buckets /= (sizeof(struct labstor_request_map_bucket)*LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK + sizeof(labstor_bit2map_t));
     }
+    if(region_size < labstor_unordered_map_uint32_t_request_GetSize_global(num_buckets)) {
+#ifdef __cplusplus
+        throw labstor::INVALID_UNORDERED_MAP_SIZE.format(region_size, num_buckets);
+#else
+        return false;
+#endif
+    }
+    map->header_->num_buckets_ = num_buckets;
+    map->header_->max_collisions_ = max_collisions;
+    map->num_buckets_ = map->header_->num_buckets_;
+    map->bitmap_ = map->header_->bitmap_;
+    labstor_bit2map_Init(map->bitmap_, map->num_buckets_);
+    map->buckets_ = (struct labstor_request_map_bucket*)(labstor_bit2map_GetNextSection(map->bitmap_, map->num_buckets_));
+    return true;
 }
 
 static inline void labstor_unordered_map_uint32_t_request_Attach(
         struct labstor_unordered_map_uint32_t_request *map, void *base_region, void *region) {
     map->base_region_ = base_region;
-    labstor_array_labstor_request_map_bucket_Attach(&map->buckets_, region);
-    region = labstor_array_labstor_request_map_bucket_GetNextSection(&map->buckets_);
-    labstor_array_labstor_request_map_bucket_Attach(&map->overflow_, region);
+    map->header_ = (struct labstor_unordered_map_uint32_t_request_header*)region;
+    map->buckets_ = (struct labstor_request_map_bucket*)(map->header_ + 1);
+    map->num_buckets_ = map->header_->num_buckets_;
+    map->bitmap_ = map->header_->bitmap_;
+    map->buckets_ = (struct labstor_request_map_bucket*)(labstor_bit2map_GetNextSection(map->bitmap_, map->num_buckets_));
 }
 
 static inline int labstor_unordered_map_uint32_t_request_Set(struct labstor_unordered_map_uint32_t_request *map, struct labstor_request_map_bucket *bucket) {
     uint32_t b;
-    int i;
-
-    b = labstor_request_map_bucket_hash(labstor_request_map_bucket_GetKey(bucket, map->base_region_), map->base_region_) % labstor_array_labstor_request_map_bucket_GetLength(&map->buckets_);
-    if(labstor_unordered_map_uint32_t_request_AtomicSetKeyValue(&map->buckets_, b, bucket)) {
-        return true;
-    }
-    for(i = 0; i < labstor_array_labstor_request_map_bucket_GetLength(&map->overflow_); ++i) {
-        if(labstor_unordered_map_uint32_t_request_AtomicSetKeyValue(&map->overflow_, i, bucket)) {
+    int i, iters = map->header_->max_collisions_ + 1;
+    b = labstor_request_map_bucket_hash(labstor_request_map_bucket_GetKey(bucket, map->base_region_), map->base_region_) % map->num_buckets_;
+    for(i = 0; i < iters; ++i) {
+        if(labstor_bit2map_TestAndSet(map->bitmap_, b, UNORDERED_MAP_VALID | UNORDERED_MAP_BEING_SET, UNORDERED_MAP_BEING_SET)) {
+            map->buckets_[b] = *bucket;
+            labstor_bit2map_Xor(map->bitmap_, b, UNORDERED_MAP_VALID | UNORDERED_MAP_BEING_SET);
             return true;
         }
+        b = (b+1)%map->num_buckets_;
     }
     return false;
 }
 
 static inline int labstor_unordered_map_uint32_t_request_Find(struct labstor_unordered_map_uint32_t_request *map, uint32_t key, struct labstor_request* *value) {
-    uint32_t b = labstor_request_map_bucket_hash(key, map->base_region_) % labstor_array_labstor_request_map_bucket_GetLength(&map->buckets_);
-    int i;
-
-    //Check the primary map first
-    if(labstor_unordered_map_uint32_t_request_AtomicGetValueByKey(map->base_region_, &map->buckets_, b, key, value)) { return true; }
-
-    //Check the collisions second
-    for(i = 0; i < labstor_array_labstor_request_map_bucket_GetLength(&map->overflow_); ++i) {
-        if(labstor_unordered_map_uint32_t_request_AtomicGetValueByKey(map->base_region_, &map->overflow_, i, key, value)) { return true; }
+    int i, iters = map->header_->max_collisions_ + 1;
+    uint32_t b = labstor_request_map_bucket_hash(key, map->base_region_) % map->num_buckets_;
+    for(i = 0; i < iters; ++i) {
+        if(labstor_bit2map_IsSet(map->bitmap_, b, UNORDERED_MAP_VALID)) {
+            if(labstor_request_map_bucket_KeyCompare(labstor_request_map_bucket_GetKey(&map->buckets_[b], map->base_region_), key)) {
+                *value = labstor_request_map_bucket_GetValue(&map->buckets_[b], map->base_region_);
+                return true;
+            }
+        }
+        b = (b+1)%map->num_buckets_;
     }
-
     return false;
 }
 
 static inline int labstor_unordered_map_uint32_t_request_Remove(struct labstor_unordered_map_uint32_t_request *map, uint32_t key) {
-    int32_t b = labstor_request_map_bucket_hash(key, map->base_region_) % labstor_array_labstor_request_map_bucket_GetLength(&map->buckets_);
-    int i;
-
-    //Check the primary map first
-    if(labstor_unordered_map_uint32_t_request_AtomicNullifyKey(map->base_region_, &map->buckets_, b, key)) { return true;}
-
-    //Check the collision set second
-    for(i = 0; i < labstor_array_labstor_request_map_bucket_GetLength(&map->overflow_); ++i) {
-        if(labstor_unordered_map_uint32_t_request_AtomicNullifyKey(map->base_region_, &map->overflow_, i, key)) { return true;}
-    }
-
-    return false;
-}
-
-static inline int labstor_unordered_map_uint32_t_request_AtomicSetKeyValue(struct labstor_array_labstor_request_map_bucket *arr, int i, struct labstor_request_map_bucket *bucket) {
-    uint32_t null = labstor_request_map_bucket_NullKey();
-    if(__atomic_compare_exchange_n(
-            labstor_request_map_bucket_GetAtomicKeyRef(labstor_array_labstor_request_map_bucket_GetPtr(arr, i)),
-            &null,
-            labstor_request_map_bucket_GetAtomicKey(bucket),
-            false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
-        *labstor_array_labstor_request_map_bucket_GetPtr(arr, i) = *bucket;
-        return true;
+    uint32_t b = labstor_request_map_bucket_hash(key, map->base_region_) % map->num_buckets_;
+    int i, iters = map->header_->max_collisions_ + 1;
+    for(i = 0; i < iters; ++i) {
+        if(labstor_bit2map_IsSet(map->bitmap_, b, UNORDERED_MAP_VALID)) {
+            if(labstor_request_map_bucket_KeyCompare(labstor_request_map_bucket_GetKey(&map->buckets_[b], map->base_region_), key)) {
+                labstor_bit2map_Unset(map->bitmap_, b, UNORDERED_MAP_VALID);
+                return true;
+            }
+        }
+        b = (b+1)%map->num_buckets_;
     }
     return false;
-}
-
-static inline int labstor_unordered_map_uint32_t_request_AtomicGetValueByKey(void *base_region, struct labstor_array_labstor_request_map_bucket *arr, int i, uint32_t key, struct labstor_request* *value) {
-    struct labstor_request_map_bucket tmp;
-    do {
-        tmp = labstor_array_labstor_request_map_bucket_Get(arr, i);
-        if (!labstor_request_map_bucket_KeyCompare(
-                labstor_request_map_bucket_GetKey(&tmp, base_region),
-                key)
-        ) { return false; }
-        *value = labstor_request_map_bucket_GetValue(&tmp, base_region);
-    } while(!__atomic_compare_exchange_n(
-            labstor_request_map_bucket_GetAtomicKeyRef(labstor_array_labstor_request_map_bucket_GetPtr(arr, i)),
-            labstor_request_map_bucket_GetAtomicKeyRef(&tmp),
-            labstor_request_map_bucket_GetAtomicKey(&tmp),
-            false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    return true;
-}
-
-static inline int labstor_unordered_map_uint32_t_request_AtomicNullifyKey(void *base_region, struct labstor_array_labstor_request_map_bucket *arr, int i, uint32_t key) {
-    struct labstor_request_map_bucket tmp;
-    do {
-        tmp = labstor_array_labstor_request_map_bucket_Get(arr, i);
-        if (!labstor_request_map_bucket_KeyCompare(
-                labstor_request_map_bucket_GetKey(&tmp, base_region),
-                key)
-        ) { return false; }
-    } while(!__atomic_compare_exchange_n(
-            labstor_request_map_bucket_GetAtomicKeyRef(labstor_array_labstor_request_map_bucket_GetPtr(arr, i)),
-            labstor_request_map_bucket_GetAtomicKeyRef(&tmp),
-            labstor_request_map_bucket_NullKey(),
-            false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-
-    return true;
 }
 
 #ifdef __cplusplus
@@ -210,8 +184,8 @@ static inline int labstor_unordered_map_uint32_t_request_AtomicNullifyKey(void *
 namespace labstor::ipc {
     typedef labstor_unordered_map_uint32_t_request unordered_map_uint32_t_request;
 }
-uint32_t labstor_unordered_map_uint32_t_request::GetSize(uint32_t num_buckets, uint32_t max_collisions) {
-    return labstor_unordered_map_uint32_t_request_GetSize_global(num_buckets, max_collisions);
+uint32_t labstor_unordered_map_uint32_t_request::GetSize(uint32_t num_buckets) {
+    return labstor_unordered_map_uint32_t_request_GetSize_global(num_buckets);
 }
 uint32_t labstor_unordered_map_uint32_t_request::GetSize() {
     return labstor_unordered_map_uint32_t_request_GetSize(this);
@@ -225,11 +199,11 @@ void* labstor_unordered_map_uint32_t_request::GetBaseRegion() {
 uint32_t labstor_unordered_map_uint32_t_request::GetNumBuckets() {
     return labstor_unordered_map_uint32_t_request_GetNumBuckets(this);
 }
-uint32_t labstor_unordered_map_uint32_t_request::GetOverflow() {
-    return labstor_unordered_map_uint32_t_request_GetOverflow(this);
+void labstor_unordered_map_uint32_t_request::Init(void *base_region, void *region, uint32_t region_size, uint32_t num_buckets, uint32_t max_collisions) {
+    labstor_unordered_map_uint32_t_request_Init(this, base_region, region, region_size, num_buckets, max_collisions);
 }
 void labstor_unordered_map_uint32_t_request::Init(void *base_region, void *region, uint32_t region_size, uint32_t max_collisions) {
-    labstor_unordered_map_uint32_t_request_Init(this, base_region, region, region_size, max_collisions);
+    labstor_unordered_map_uint32_t_request_Init(this, base_region, region, region_size, 0, max_collisions);
 }
 void labstor_unordered_map_uint32_t_request::Attach(void *base_region, void *region) {
     labstor_unordered_map_uint32_t_request_Attach(this, base_region, region);

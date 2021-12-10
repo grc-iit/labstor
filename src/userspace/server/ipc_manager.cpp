@@ -75,20 +75,8 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         void *sq_region = client_ipc->alloc_->Alloc(queue_size);
         void *cq_region = client_ipc->alloc_->Alloc(queue_size);
         qp->Init(qid, client_ipc->alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
-        TRACEPOINT("QP Offset",
-                   (size_t)sq_region,
-                   (size_t)cq_region,
-                   (size_t)client_ipc->alloc_->GetRegion(),
-                   LABSTOR_REGION_SUB(sq_region,client_ipc->alloc_->GetRegion()),
-                   LABSTOR_REGION_SUB(cq_region,client_ipc->alloc_->GetRegion()))
-
-
-        //TODO: remove
-        int off = LABSTOR_REGION_SUB(sq_region,client_ipc->alloc_->GetRegion());
-        if(off > client_ipc->alloc_->GetSize() || off < 0) {
-            printf("Not valid region offset: %d\n", off);
-            throw 1;
-        }
+        TRACEPOINT("labstor::Server::IPCManager::CreateKernelQueues", "qid", qp->GetQid(), "depth", qp->GetDepth(),
+                   "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -138,6 +126,8 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
         void *sq_region = private_alloc_->Alloc(queue_size);
         void *cq_region = private_alloc_->Alloc(queue_size);
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
+        TRACEPOINT("labstor::Server::IPCManager::CreatePrivateQueues", "qid", qp->GetQid(), "depth", qp->GetDepth(),
+                   "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -169,7 +159,6 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     if(!region) {
         throw MMAP_FAILED.format(strerror(errno));
     }
-    TRACEPOINT("IPCManager: The shared memory region for PID queue pairs", (size_t)region);
 
     //Create SHMEM allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
@@ -203,6 +192,9 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc) {
     for(int i = 0; i < request.count_; ++i) {
         labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
         qp->Attach(ptrs[i], client_ipc->GetRegion());
+        TRACEPOINT("labstor::Server::IPCManager::RegisterClientQP",
+                   "qid", qp->GetQid(), "depth", qp->GetDepth(),
+                   "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
         if(!RegisterQueuePair(qp)) {
             free(ptrs);
             throw IPC_MANAGER_CANT_REGISTER_QP.format();

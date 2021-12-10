@@ -24,29 +24,8 @@ static inline labstor::Server::PerProcessIPC* labstor_int_PerProcessIPC_bucket_G
 static inline int labstor_int_PerProcessIPC_bucket_GetKey(labstor_int_PerProcessIPC_bucket *bucket, void *region) {
     return bucket->key_;
 }
-static inline labstor::Server::PerProcessIPC* labstor_int_PerProcessIPC_bucket_GetAtomicValue(labstor_int_PerProcessIPC_bucket *bucket) {
-    return bucket->value_;
-}
-static inline int labstor_int_PerProcessIPC_bucket_GetAtomicKey(labstor_int_PerProcessIPC_bucket *bucket) {
-    return bucket->key_;
-}
-static inline int* labstor_int_PerProcessIPC_bucket_GetAtomicKeyRef(labstor_int_PerProcessIPC_bucket *bucket) {
-    return &bucket->key_;
-}
 static inline uint32_t labstor_int_PerProcessIPC_bucket_hash(const int key, const void *region) {
     return key;
-}
-static inline bool labstor_int_PerProcessIPC_bucket_IsMarked(labstor_int_PerProcessIPC_bucket *bucket) {
-    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) & null1_mark;
-}
-static inline bool labstor_int_PerProcessIPC_bucket_IsNull(labstor_int_PerProcessIPC_bucket *bucket) {
-    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) == null1_null;
-}
-static inline int labstor_int_PerProcessIPC_bucket_GetMarkedAtomicKey(labstor_int_PerProcessIPC_bucket *bucket) {
-    return labstor_int_PerProcessIPC_bucket_GetAtomicKey(bucket) | null1_mark;
-}
-static inline int labstor_int_PerProcessIPC_bucket_NullKey() {
-    return null1_null;
 }
 static inline bool labstor_int_PerProcessIPC_bucket_KeyCompare(int key1, int key2) {
     return key1==key2;

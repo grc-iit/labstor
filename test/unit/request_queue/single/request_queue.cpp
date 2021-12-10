@@ -6,14 +6,15 @@
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 int main(int argc, char **argv) {
-    size_t region_size = 4096;
+    size_t half_region_size = 4096;
     labstor::ipc::request_queue q;
     labstor::ipc::request *rq;
-    void *region = malloc(2*region_size);
-    labstor::ipc::request *req_region = (labstor::ipc::request*)((char*)region + region_size);
+    void *region = malloc(2*half_region_size);
+    labstor::ipc::request *req_region = (labstor::ipc::request*)((char*)region + half_region_size);
 
     printf("REQUEST QUEUE START!\n");
-    q.Init(region, region, region_size, 10);
+    q.Init(region, region, half_region_size, 10);
+    printf("Max Depth: %d\n", q.GetMaxDepth());
     for(int i = 0; i < 10; ++i) {
         req_region[i].ns_id_ = i+1;
         q.Enqueue(req_region + i);

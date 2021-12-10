@@ -24,29 +24,8 @@ static inline labstor::ipc::queue_pair* labstor_labstor_qid_t_qp_bucket_GetValue
 static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_GetKey(labstor_labstor_qid_t_qp_bucket *bucket, void *region) {
     return bucket->key_;
 }
-static inline labstor::ipc::queue_pair* labstor_labstor_qid_t_qp_bucket_GetAtomicValue(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return bucket->value_;
-}
-static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_GetAtomicKey(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return bucket->key_;
-}
-static inline labstor_qid_t* labstor_labstor_qid_t_qp_bucket_GetAtomicKeyRef(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return &bucket->key_;
-}
 static inline uint32_t labstor_labstor_qid_t_qp_bucket_hash(const labstor_qid_t key, const void *region) {
     return key;
-}
-static inline bool labstor_labstor_qid_t_qp_bucket_IsMarked(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return labstor_labstor_qid_t_qp_bucket_GetAtomicKey(bucket) & null1_mark;
-}
-static inline bool labstor_labstor_qid_t_qp_bucket_IsNull(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return labstor_labstor_qid_t_qp_bucket_GetAtomicKey(bucket) == null1_null;
-}
-static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_GetMarkedAtomicKey(labstor_labstor_qid_t_qp_bucket *bucket) {
-    return labstor_labstor_qid_t_qp_bucket_GetAtomicKey(bucket) | null1_mark;
-}
-static inline labstor_qid_t labstor_labstor_qid_t_qp_bucket_NullKey() {
-    return null1_null;
 }
 static inline bool labstor_labstor_qid_t_qp_bucket_KeyCompare(labstor_qid_t key1, labstor_qid_t key2) {
     return key1==key2;

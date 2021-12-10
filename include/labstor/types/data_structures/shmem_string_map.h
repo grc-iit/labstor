@@ -17,13 +17,7 @@ struct labstor_string_map_bucket {
 static inline void labstor_string_map_bucket_Init(struct labstor_string_map_bucket *bucket, labstor::ipc::string key, uint32_t value, void *region);
 static inline uint32_t labstor_string_map_bucket_GetValue(struct labstor_string_map_bucket *bucket, void *region);
 static inline labstor::ipc::string labstor_string_map_bucket_GetKey(struct labstor_string_map_bucket *bucket, void *region);
-static inline uint32_t labstor_string_map_bucket_GetAtomicValue(struct labstor_string_map_bucket *bucket);
-static inline labstor_off_t labstor_string_map_bucket_GetAtomicKey(struct labstor_string_map_bucket *bucket);
-static inline uint32_t labstor_string_map_bucket_hash(const uint32_t qtok, void *region);
-static inline bool labstor_string_map_bucket_IsMarked(struct labstor_string_map_bucket *bucket);
 static inline bool labstor_string_map_bucket_IsNull(struct labstor_string_map_bucket *bucket);
-static inline labstor_off_t labstor_string_map_bucket_GetMarkedAtomicKey(struct labstor_string_map_bucket *bucket);
-static inline labstor_off_t labstor_string_map_bucket_NullKey(void);
 
 inline void labstor_string_map_bucket_Init(struct labstor_string_map_bucket *bucket, labstor::ipc::string key, uint32_t value, void *region) {
     bucket->off_ = LABSTOR_REGION_SUB(key.GetRegion(), region);
@@ -38,32 +32,11 @@ inline labstor::ipc::string labstor_string_map_bucket_GetKey(struct labstor_stri
     key.Attach(LABSTOR_REGION_ADD(bucket->off_, region));
     return key;
 }
-inline uint32_t labstor_string_map_bucket_GetAtomicValue(struct labstor_string_map_bucket *bucket) {
-    return bucket->value_;
-}
-inline uint32_t* labstor_string_map_bucket_GetAtomicValueRef(struct labstor_string_map_bucket *bucket) {
-    return &bucket->value_;
-}
-inline labstor::off_t labstor_string_map_bucket_GetAtomicKey(struct labstor_string_map_bucket *bucket) {
-    return bucket->off_;
-}
-inline labstor::off_t* labstor_string_map_bucket_GetAtomicKeyRef(struct labstor_string_map_bucket *bucket) {
-    return &bucket->off_;
-}
 inline static uint32_t labstor_string_map_bucket_hash(const labstor::ipc::string key, void *region) {
     return labstor::ipc::string::hash(key.c_str(), key.size());
 }
-inline bool labstor_string_map_bucket_IsMarked(struct labstor_string_map_bucket *bucket) {
-    return labstor_string_map_bucket_GetAtomicKey(bucket) & null0_mark;
-}
 inline bool labstor_string_map_bucket_IsNull(struct labstor_string_map_bucket *bucket) {
-    return labstor_string_map_bucket_GetAtomicKey(bucket) == null0_null;
-}
-inline labstor_off_t labstor_string_map_bucket_GetMarkedAtomicKey(struct labstor_string_map_bucket *bucket) {
-    return labstor_string_map_bucket_GetAtomicKey(bucket) | null0_mark;
-}
-inline static labstor_off_t labstor_string_map_bucket_NullKey() {
-    return null0_null;
+    return bucket->off_ == null0_null;
 }
 inline static bool labstor_string_map_bucket_KeyCompare(labstor::ipc::string key1, labstor::ipc::string key2) {
     return key1 == key2;

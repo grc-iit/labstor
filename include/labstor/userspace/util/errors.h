@@ -31,6 +31,7 @@ namespace labstor {
     const Error UNIX_ACCEPT_FAILED(207, "Failed accept connections: {}");
 
     const Error INVALID_RING_BUFFER_SIZE(300, "Failed to allocate ring buffer, {} is too small to support {} requests.");
+    const Error INVALID_UNORDERED_MAP_SIZE(301, "Failed to allocate unordered map, {} is too small to support {} requests.");
     const Error INVALID_UNORDERED_MAP_KEY(301, "No such key in map");
     const Error INVALID_QP_QUERY(302, "There is no such queue that satisifies the given properties.");
     const Error INVALID_REGION_SUB(303, "The pointer {} exists outside of {}");
