@@ -76,13 +76,6 @@ static inline bool labstor_ring_buffer_{T_NAME}_Init(struct labstor_ring_buffer_
     rbuf->header_ = (struct labstor_ring_buffer_{T_NAME}_header*)region;
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
-    if(region_size < sizeof(struct labstor_ring_buffer_{T_NAME}_header) + sizeof(labstor_bitmap_t)) {
-#ifdef __cplusplus
-        throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
-#else
-        return false;
-#endif
-    }
     if(region_size < labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth)) {
 #ifdef __cplusplus
         throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
