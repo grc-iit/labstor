@@ -93,7 +93,7 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_Init(
         void *base_region, void *region, uint32_t region_size, uint32_t num_buckets, uint32_t max_collisions) {
     map->base_region_ = base_region;
     map->header_ = (struct labstor_unordered_map_labstor_string_uint32_t_header*)region;
-    if(region_size < sizeof(struct labstor_unordered_map_labstor_string_uint32_t_header) + sizeof(labstor_bit2map_t)) {
+    if(region_size < labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets)) {
 #ifdef __cplusplus
         throw labstor::INVALID_UNORDERED_MAP_SIZE.format(region_size, num_buckets);
 #else
@@ -108,13 +108,14 @@ static inline bool labstor_unordered_map_labstor_string_uint32_t_Init(
         num_buckets *= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
         num_buckets /= (sizeof(struct labstor_string_map_bucket)*LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK + sizeof(labstor_bit2map_t));
     }
-    if(region_size < labstor_unordered_map_labstor_string_uint32_t_GetSize_global(num_buckets)) {
+    if(num_buckets == 0) {
 #ifdef __cplusplus
         throw labstor::INVALID_UNORDERED_MAP_SIZE.format(region_size, num_buckets);
 #else
         return false;
 #endif
     }
+
     map->header_->num_buckets_ = num_buckets;
     map->header_->max_collisions_ = max_collisions;
     map->num_buckets_ = map->header_->num_buckets_;

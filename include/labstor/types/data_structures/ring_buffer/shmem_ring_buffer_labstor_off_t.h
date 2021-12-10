@@ -83,6 +83,13 @@ static inline bool labstor_ring_buffer_labstor_off_t_Init(struct labstor_ring_bu
         return false;
 #endif
     }
+    if(region_size < labstor_ring_buffer_labstor_off_t_GetSize_global(max_depth)) {
+#ifdef __cplusplus
+        throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
+#else
+        return false;
+#endif
+    }
     if(max_depth == 0) {
         max_depth = region_size - sizeof(struct labstor_ring_buffer_labstor_off_t_header);
         if(max_depth % LABSTOR_BITMAP_ENTRIES_PER_BLOCK) {
@@ -91,7 +98,7 @@ static inline bool labstor_ring_buffer_labstor_off_t_Init(struct labstor_ring_bu
         max_depth *= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
         max_depth /= (sizeof(labstor_off_t)*LABSTOR_BITMAP_ENTRIES_PER_BLOCK + sizeof(labstor_bitmap_t));
     }
-    if(region_size < labstor_ring_buffer_labstor_off_t_GetSize_global(max_depth)) {
+    if(max_depth ==0) {
 #ifdef __cplusplus
         throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
 #else
