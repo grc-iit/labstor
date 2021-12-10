@@ -82,9 +82,11 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
-            //pr_debug("Dequeing a supervisor queue? %d %d %p %p\n", ptr.sq_off, ptr.cq_off, (char*)region + ptr.sq_off, (char*)region + ptr.cq_off);
             labstor_queue_pair_Attach(&qp, &ptr, region);
             qp_depth = labstor_queue_pair_GetDepth(&qp);
+            if(qp_depth) {
+                pr_info("Dequeing a supervisor queue? %llu %u\n", labstor_queue_pair_GetQid(&qp), labstor_queue_pair_GetDepth(&qp));
+            }
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);

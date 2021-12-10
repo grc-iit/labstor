@@ -116,7 +116,7 @@ static inline bool labstor_ring_buffer_labstor_off_t_Enqueue(struct labstor_ring
     uint32_t entry;
     do {
         enqueued = rbuf->header_->enqueued_;
-        if(labstor_ring_buffer_labstor_off_t_GetDepth(rbuf) > rbuf->header_->max_depth_) { return false; }
+        if(enqueued - rbuf->header_->dequeued_ == rbuf->header_->max_depth_ - 1) { return false; }
     }
     while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
     *req_id = enqueued;
