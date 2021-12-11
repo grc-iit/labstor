@@ -63,9 +63,11 @@ void produce_and_consume(bool consume) {
             } else if(rank == last_thread && consume) {
                 labstor::Timer t;
                 t.Resume();
-                while (t.GetMsecFromStart() < 5000) {
+                int i = 0;
+                while (i < total_reqs && t.GetMsecFromStart() < 50000) {
                     if (!q.Dequeue(rq)) { continue; }
                     ++responses[rq->ns_id_];
+                    ++i;
                 }
             }
             printf("Done[%d]\n", rank);

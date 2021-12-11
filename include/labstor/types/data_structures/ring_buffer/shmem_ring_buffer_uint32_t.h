@@ -14,8 +14,11 @@
 
 //uint32_t: The semantic name of the type
 //uint32_t: The type being buffered
-//{NullValue}: The empty key to indiciate ring buffer still being modified
-//{IsNull}: The empty key to indiciate ring buffer still being modified
+
+#ifndef RING_BUFFER_VALID
+#define RING_BUFFER_VALID 1
+#define RING_BUFFER_BEING_SET 2
+#endif
 
 struct labstor_ring_buffer_uint32_t_header {
     uint32_t enqueued_, dequeued_;
@@ -115,18 +118,22 @@ static inline void labstor_ring_buffer_uint32_t_Attach(struct labstor_ring_buffe
 }
 
 static inline bool labstor_ring_buffer_uint32_t_Enqueue(struct labstor_ring_buffer_uint32_t *rbuf, uint32_t data, uint32_t *req_id) {
-    uint32_t enqueued;
-    uint32_t entry;
-    do {
-        enqueued = rbuf->header_->enqueued_;
-        entry = enqueued % rbuf->header_->max_depth_;
-        if(labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
+    uint32_t i,j, entry;
+    //Reserve an entry in the queue
+    *req_id = __atomic_fetch_add(&rbuf->header_->enqueued_, 1, __ATOMIC_RELAXED);
+
+    //Wait until reservation is available
+    entry = (*req_id) % rbuf->header_->max_depth_;
+    LABSTOR_SPINWAIT_START(i,j)
+    if((*req_id) - rbuf->header_->dequeued_ < rbuf->header_->max_depth_) {
+        rbuf->queue_[entry] = data;
+        labstor_bitmap_Set(rbuf->bitmap_, entry);
+        //printf("Enqueueing[%d]: %d\n", entry, *req_id);
+        return true;
     }
-    while(!__atomic_compare_exchange_n(&rbuf->header_->enqueued_, &enqueued, enqueued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-    *req_id = enqueued;
-    rbuf->queue_[entry] = data;
-    labstor_bitmap_Set(rbuf->bitmap_, entry);
-    return true;
+    LABSTOR_SPINWAIT_END()
+    //printf("SpinwaitFailed[%d]: %d (dequeued=%d, enqueued=%d)\n", entry, *req_id, rbuf->header_->dequeued_, rbuf->header_->enqueued_);
+    return false;
 }
 
 static inline bool labstor_ring_buffer_uint32_t_Enqueue_simple(struct labstor_ring_buffer_uint32_t *rbuf, uint32_t data) {
@@ -135,16 +142,20 @@ static inline bool labstor_ring_buffer_uint32_t_Enqueue_simple(struct labstor_ri
 }
 
 static inline bool labstor_ring_buffer_uint32_t_Dequeue(struct labstor_ring_buffer_uint32_t *rbuf, uint32_t *data) {
-    uint32_t dequeued;
+    uint32_t enqueued, dequeued;
     uint32_t entry;
-    do {
-        dequeued = rbuf->header_->dequeued_;
-        entry = dequeued % rbuf->header_->max_depth_;
-        if(!labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
-    }
-    while(!__atomic_compare_exchange_n(&rbuf->header_->dequeued_, &dequeued, dequeued + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+
+    dequeued = rbuf->header_->dequeued_;
+    enqueued = rbuf->header_->enqueued_;
+    entry = dequeued % rbuf->header_->max_depth_;
+    if(dequeued >= enqueued) { return false; }
+    if(!labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
+
+    //printf("Dequeueing %d\n", dequeued);
     *data = rbuf->queue_[entry];
     labstor_bitmap_Unset(rbuf->bitmap_, entry);
+    ++rbuf->header_->dequeued_;
+    //printf("Dequeued %d\n", dequeued);
     return true;
 }
 
