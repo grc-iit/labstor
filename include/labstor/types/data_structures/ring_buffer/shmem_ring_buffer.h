@@ -15,13 +15,9 @@
 //{T_NAME}: The semantic name of the type
 //{T}: The type being buffered
 
-#ifndef RING_BUFFER_VALID
-#define RING_BUFFER_VALID 1
-#define RING_BUFFER_BEING_SET 2
-#endif
-
 struct labstor_ring_buffer_{T_NAME}_header {
     uint32_t enqueued_, dequeued_;
+    uint16_t e_lock_, d_lock_;
     uint32_t max_depth_;
     labstor_bitmap_t bitmap_[];
 };
@@ -82,6 +78,8 @@ static inline bool labstor_ring_buffer_{T_NAME}_Init(struct labstor_ring_buffer_
     rbuf->header_ = (struct labstor_ring_buffer_{T_NAME}_header*)region;
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
+    rbuf->header_->e_lock_ = 0;
+    rbuf->header_->d_lock_ = 0;
     if(region_size < labstor_ring_buffer_{T_NAME}_GetSize_global(max_depth)) {
 #ifdef __cplusplus
         throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
@@ -91,9 +89,6 @@ static inline bool labstor_ring_buffer_{T_NAME}_Init(struct labstor_ring_buffer_
     }
     if(max_depth == 0) {
         max_depth = region_size - sizeof(struct labstor_ring_buffer_{T_NAME}_header);
-        if(max_depth % LABSTOR_BITMAP_ENTRIES_PER_BLOCK) {
-            max_depth -= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
-        }
         max_depth *= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
         max_depth /= (sizeof({T})*LABSTOR_BITMAP_ENTRIES_PER_BLOCK + sizeof(labstor_bitmap_t));
     }
@@ -118,21 +113,22 @@ static inline void labstor_ring_buffer_{T_NAME}_Attach(struct labstor_ring_buffe
 }
 
 static inline bool labstor_ring_buffer_{T_NAME}_Enqueue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} data, uint32_t *req_id) {
-    uint32_t i,j, entry;
-    //Reserve an entry in the queue
-    *req_id = __atomic_fetch_add(&rbuf->header_->enqueued_, 1, __ATOMIC_RELAXED);
-
-    //Wait until reservation is available
-    entry = (*req_id) % rbuf->header_->max_depth_;
-    LABSTOR_SPINWAIT_START(i,j)
-    if((*req_id) - rbuf->header_->dequeued_ < rbuf->header_->max_depth_) {
+    uint32_t enqueued, dequeued, entry;
+    if(LABSTOR_SIMPLE_LOCK_TRYLOCK(&rbuf->header_->e_lock_)) {
+        enqueued = rbuf->header_->enqueued_;
+        dequeued = rbuf->header_->dequeued_;
+        if(enqueued - dequeued >= rbuf->header_->max_depth_) {
+            LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->e_lock_);
+            return false;
+        }
+        entry = enqueued % rbuf->header_->max_depth_;
+        *req_id = enqueued;
         rbuf->queue_[entry] = data;
         labstor_bitmap_Set(rbuf->bitmap_, entry);
-        //printf("Enqueueing[%d]: %d\n", entry, *req_id);
+        ++rbuf->header_->enqueued_;
+        LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->e_lock_);
         return true;
     }
-    LABSTOR_SPINWAIT_END()
-    //printf("SpinwaitFailed[%d]: %d (dequeued=%d, enqueued=%d)\n", entry, *req_id, rbuf->header_->dequeued_, rbuf->header_->enqueued_);
     return false;
 }
 
@@ -142,21 +138,22 @@ static inline bool labstor_ring_buffer_{T_NAME}_Enqueue_simple(struct labstor_ri
 }
 
 static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} *data) {
-    uint32_t enqueued, dequeued;
-    uint32_t entry;
-
-    dequeued = rbuf->header_->dequeued_;
-    enqueued = rbuf->header_->enqueued_;
-    entry = dequeued % rbuf->header_->max_depth_;
-    if(dequeued >= enqueued) { return false; }
-    if(!labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
-
-    //printf("Dequeueing %d\n", dequeued);
-    *data = rbuf->queue_[entry];
-    labstor_bitmap_Unset(rbuf->bitmap_, entry);
-    ++rbuf->header_->dequeued_;
-    //printf("Dequeued %d\n", dequeued);
-    return true;
+    uint32_t enqueued, dequeued, entry;
+    if(LABSTOR_SIMPLE_LOCK_TRYLOCK(&rbuf->header_->d_lock_)) {
+        enqueued = rbuf->header_->enqueued_;
+        dequeued = rbuf->header_->dequeued_;
+        entry = dequeued % rbuf->header_->max_depth_;
+        if(enqueued - dequeued == 0 || !labstor_bitmap_IsSet(rbuf->bitmap_, entry)) {
+            LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->d_lock_);
+            return false;
+        }
+        *data = rbuf->queue_[entry];
+        labstor_bitmap_Unset(rbuf->bitmap_, entry);
+        ++rbuf->header_->dequeued_;
+        LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->d_lock_);
+        return true;
+    }
+    return false;
 }
 
 #ifdef __cplusplus

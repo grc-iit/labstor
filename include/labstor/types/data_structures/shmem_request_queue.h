@@ -94,9 +94,23 @@ static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_
 
 static inline struct labstor_qtok_t labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq) {
     struct labstor_qtok_t qtok;
-    int i, j;
+    int i,j;
     qtok.qid = lrq->header_->qid_;
-    if(!labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
+    LABSTOR_SPINWAIT_START(i,j)
+    if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
+        qtok.req_id = rq->req_id_;
+        return qtok;
+    }
+    LABSTOR_SPINWAIT_END()
+    qtok.qid = -1;
+    qtok.req_id = -1;
+    return qtok;
+}
+
+static inline struct labstor_qtok_t labstor_request_queue_EnqueueFast(struct labstor_request_queue *lrq, struct labstor_request *rq) {
+    struct labstor_qtok_t qtok;
+    qtok.qid = lrq->header_->qid_;
+    if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
         qtok.qid = -1;
         qtok.req_id = -1;
         return qtok;

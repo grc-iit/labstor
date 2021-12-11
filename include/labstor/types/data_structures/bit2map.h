@@ -47,6 +47,8 @@ static inline void labstor_bit2map_Xor(labstor_bit2map_t *bitmap, uint32_t entry
 }
 
 static inline int labstor_bit2map_TestAndSet(labstor_bit2map_t *bitmap, uint32_t entry_idx, labstor_bit2map_t test, labstor_bit2map_t set) {
+    //If any of the bits in test are set, this function will return false
+    //This function will OR the input set
     LABSTOR_BIT2MAP_POS(entry_idx, entry_block)
     labstor_bit2map_t tmp, block;
     set <<= entry_start;

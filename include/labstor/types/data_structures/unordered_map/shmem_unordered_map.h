@@ -102,9 +102,6 @@ static inline bool labstor_unordered_map_{S_NAME}_{T_NAME}_Init(
     }
     if(num_buckets == 0) {
         num_buckets = region_size - sizeof(struct labstor_unordered_map_{S_NAME}_{T_NAME}_header);
-        if(num_buckets % LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK) {
-            num_buckets -= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
-        }
         num_buckets *= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
         num_buckets /= (sizeof(struct {BUCKET_T_NAME})*LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK + sizeof(labstor_bit2map_t));
     }

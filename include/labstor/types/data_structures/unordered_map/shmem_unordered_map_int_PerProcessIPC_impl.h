@@ -102,9 +102,6 @@ static inline bool labstor_unordered_map_int_PerProcessIPC_Init(
     }
     if(num_buckets == 0) {
         num_buckets = region_size - sizeof(struct labstor_unordered_map_int_PerProcessIPC_header);
-        if(num_buckets % LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK) {
-            num_buckets -= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
-        }
         num_buckets *= LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK;
         num_buckets /= (sizeof(struct labstor_int_PerProcessIPC_bucket)*LABSTOR_BIT2MAP_ENTRIES_PER_BLOCK + sizeof(labstor_bit2map_t));
     }

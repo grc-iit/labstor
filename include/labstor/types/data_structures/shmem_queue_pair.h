@@ -181,9 +181,14 @@ static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, 
 }
 
 static inline struct labstor_request* labstor_queue_pair_Wait(struct labstor_queue_pair *qp, uint32_t req_id) {
+    int i, j;
     struct labstor_request *ret = NULL;
-    while(!labstor_queue_pair_IsComplete(qp, req_id, &ret)) {}
-    return ret;
+    LABSTOR_SPINWAIT_START(i,j)
+    if(labstor_queue_pair_IsComplete(qp, req_id, &ret)) {
+        return ret;
+    }
+    LABSTOR_SPINWAIT_END()
+    return NULL;
 }
 
 static inline uint32_t labstor_queue_pair_GetDepth(struct labstor_queue_pair *qp) {

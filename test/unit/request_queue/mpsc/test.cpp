@@ -9,11 +9,20 @@
 
 #include <unistd.h>
 
+void PrintBitmap(labstor_bitmap_t *bitmap, int num_bits) {
+    for(int i = 0; i < num_bits; ++i) {
+        if(i%64 == 0) {
+            printf("\n");
+        }
+        printf("%d", labstor_bitmap_IsSet(bitmap, i));
+    }
+}
+
 void produce_and_consume(bool consume) {
     labstor::ipc::request_queue q;
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
-    std::vector<int> responses;
+    std::vector<int> being_set, was_set, was_dequeued;
     int nthreads, last_thread, reqs_per_thread, total_reqs, total_queued_reqs;
     size_t queue_size;
     void *region;
@@ -23,16 +32,20 @@ void produce_and_consume(bool consume) {
     last_thread = nthreads - 1;
     reqs_per_thread = 10000;
     total_reqs = reqs_per_thread * (nthreads - 1);
-    total_queued_reqs = 4096;
+    total_queued_reqs = 256;
     queue_size = labstor::ipc::request_queue::GetSize(total_queued_reqs);
     region = malloc(queue_size + total_reqs*sizeof(labstor::ipc::request));
     req_region = (labstor::ipc::request*)((char*)region + queue_size);
     LABSTOR_ERROR_HANDLE_END()
 
     LABSTOR_ERROR_HANDLE_START()
-    responses.resize(total_reqs);
+    being_set.resize(total_reqs);
+    was_set.resize(total_reqs);
+    was_dequeued.resize(total_reqs);
     for(int i = 0; i < total_reqs; ++i) {
-        responses[i] = 0;
+        being_set[i] = 0;
+        was_set[i] = 0;
+        was_dequeued[i] = 0;
     }
     LABSTOR_ERROR_HANDLE_END()
 
@@ -44,17 +57,19 @@ void produce_and_consume(bool consume) {
 
     //Spam the trusted server
     omp_set_dynamic(0);
-#pragma omp parallel shared(responses, total_reqs, reqs_per_thread, nthreads, q) num_threads(nthreads)
+#pragma omp parallel shared(being_set, was_set, was_dequeued, total_reqs, reqs_per_thread, nthreads, q) num_threads(nthreads)
     {
         LABSTOR_ERROR_HANDLE_START()
             int rank = omp_get_thread_num();
 
             if(rank != last_thread) {
-                labstor::Timer t;
                 for (int i = 0; i < reqs_per_thread; ++i) {
                     int off = rank*reqs_per_thread + i;
                     req_region[off].ns_id_ = off;
+                    being_set[off] = 1;
+                    //printf("EnqueueStart[X] = %d\n", off);
                     labstor::ipc::qtok_t qtok = q.Enqueue(req_region + off);
+                    was_set[off] = 1;
                     if(qtok.req_id == -1) {
                         printf("Failed to queue request %d\n", off);
                         exit(1);
@@ -64,10 +79,28 @@ void produce_and_consume(bool consume) {
                 labstor::Timer t;
                 t.Resume();
                 int i = 0;
-                while (i < total_reqs && t.GetMsecFromStart() < 50000) {
+                while (i < total_reqs && t.GetMsecFromStart() < 500) {
+                    if(q.GetDepth()) {
+                        //printf("Depth: %d Enqueued: %d Dequeued: %d\n", q.GetDepth(), q.queue_.header_->enqueued_, q.queue_.header_->dequeued_);
+                        t.Resume();
+                    }
                     if (!q.Dequeue(rq)) { continue; }
-                    ++responses[rq->ns_id_];
+                    ++was_dequeued[rq->ns_id_];
                     ++i;
+                }
+                printf("No longer digesting!\n");
+
+                for(int i = 0; i < was_set.size(); ++i) {
+                    if(being_set[i] && !was_set[i]) {
+                        printf("Entry[%d] is hanging!\n", i);
+                    }
+                }
+
+                printf("Queue Depth: %d\n", q.GetDepth());
+                PrintBitmap(q.queue_.header_->bitmap_, total_queued_reqs);
+
+                if(i < total_reqs) {
+                    exit(1);
                 }
             }
             printf("Done[%d]\n", rank);
@@ -76,15 +109,6 @@ void produce_and_consume(bool consume) {
     }
 
     if(consume) {
-        for (int i = 0; i < responses.size(); ++i) {
-            if (responses[i] == 0) {
-                printf("Error, response %d was null\n", i);
-                exit(1);
-            } else if (responses[i] > 1) {
-                printf("Error, response %d was received multiple times\n", i);
-                exit(1);
-            }
-        }
         printf("Success\n");
     } else {
         printf("QP DEPTH: %d vs %d\n", q.GetDepth(), total_reqs);
