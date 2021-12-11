@@ -5,6 +5,9 @@
 #ifndef LABSTOR_SHMEM_QTOK_H
 #define LABSTOR_SHMEM_QTOK_H
 
+
+#define LABSTOR_QTOK_INVALID(qtok) (qtok.req_id==-1 || qtok.qid==-1)
+
 typedef uint64_t labstor_qid_t;
 
 typedef uint32_t labstor_req_id_t;

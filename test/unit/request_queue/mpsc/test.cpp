@@ -54,23 +54,21 @@ void produce_and_consume(bool consume) {
                 for (int i = 0; i < reqs_per_thread; ++i) {
                     int off = rank*reqs_per_thread + i;
                     req_region[off].ns_id_ = off;
-                    q.Enqueue(req_region + off);
+                    labstor::ipc::qtok_t qtok = q.Enqueue(req_region + off);
+                    if(qtok.req_id == -1) {
+                        printf("Failed to queue request %d\n", off);
+                        exit(1);
+                    }
                 }
             } else if(rank == last_thread && consume) {
                 labstor::Timer t;
                 t.Resume();
-                int i = 0;
-                while (i != total_reqs && t.GetMsecFromStart() < 5000) {
-                    if(q.GetDepth()) {
-                        t.Resume();
-                    }
+                while (t.GetMsecFromStart() < 5000) {
                     if (!q.Dequeue(rq)) { continue; }
                     ++responses[rq->ns_id_];
-                    ++i;
                 }
-
-                printf("Done?\n");
             }
+            printf("Done[%d]\n", rank);
 #pragma omp barrier
         LABSTOR_ERROR_HANDLE_END()
     }

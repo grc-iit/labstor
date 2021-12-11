@@ -94,8 +94,19 @@ static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_
 
 static inline struct labstor_qtok_t labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq) {
     struct labstor_qtok_t qtok;
+    int i, max_retries = 100000;
     qtok.qid = lrq->header_->qid_;
-    while(!labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {}
+    for(i = 0; i < max_retries; ++i) {
+        if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
+            break;
+        }
+        LABSTOR_YIELD();
+    }
+    if(i == max_retries) {
+        qtok.qid = -1;
+        qtok.req_id = -1;
+        return qtok;
+    }
     qtok.req_id = rq->req_id_;
     return qtok;
 }

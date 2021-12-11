@@ -65,7 +65,10 @@ static inline void* labstor_ring_buffer_{T_NAME}_GetNextSection(struct labstor_r
 }
 
 static inline uint32_t labstor_ring_buffer_{T_NAME}_GetDepth(struct labstor_ring_buffer_{T_NAME} *rbuf) {
-    return (uint32_t)(rbuf->header_->enqueued_ - rbuf->header_->dequeued_);
+    uint32_t enqueued = rbuf->header_->enqueued_;
+    uint32_t dequeued = rbuf->header_->dequeued_;
+    if(enqueued < dequeued) { return 0; }
+    return enqueued - dequeued;
 }
 
 static inline uint32_t labstor_ring_buffer_{T_NAME}_GetMaxDepth(struct labstor_ring_buffer_{T_NAME} *rbuf) {
