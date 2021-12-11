@@ -112,13 +112,10 @@ static inline void labstor_ring_buffer_{T_NAME}_Attach(struct labstor_ring_buffe
 }
 
 static inline bool labstor_ring_buffer_{T_NAME}_Enqueue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} data, uint32_t *req_id) {
-    uint32_t enqueued, dequeued;
+    uint32_t enqueued;
     uint32_t entry;
     do {
         enqueued = rbuf->header_->enqueued_;
-        dequeued = rbuf->header_->dequeued_;
-        if(enqueued < dequeued) { continue; }
-        if(enqueued - dequeued == rbuf->header_->max_depth_ - 1) { return false; }
         entry = enqueued % rbuf->header_->max_depth_;
         if(labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
     }
@@ -135,12 +132,10 @@ static inline bool labstor_ring_buffer_{T_NAME}_Enqueue_simple(struct labstor_ri
 }
 
 static inline bool labstor_ring_buffer_{T_NAME}_Dequeue(struct labstor_ring_buffer_{T_NAME} *rbuf, {T} *data) {
-    uint32_t enqueued, dequeued;
+    uint32_t dequeued;
     uint32_t entry;
     do {
-        enqueued = rbuf->header_->enqueued_;
         dequeued = rbuf->header_->dequeued_;
-        if(enqueued <= dequeued) { return false; }
         entry = dequeued % rbuf->header_->max_depth_;
         if(!labstor_bitmap_IsSet(rbuf->bitmap_, entry)) { return false; }
     }
