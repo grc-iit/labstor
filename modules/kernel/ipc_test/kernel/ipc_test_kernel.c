@@ -42,11 +42,9 @@ MODULE_ALIAS_FS("ipc_test");
 inline void complete_test(struct labstor_queue_pair *qp, struct labstor_submit_ipc_test_request *rq) {
     struct labstor_complete_ipc_test_request *rq_complete = (struct labstor_complete_ipc_test_request*)rq;
     rq_complete->header_.code_ = IPC_TEST_SUCCESS;
-    pr_info("Finishing request: %llu %u\n", labstor_queue_pair_GetQid(qp), rq->header_.req_id_);
     if(!labstor_queue_pair_CompleteQuick(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete)) {
         pr_err("Could not complete IPC test quickly! Giving up.\n");
     }
-    pr_info("Request finished\n");
 }
 
 void ipc_test_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {

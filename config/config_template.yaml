@@ -30,7 +30,7 @@ ipc_manager:
   kernel_shmem_mb: 1
   num_kernel_queues: 8
   kernel_queue_size_kb: 4
-  kernel_request_unit_bytes: 64
+  kernel_request_unit_bytes: 256
 
   private_mem_mb: 2
   num_private_queues: 48

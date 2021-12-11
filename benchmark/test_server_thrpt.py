@@ -1,5 +1,4 @@
 from scsbench.runtime.bash_runtime import BashRuntime
-from scsbench.runtime.bash_runtime_chain import BashRuntimeChain
 from scsbench.test_tracker.test_tracker import TestTracker
 from config import LabStorConfigurator
 from commands import *
@@ -39,6 +38,7 @@ class ServerScalabilityTest(TestTracker):
         print("Starting application")
         test_app = BashRuntime(
             f'{os.environ["LABSTOR_BUILD_DIR"]}/test/performance/test_server_thrpt_exec {n_server_cores} {oversubscribe} {frac_kernel_cores} {dedicated_cores} {n_client_procs} {n_msgs}',
+
             affinity=labstor_conf.GetApplicationAffinity(),
             max_retry_ms=4000).Run()
         if test_app.GetExitCode() != 0:
@@ -80,21 +80,21 @@ else:
     os.environ["LABSTOR_BUILD_DIR"] = f'{os.environ["LABSTOR_ROOT"]}/cmake-build-release-virtalbox'
 
 #Set testing parameters
-BIG_TEST=False
+BIG_TEST=True
 if BIG_TEST:
-    N_SERVER_CORES = [1, 2, 4, 8, 16]
+    N_SERVER_CORES = [4, 8, 16]
     FRAC_KERNEL_CORES = [.25, .5, .75]
     DEDICATED_CORES = [0,1]
     OVERSUBSCRIBE=[1]
     N_CLIENT_PROCS = [1, 2, 4, 8, 16]
     REQS_PER_CLIENT = [2048]
 else:
-    N_SERVER_CORES = [2]
+    N_SERVER_CORES = [4, 8]
     OVERSUBSCRIBE=[1]
-    FRAC_KERNEL_CORES = [.5]
+    FRAC_KERNEL_CORES = [.25, .5, .75]
     DEDICATED_CORES = [1]
     OVERSUBSCRIBE=[1]
-    N_CLIENT_PROCS = [4]
+    N_CLIENT_PROCS = [4,8,16]
     REQS_PER_CLIENT = [128]
 
 #Load labstor configurator
@@ -103,7 +103,7 @@ labstor_conf.Load(f'{os.environ["LABSTOR_CONF"]}/config_template.yaml')
 
 #Run experiments
 TEST_OUTPUT_DIR = f'{os.environ["HOME"]}/tests/server_scalability'
-tests = ServerScalabilityTest(TEST_OUTPUT_DIR, 10)
+tests = ServerScalabilityTest(TEST_OUTPUT_DIR, 1)
 tests.SetVariables(N_SERVER_CORES, OVERSUBSCRIBE, FRAC_KERNEL_CORES, DEDICATED_CORES, N_CLIENT_PROCS, REQS_PER_CLIENT)
 tests.SetInputs(labstor_conf)
 tests.Run()
