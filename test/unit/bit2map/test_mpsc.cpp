@@ -23,70 +23,85 @@ void PrintBit2map(labstor_bit2map_t *bit2map, int num_entries) {
     }
 }
 
-int main() {
-    int nthreads = 8;
-    int last_rank = nthreads - 1;
-    int reqs_per_thread = 8192;
-    int total_reqs = reqs_per_thread * (nthreads - 1);
-    int total_sets = total_reqs * 2;
-    labstor_bit2map_t *bit2map = (labstor_bit2map_t *)malloc(labstor_bit2map_GetSize(total_reqs));
-    labstor::Timer t;
+int GetNumCompleted(std::vector<int> &was_dequeued) {
     int count = 0;
-    bool basic = false;
+    for(int i = 0; i < was_dequeued.size(); ++i) {
+        if(was_dequeued[i]) {
+            ++count;
+        }
+    }
+    return count;
+}
 
-    printf("Starting\n");
-    printf("SIZE3[%d entires]: %d\n", total_reqs, labstor_bit2map_GetSize(total_reqs));
+int produce_consume(int num_producers, int num_consumers, int total_reqs) {
+    int reqs_per_thread, nthreads;
+    labstor_bit2map_t *bit2map = (labstor_bit2map_t *)malloc(labstor_bit2map_GetSize(total_reqs));
+    std::vector<int> being_set, was_set, was_dequeued;
+    labstor_bit2map_Init(bit2map, total_reqs);
 
-    //Spam the trusted server
+    //Some ints
+    nthreads = num_producers + num_consumers;
+    total_reqs = (total_reqs/num_producers)*num_producers;
+    reqs_per_thread = total_reqs/num_producers;
+
+    //Initialize trackers
+    being_set.resize(total_reqs);
+    was_set.resize(total_reqs);
+    was_dequeued.resize(total_reqs);
+    for(int i = 0; i < total_reqs; ++i) {
+        being_set[i] = 0;
+        was_set[i] = 0;
+        was_dequeued[i] = 0;
+    }
+
+//Spam the trusted server
     omp_set_dynamic(0);
-#pragma omp parallel shared(total_sets, total_reqs, reqs_per_thread, nthreads, t, count, bit2map) num_threads(nthreads)
+#pragma omp parallel shared(total_reqs, reqs_per_thread, nthreads, bit2map) num_threads(nthreads)
     {
         LABSTOR_ERROR_HANDLE_START()
-        int rank = omp_get_thread_num();
+            int rank = omp_get_thread_num();
 
-        if(rank != last_rank) {
-            for(int i = 0; i < reqs_per_thread; ++i) {
-                int entry_idx = rank * reqs_per_thread + i;
-                for(int j = 0; j < 2; ++j) {
-                    while(!labstor_bit2map_TestAndSet(bit2map, entry_idx, 1<<j, 1<<j));
-                }
-            }
-        } else {
-            t.Resume();
-            if(basic) {
-                while (t.GetMsecFromStart() < 1000) {
-                    count = 0;
-                    for (int i = 0; i < total_reqs; ++i) {
-                        for (int j = 0; j < 2; ++j) {
-                            if (labstor_bit2map_IsSet(bit2map, i, 1<<j)) {
-                                ++count;
-                            }
-                        }
+            if(rank < num_producers) {
+                for(int i = 0; i < reqs_per_thread; ++i) {
+                    int entry_idx = rank * reqs_per_thread + i;
+                    ++being_set[i];
+                    if(labstor_bit2map_BeginModify(bit2map, entry_idx)) {
+                        ++was_set[i];
+                        /*printf("[A]VALID: %d, BEING_SET: %d\n",
+                               labstor_bit2map_IsSet(bit2map, entry_idx,LABSTOR_BIT2MAP_VALID),
+                               labstor_bit2map_IsSet(bit2map, entry_idx,LABSTOR_BIT2MAP_BEING_SET));*/
+                        labstor_bit2map_CommitModify(bit2map, entry_idx);
+                        /*printf("[B]VALID: %d, BEING_SET: %d\n",
+                               labstor_bit2map_IsSet(bit2map, entry_idx,LABSTOR_BIT2MAP_VALID),
+                               labstor_bit2map_IsSet(bit2map, entry_idx,LABSTOR_BIT2MAP_BEING_SET));*/
+                    } else {
+                        printf("Some bits are set that aren't supposed to be\n");
                     }
-                    if (count == total_sets) break;
                 }
-            }
-            else {
-                while (count != total_sets && t.GetMsecFromStart() < 6000) {
+                printf("FinishedProducing[%d]\n", rank);
+            } else {
+                labstor::Timer t;
+                t.Resume();
+                int count = 0;
+                while (count != total_reqs && t.GetMsecFromStart() < 6000) {
                     for(int i = 0; i < total_reqs; ++i) {
-                        for(int j = 0; j < 2; ++j) {
-                            if (labstor_bit2map_IsSet(bit2map, i, 1<<j)) {
-                                labstor_bit2map_Unset(bit2map, i, 1<<j);
-                                ++count;
-                            }
+                        if(labstor_bit2map_BeginRemove(bit2map, i)) {
+                            ++was_dequeued[i];
+                            labstor_bit2map_CommitRemove(bit2map, i);
                         }
                     }
+                    count = GetNumCompleted(was_dequeued);
                 }
+                printf("FinishedConsuming[%d]\n", rank);
             }
-        }
 #pragma omp barrier
         LABSTOR_ERROR_HANDLE_END()
     }
 
-    if(count != total_sets) {
-        printf("A total of %d bits were not set\n", total_sets - count);
-        //PrintBit2map(bit2map, total_reqs);
-        exit(1);
-    }
-    printf("Success\n");
+    int count = GetNumCompleted(was_dequeued);
+    printf("%d / %d were dequeued\n", count, was_dequeued.size());
+}
+
+int main() {
+    produce_consume(32, 32, 1<<24);
 }

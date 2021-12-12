@@ -20,11 +20,6 @@
 #include <labstor/userspace/util/errors.h>
 #endif
 
-#ifndef UNORDERED_MAP_BEING_SET
-#define UNORDERED_MAP_BEING_SET 1
-#define UNORDERED_MAP_VALID 2
-#endif
-
 struct labstor_unordered_map_uint32_t_uint32_t_header {
     uint32_t num_buckets_;
     uint32_t max_collisions_;
@@ -137,9 +132,9 @@ static inline int labstor_unordered_map_uint32_t_uint32_t_Set(struct labstor_uno
     int i, iters = map->header_->max_collisions_ + 1;
     b = labstor_uint32_t_uint32_t_bucket_hash(labstor_uint32_t_uint32_t_bucket_GetKey(bucket, map->base_region_), map->base_region_) % map->num_buckets_;
     for(i = 0; i < iters; ++i) {
-        if(labstor_bit2map_TestAndSet(map->bitmap_, b, UNORDERED_MAP_VALID | UNORDERED_MAP_BEING_SET, UNORDERED_MAP_BEING_SET)) {
+        if(labstor_bit2map_BeginModify(map->bitmap_, b)) {
             map->buckets_[b] = *bucket;
-            labstor_bit2map_Xor(map->bitmap_, b, UNORDERED_MAP_VALID | UNORDERED_MAP_BEING_SET);
+            labstor_bit2map_CommitModify(map->bitmap_, b);
             return true;
         }
         b = (b+1)%map->num_buckets_;
@@ -151,7 +146,7 @@ static inline int labstor_unordered_map_uint32_t_uint32_t_Find(struct labstor_un
     int i, iters = map->header_->max_collisions_ + 1;
     uint32_t b = labstor_uint32_t_uint32_t_bucket_hash(key, map->base_region_) % map->num_buckets_;
     for(i = 0; i < iters; ++i) {
-        if(labstor_bit2map_IsSet(map->bitmap_, b, UNORDERED_MAP_VALID)) {
+        if(labstor_bit2map_IsSet(map->bitmap_, b, LABSTOR_BIT2MAP_VALID)) {
             if(labstor_uint32_t_uint32_t_bucket_KeyCompare(labstor_uint32_t_uint32_t_bucket_GetKey(&map->buckets_[b], map->base_region_), key)) {
                 *value = labstor_uint32_t_uint32_t_bucket_GetValue(&map->buckets_[b], map->base_region_);
                 return true;
@@ -165,14 +160,22 @@ static inline int labstor_unordered_map_uint32_t_uint32_t_Find(struct labstor_un
 static inline int labstor_unordered_map_uint32_t_uint32_t_Remove(struct labstor_unordered_map_uint32_t_uint32_t *map, uint32_t key) {
     uint32_t b = labstor_uint32_t_uint32_t_bucket_hash(key, map->base_region_) % map->num_buckets_;
     int i, iters = map->header_->max_collisions_ + 1;
-    for(i = 0; i < iters; ++i) {
-        if(labstor_bit2map_IsSet(map->bitmap_, b, UNORDERED_MAP_VALID)) {
-            if(labstor_uint32_t_uint32_t_bucket_KeyCompare(labstor_uint32_t_uint32_t_bucket_GetKey(&map->buckets_[b], map->base_region_), key)) {
-                labstor_bit2map_Unset(map->bitmap_, b, UNORDERED_MAP_VALID);
-                return true;
+    int num_failed = 0;
+
+    while(num_failed != iters) {
+        for(i = 0; i < iters; ++i) {
+            if(labstor_bit2map_BeginRemove(map->bitmap_, b)) {
+                if(labstor_uint32_t_uint32_t_bucket_KeyCompare(labstor_uint32_t_uint32_t_bucket_GetKey(&map->buckets_[b], map->base_region_), key)) {
+                    labstor_bit2map_CommitRemove(map->bitmap_, b);
+                    return true;
+                } else {
+                    labstor_bit2map_IgnoreRemove(map->bitmap_, b);
+                    ++num_failed;
+                    break;
+                }
             }
+            b = (b+1)%map->num_buckets_;
         }
-        b = (b+1)%map->num_buckets_;
     }
     return false;
 }

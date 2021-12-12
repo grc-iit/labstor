@@ -47,9 +47,9 @@ add_dependencies(test_shmem_unordered_map2_exec labstor_kernel_client secure_shm
 target_link_libraries(test_shmem_unordered_map2_exec labstor_kernel_client secure_shmem_client_netlink mpi)
 add_custom_target(test_multicore_map mpirun -n 2 ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_unordered_map2_exec)
 
-add_executable(test_shmem_unordered_map_mpsc unordered_map/mpsc/test.cpp)
-target_compile_options(test_shmem_unordered_map_mpsc PUBLIC "${OpenMP_CXX_FLAGS}")
-target_link_libraries(test_shmem_unordered_map_mpsc "${OpenMP_CXX_FLAGS}")
+add_executable(test_shmem_unordered_map_mpmc unordered_map/mpmc/test.cpp)
+target_compile_options(test_shmem_unordered_map_mpmc PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_unordered_map_mpmc "${OpenMP_CXX_FLAGS}")
 
 ######UNORDERED MAP FIND
 add_executable(test_shmem_unordered_map_find_exec ipc_manager/server/test.cpp)
@@ -67,9 +67,9 @@ add_dependencies(test_shmem_request_queue_exec labstor_server_library)
 target_link_libraries(test_shmem_request_queue_exec labstor_server_library mpi)
 add_custom_target(test_shmem_request_queue_path echo ${CMAKE_CURRENT_BINARY_DIR}/test_shmem_request_queue_exec)
 
-add_executable(test_shmem_queue_mpsc request_queue/mpsc/test.cpp)
-target_compile_options(test_shmem_queue_mpsc PUBLIC "${OpenMP_CXX_FLAGS}")
-target_link_libraries(test_shmem_queue_mpsc "${OpenMP_CXX_FLAGS}")
+add_executable(test_shmem_queue_mpmc request_queue/mpmc/test.cpp)
+target_compile_options(test_shmem_queue_mpmc PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_queue_mpmc "${OpenMP_CXX_FLAGS}")
 
 ######MODULE MANAGER
 add_executable(test_module_manager_exec module_manager/test.cpp)

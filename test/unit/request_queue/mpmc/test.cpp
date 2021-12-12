@@ -18,26 +18,38 @@ void PrintBitmap(labstor_bitmap_t *bitmap, int num_bits) {
     }
 }
 
-void produce_and_consume(bool consume) {
+int GetNumCompleted(std::vector<int> &was_dequeued) {
+    int count = 0;
+    for(int i = 0; i < was_dequeued.size(); ++i) {
+        if(was_dequeued[i]) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+void produce_and_consume(bool consume, int total_reqs, int num_producers, int num_consumers, int queue_depth) {
     labstor::ipc::request_queue q;
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
     std::vector<int> being_set, was_set, was_dequeued;
-    int nthreads, last_thread, reqs_per_thread, total_reqs, total_queued_reqs;
+    int reqs_per_producer, nthreads = num_producers + num_consumers;
     size_t queue_size;
     void *region;
 
+    //Get total number of requests and reqs per thread
+    total_reqs = num_producers * (total_reqs/num_producers);
+    reqs_per_producer = total_reqs/num_producers;
+    printf("%d %d\n", reqs_per_producer, total_reqs);
+
+    //Allocate region
     LABSTOR_ERROR_HANDLE_START()
-    nthreads = 64;
-    last_thread = nthreads - 1;
-    reqs_per_thread = 10000;
-    total_reqs = reqs_per_thread * (nthreads - 1);
-    total_queued_reqs = 256;
-    queue_size = labstor::ipc::request_queue::GetSize(total_queued_reqs);
+    queue_size = labstor::ipc::request_queue::GetSize(queue_depth);
     region = malloc(queue_size + total_reqs*sizeof(labstor::ipc::request));
     req_region = (labstor::ipc::request*)((char*)region + queue_size);
     LABSTOR_ERROR_HANDLE_END()
 
+    //Initialize trackers
     LABSTOR_ERROR_HANDLE_START()
     being_set.resize(total_reqs);
     was_set.resize(total_reqs);
@@ -49,21 +61,24 @@ void produce_and_consume(bool consume) {
     }
     LABSTOR_ERROR_HANDLE_END()
 
+    //Initialize queue
     LABSTOR_ERROR_HANDLE_START()
-    q.Init(region, region, queue_size, total_queued_reqs, 10);
+    q.Init(region, region, queue_size, queue_depth, 10);
     LABSTOR_ERROR_HANDLE_END()
 
     printf("Starting\n");
 
     //Spam the trusted server
     omp_set_dynamic(0);
-#pragma omp parallel shared(being_set, was_set, was_dequeued, total_reqs, reqs_per_thread, nthreads, q) num_threads(nthreads)
+#pragma omp parallel shared(being_set, was_set, was_dequeued, total_reqs, reqs_per_producer, nthreads, q) num_threads(nthreads)
     {
+        int i = 0;
+
         LABSTOR_ERROR_HANDLE_START()
             int rank = omp_get_thread_num();
-            if(rank != last_thread) {
-                for (int i = 0; i < reqs_per_thread; ++i) {
-                    int off = rank*reqs_per_thread + i;
+            if(rank < num_producers) {
+                for (int i = 0; i < reqs_per_producer; ++i) {
+                    int off = rank*reqs_per_producer + i;
                     req_region[off].ns_id_ = off;
                     being_set[off] = 1;
                     //printf("EnqueueStart[X] = %d\n", off);
@@ -74,21 +89,27 @@ void produce_and_consume(bool consume) {
                         exit(1);
                     }
                 }
-            } else if(rank == last_thread && consume) {
+                printf("EnqueuingDone[%d]\n", rank);
+            } else if(rank >= num_producers && consume) {
                 labstor::Timer t;
                 t.Resume();
-                int i = 0;
-                while (i < total_reqs && t.GetMsecFromStart() < 500) {
-                    if(q.GetDepth()) {
-                        //printf("Depth: %d Enqueued: %d Dequeued: %d\n", q.GetDepth(), q.queue_.header_->enqueued_, q.queue_.header_->dequeued_);
-                        t.Resume();
+                while (i < total_reqs) {
+                //while (i < total_reqs && t.GetMsecFromStart() < 5000) {
+                    for(int j = 0; j < 1000; ++j) {
+                        if (q.GetDepth()) {
+                            //printf("Depth: %d Enqueued: %d Dequeued: %d\n", q.GetDepth(), q.queue_.header_->enqueued_, q.queue_.header_->dequeued_);
+                            t.Resume();
+                        }
+                        if (!q.Dequeue(rq)) { continue; }
+                        ++was_dequeued[rq->ns_id_];
                     }
-                    if (!q.Dequeue(rq)) { continue; }
-                    ++was_dequeued[rq->ns_id_];
-                    ++i;
+                    i = GetNumCompleted(was_dequeued);
                 }
-                printf("No longer digesting!\n");
+                printf("%d longer digesting!\n", rank);
+            }
 
+#pragma omp barrier
+            if(rank == num_producers) {
                 for(int i = 0; i < was_set.size(); ++i) {
                     if(being_set[i] && !was_set[i]) {
                         printf("Entry[%d] is hanging!\n", i);
@@ -96,14 +117,13 @@ void produce_and_consume(bool consume) {
                 }
 
                 printf("Queue Depth: %d\n", q.GetDepth());
-                PrintBitmap(q.queue_.header_->bitmap_, total_queued_reqs);
 
+                i = GetNumCompleted(was_dequeued);
                 if(i < total_reqs) {
+                    printf("Only %d/%d requests completed?\n", i, total_reqs);
                     exit(1);
                 }
             }
-            printf("Done[%d]\n", rank);
-#pragma omp barrier
         LABSTOR_ERROR_HANDLE_END()
     }
 
@@ -121,6 +141,6 @@ void produce_and_consume(bool consume) {
 }
 
 int main(int argc, char **argv) {
-    produce_and_consume(true);
+    produce_and_consume(true, (1<<18), 62, 4, 256);
     return 0;
 }

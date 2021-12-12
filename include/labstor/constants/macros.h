@@ -44,12 +44,17 @@ static inline labstor::off_t LABSTOR_REGION_SUB(void *ptr, void *region) {
 #define MAX_YIELDS 1000
 #define SPINS_PER_USEC 100000
 #define MAX_SPINS (SPINS_PER_USEC * 1000)
-#define LABSTOR_SPINWAIT_START(i,j) \
-    while(1) {\
+
+#define LABSTOR_TIMED_SPINWAIT_START(i,j) \
     for(i = 0; i < MAX_YIELDS; ++i) {\
         for(j = 0; j < MAX_SPINS; ++j) {
+#define LABSTOR_TIMED_SPINWAIT_END() } LABSTOR_YIELD();}
+
+#define LABSTOR_SPINWAIT_START(i,j) \
+    while(1) {  LABSTOR_TIMED_SPINWAIT_START(i,j)
 #define LABSTOR_SPINWAIT_END()\
-    }} LABSTOR_YIELD(); }
+    LABSTOR_TIMED_SPINWAIT_END() }
+
 #define LABSTOR_SPINWAIT_TIMED_OUT(i,j) (i==MAX_YIELDS || j == MAX_SPINS)
 
 /*SPINLOCK*/

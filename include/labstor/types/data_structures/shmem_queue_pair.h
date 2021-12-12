@@ -145,32 +145,41 @@ static inline bool labstor_queue_pair_Dequeue(struct labstor_queue_pair *qp, str
     return labstor_request_queue_Dequeue(&qp->sq, rq);
 }
 
-static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
+static inline bool labstor_queue_pair_CompleteReqIdQuick(struct labstor_queue_pair *qp, int req_id, struct labstor_request *msg) {
+    int i,j;
     struct labstor_request_map_bucket b;
-    msg->req_id_ = rq->req_id_;
+    msg->req_id_ = req_id;
     labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
-    do {} while(!labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b));
-}
-
-static inline bool labstor_queue_pair_CompleteQuick(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
-    struct labstor_request_map_bucket b;
-    int i;
-    msg->req_id_ = rq->req_id_;
-    labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
-    for(i = 0; i < 1000; ++i) {
-        if(labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b)) {
-            return true;
-        }
+    LABSTOR_TIMED_SPINWAIT_START(i,j)
+    if(labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b)) {
+        return true;
     }
+    LABSTOR_TIMED_SPINWAIT_END()
     return false;
 }
 
-static inline void labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *msg) {
+static inline bool labstor_queue_pair_CompleteQuick(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
+    return labstor_queue_pair_CompleteReqIdQuick(qp, rq->req_id_, msg);
+}
+
+static inline void labstor_queue_pair_CompleteReqId(struct labstor_queue_pair *qp, int req_id, struct labstor_request *msg) {
+    int i,j;
     struct labstor_request_map_bucket b;
-    msg->req_id_ = qtok->req_id;
+    msg->req_id_ = req_id;
     labstor_request_map_bucket_Init(&b, msg, labstor_unordered_map_uint32_t_request_GetBaseRegion(&qp->cq));
-    TRACEPOINT("labstor_queue_pair_CompleteByQtok", msg->req_id_, b.off_)
-    do {} while(!labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b));
+    LABSTOR_SPINWAIT_START(i,j)
+    if(labstor_unordered_map_uint32_t_request_Set(&qp->cq, &b)) {
+        return;
+    }
+    LABSTOR_SPINWAIT_END()
+}
+
+static inline void labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *msg) {
+    labstor_queue_pair_CompleteReqId(qp, qtok->req_id, msg);
+}
+
+static inline void labstor_queue_pair_Complete(struct labstor_queue_pair *qp,  struct labstor_request *rq, struct labstor_request *msg) {
+    labstor_queue_pair_CompleteReqId(qp, rq->req_id_, msg);
 }
 
 static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, uint32_t req_id, struct labstor_request **rq) {
