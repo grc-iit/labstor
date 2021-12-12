@@ -61,7 +61,6 @@ void produce_and_consume(bool consume) {
     {
         LABSTOR_ERROR_HANDLE_START()
             int rank = omp_get_thread_num();
-
             if(rank != last_thread) {
                 for (int i = 0; i < reqs_per_thread; ++i) {
                     int off = rank*reqs_per_thread + i;

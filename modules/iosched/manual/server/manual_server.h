@@ -47,7 +47,7 @@ public:
 
     inline void IO(void *buf, size_t buf_size, size_t lba, int hctx, labstor::ipc::driver::MQOps op) {
         labstor::ipc::queue_pair kernel_qp;
-        mq_submit_request *mq_rq = (mq_driver_request*)ipc_manager_->Alloc(sizeof(labstor::ipc::poll_request));
+        mq_submit_request *mq_rq = ipc_manager_->AllocRequest<mq_driver_request>(sizeof(labstor::ipc::poll_request));
         ipc_manager_->GetQueuePair(kernel_qp, LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_STREAM | LABSTOR_QP_LOW_LATENCY, 0, KERNEL_PID);
         mq_rq->op_ = op;
         mq_rq->buf_ = buf;

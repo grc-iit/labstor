@@ -19,6 +19,7 @@
 #include "per_process_ipc.h"
 #include <labstor/types/data_structures/shmem_unordered_map_int_PerProcessIPC.h>
 #include <labstor/types/data_structures/shmem_unordered_map_labstor_qid_t_qp.h>
+#include <labstor/types/thread_local.h>
 
 #include "macros.h"
 #include "server.h"
@@ -57,6 +58,10 @@ public:
         free(qps_by_id_.GetRegion());
     }
 
+    inline int GetPid() {
+        return pid_;
+    }
+
     inline void SetServerFd(int fd) { server_fd_ = fd; }
     inline int GetServerFd() { return server_fd_; }
 
@@ -91,7 +96,7 @@ public:
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
             uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
-            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, sched_getcpu(), num_qps, pid_)];
+            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, labstor::ThreadLocal::GetTid(), num_qps, pid_)];
             return;
         }
         throw INVALID_QP_QUERY.format();
@@ -116,16 +121,19 @@ public:
         return GetQueuePairByPidHash(qp, flags, pid_, hash);
     }
     inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int pid) {
-        return GetQueuePairByPidHash(qp, flags, pid, sched_getcpu());
+        return GetQueuePairByPidHash(qp, flags, pid, labstor::ThreadLocal::GetTid());
     }
     inline void GetNextQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
-        return GetQueuePairByPidHash(qp, flags, pid_, sched_getcpu() + 1);
+        return GetQueuePairByPidHash(qp, flags, pid_, labstor::ThreadLocal::GetTid() + 1);
     }
     inline void GetBatchQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, uint32_t depth) {
         if(LABSTOR_QP_IS_BATCH(flags)) {
             uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
             uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth);
-            qp->Init(flags, private_alloc_->GetRegion(), private_alloc_->Alloc(sq_sz), sq_sz, private_alloc_->Alloc(cq_sz), cq_sz);
+            qp->Init(flags,
+                     private_alloc_->GetRegion(),
+                     private_alloc_->Alloc(sq_sz), sq_sz,
+                     private_alloc_->Alloc(cq_sz), cq_sz);
             return;
         }
         throw INVALID_QP_QUERY.format();
@@ -137,7 +145,7 @@ public:
     template<typename T>
     inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
         labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
-        return (T*)alloc->Alloc(size);
+        return (T*)alloc->Alloc(size, labstor::ThreadLocal::GetTid());
     }
     template<typename T>
     inline T* AllocRequest(labstor::ipc::queue_pair *qp, uint32_t size) {
