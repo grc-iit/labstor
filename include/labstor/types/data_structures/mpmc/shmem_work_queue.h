@@ -5,7 +5,7 @@
 #ifndef LABSTOR_WORK_QUEUE_H
 #define LABSTOR_WORK_QUEUE_H
 
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_qp_ptr.h>
 
 struct labstor_work_queue {

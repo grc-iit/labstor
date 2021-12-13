@@ -5,6 +5,7 @@
 #ifndef LABSTOR_DUMMY_CLIENT_H
 #define LABSTOR_DUMMY_CLIENT_H
 
+#include <labstor/userspace/client/client.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
 #include <labstor/userspace/types/module.h>

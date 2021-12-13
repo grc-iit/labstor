@@ -18,7 +18,7 @@
 #ifdef __cplusplus
 #include "allocator.h"
 #endif
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 
 struct labstor_segment_allocator {
     uint32_t offset_;

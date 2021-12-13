@@ -6,28 +6,34 @@ import os,sys
 
 #Run tests
 class ServerScalabilityTest(TestTracker):
+
+    def ExperimentInit(self):
+        return
+
+    def ExperimentEnd(self):
+        return
+
     def TrialInit(self):
-        self.kernel_server = None
-        self.labstor_server = None
+        #Make sure kernel server is not already running
         LabStorKernelServer().Kill()
+        #Start kernel server
+        print("Starting kernel server")
+        self.kernel_server = LabStorKernelServer().Start()
+        #Start LabStor server
+        print("Starting LabStor server")
+        self.labstor_server = LabStorTrustedServer(conf=labstor_conf.GetTemp()).RunAsync()
+        print(f"LabstorServer PID: {self.labstor_server.GetPid()}")
+        if self.labstor_server.GetExitCode():
+            print("It seems the LabStor server terminated")
+            print(self.labstor_server.GetOutput())
+            raise Exception("LabStor server terminated")
 
     def Trial(self, n_server_cores, oversubscribe, frac_kernel_cores, dedicated_cores, n_client_procs, n_msgs, labstor_conf):
-        print("\n\n\n\n\n--------------------------------------------------")
         print(f"Trial Start: n_server_cores={n_server_cores}, oversub={oversubscribe}, kfrac={frac_kernel_cores}, dedicate={dedicated_cores}, clients={n_client_procs}, msgs={n_msgs}")
         #Create LabStor config
         labstor_conf.SetFractionalWorkers(n_server_cores, oversubscribe, frac_kernel_cores)
         labstor_conf.SaveTemp()
         labstor_conf.PrintConfig()
-
-        #Start kernel server
-        print("Starting kernel server")
-        self.kernel_server = LabStorKernelServer().Start()
-
-        #Start LabStor server
-        print("Starting LabStor server")
-        self.labstor_server = LabStorTrustedServer(conf=labstor_conf.GetTemp()).RunAsync()
-        print(f"PID: {self.labstor_server.GetPid()}")
-        print(f"Status: {self.labstor_server.GetExitCode()}")
 
         #Partition the cores
         print("Dedicating cores")
@@ -37,10 +43,9 @@ class ServerScalabilityTest(TestTracker):
         #Start application
         print("Starting application")
         test_app = BashRuntime(
-            f'{os.environ["LABSTOR_BUILD_DIR"]}/test/performance/test_server_thrpt_exec {n_server_cores} {oversubscribe} {frac_kernel_cores} {dedicated_cores} {n_client_procs} {n_msgs}',
-
+            ,
             affinity=labstor_conf.GetApplicationAffinity(),
-            max_retry_ms=4000).Run()
+            ).Run()
         if test_app.GetExitCode() != 0:
             test_app.PrintOutput()
             raise Exception(f'Error code {test_app.GetExitCode()}')
@@ -89,12 +94,12 @@ if BIG_TEST:
     N_CLIENT_PROCS = [1, 2, 4, 8, 16]
     REQS_PER_CLIENT = [2048]
 else:
-    N_SERVER_CORES = [4, 8]
-    OVERSUBSCRIBE=[1]
+    N_SERVER_CORES = [4,8,16]
+    OVERSUBSCRIBE=[0,1]
     FRAC_KERNEL_CORES = [.25, .5, .75]
     DEDICATED_CORES = [1]
     OVERSUBSCRIBE=[1]
-    N_CLIENT_PROCS = [4,8,16]
+    N_CLIENT_PROCS = [4]
     REQS_PER_CLIENT = [128]
 
 #Load labstor configurator

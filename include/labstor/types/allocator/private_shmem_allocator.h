@@ -11,7 +11,7 @@
 #ifdef __cplusplus
 #include "allocator.h"
 #endif
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 
 struct labstor_private_shmem_allocator_entry {
     uint32_t stamp_;

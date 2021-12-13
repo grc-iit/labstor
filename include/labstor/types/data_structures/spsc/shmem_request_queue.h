@@ -6,14 +6,14 @@
 #define LABSTOR_REQUEST_QUEUE_H
 
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_labstor_off_t.h>
+#include <labstor/types/data_structures/spsc/shmem_ring_buffer_labstor_off_t.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include <labstor/types/data_structures/shmem_request.h>
 #include <labstor/types/shmem_atomic_busy.h>
 
 struct labstor_request_queue_header {
     labstor_qid_t qid_;
-    uint32_t update_lock_;
+    uint16_t update_[2];
 };
 
 #ifdef __cplusplus
@@ -24,7 +24,6 @@ struct labstor_request_queue {
     void *base_region_;
     struct labstor_request_queue_header *header_;
     struct labstor_ring_buffer_labstor_off_t queue_;
-    struct labstor_atomic_busy update_lock_;
 
 #ifdef __cplusplus
     static inline uint32_t GetSize(uint32_t max_depth);
@@ -34,7 +33,7 @@ struct labstor_request_queue {
     inline void Init(void *base_region, void *region, uint32_t region_size, labstor::ipc::qid_t qid);
     inline void Attach(void *base_region, void *region);
     inline labstor::ipc::qid_t GetQid();
-    inline labstor::ipc::qtok_t Enqueue(labstor::ipc::request *rq);
+    inline bool Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok);
     inline bool Dequeue(labstor::ipc::request *&rq);
     inline uint32_t GetDepth();
     inline uint32_t GetMaxDepth();
@@ -42,8 +41,6 @@ struct labstor_request_queue {
     inline void MarkPaused();
     inline bool IsPaused();
     inline void UnPause();
-    inline void PleaseWork();
-    inline void FinishWork();
 #endif
 };
 
@@ -77,14 +74,14 @@ static inline void labstor_request_queue_Init(
     lrq->base_region_ = base_region;
     lrq->header_ = (struct labstor_request_queue_header*)region;
     lrq->header_->qid_ = qid;
-    labstor_atomic_busy_Init(&lrq->update_lock_, &lrq->header_->update_lock_);
+    lrq->header_->update_[0] = 0;
+    lrq->header_->update_[1] = 0;
     labstor_ring_buffer_labstor_off_t_Init(&lrq->queue_, lrq->header_+1, region_size - sizeof(struct labstor_request_queue_header), depth);
 }
 
 static inline void labstor_request_queue_Attach(struct labstor_request_queue *lrq, void *base_region, void *region) {
     lrq->base_region_ = base_region;
     lrq->header_ = (struct labstor_request_queue_header*)region;
-    labstor_atomic_busy_Attach(&lrq->update_lock_, &lrq->header_->update_lock_);
     labstor_ring_buffer_labstor_off_t_Attach(&lrq->queue_, lrq->header_ + 1);
 }
 
@@ -92,31 +89,26 @@ static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_
     return lrq->header_->qid_;
 }
 
-static inline struct labstor_qtok_t labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq) {
-    struct labstor_qtok_t qtok;
-    int i,j;
-    qtok.qid = lrq->header_->qid_;
-    LABSTOR_SPINWAIT_START(i,j)
+static inline bool labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
+    LABSTOR_INF_SPINWAIT_PREAMBLE()
+    LABSTOR_INF_SPINWAIT_START()
     if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
-        qtok.req_id = rq->req_id_;
-        return qtok;
+        qtok->qid = lrq->header_->qid_;
+        qtok->req_id = rq->req_id_;
+        return true;
     }
-    LABSTOR_SPINWAIT_END()
-    qtok.qid = -1;
-    qtok.req_id = -1;
-    return qtok;
+    LABSTOR_INF_SPINWAIT_END()
+    return false;
 }
 
-static inline struct labstor_qtok_t labstor_request_queue_EnqueueFast(struct labstor_request_queue *lrq, struct labstor_request *rq) {
-    struct labstor_qtok_t qtok;
-    qtok.qid = lrq->header_->qid_;
+static inline bool labstor_request_queue_EnqueueSimple(struct labstor_request_queue *lrq, struct labstor_request *rq) {
+    LABSTOR_INF_SPINWAIT_PREAMBLE()
+    LABSTOR_INF_SPINWAIT_START()
     if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
-        qtok.qid = -1;
-        qtok.req_id = -1;
-        return qtok;
+        return true;
     }
-    qtok.req_id = rq->req_id_;
-    return qtok;
+    LABSTOR_INF_SPINWAIT_END()
+    return false;
 }
 
 static inline bool labstor_request_queue_Dequeue(struct labstor_request_queue *lrq, struct labstor_request **rq) {
@@ -126,20 +118,19 @@ static inline bool labstor_request_queue_Dequeue(struct labstor_request_queue *l
     return true;
 }
 
+
+/*Queue Plugging*/
+
 static inline void labstor_request_queue_MarkPaused(struct labstor_request_queue *lrq) {
-    return labstor_atomic_busy_MarkPaused(&lrq->update_lock_);
 }
 static inline bool labstor_request_queue_IsPaused(struct labstor_request_queue *lrq) {
-    return labstor_atomic_busy_IsPaused(&lrq->update_lock_);
+    return false;
 }
 static inline void labstor_request_queue_UnPause(struct labstor_request_queue *lrq) {
-    return labstor_atomic_busy_UnPause(&lrq->update_lock_);
 }
 static inline void labstor_request_queue_PleaseWork(struct labstor_request_queue *lrq) {
-    return labstor_atomic_busy_PleaseWork(&lrq->update_lock_);
 }
 static inline void labstor_request_queue_FinishWork(struct labstor_request_queue *lrq) {
-    return labstor_atomic_busy_FinishWork(&lrq->update_lock_);
 }
 
 
@@ -147,7 +138,7 @@ static inline void labstor_request_queue_FinishWork(struct labstor_request_queue
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <labstor/types/shmem_type.h>
 
 namespace labstor::ipc {
@@ -175,8 +166,8 @@ void labstor_request_queue::Attach(void *base_region, void *region) {
 labstor::ipc::qid_t labstor_request_queue::GetQid() {
     return labstor_request_queue_GetQid(this);
 }
-labstor::ipc::qtok_t labstor_request_queue::Enqueue(labstor::ipc::request *rq) {
-    return labstor_request_queue_Enqueue(this, rq);
+bool labstor_request_queue::Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) {
+    return labstor_request_queue_Enqueue(this, rq, &qtok);
 }
 bool labstor_request_queue::Dequeue(labstor::ipc::request *&rq) {
     return labstor_request_queue_Dequeue(this, reinterpret_cast<struct labstor_request **>(&rq));
@@ -198,12 +189,6 @@ bool labstor_request_queue::IsPaused() {
 }
 void labstor_request_queue::UnPause() {
     return labstor_request_queue_UnPause(this);
-}
-void labstor_request_queue::PleaseWork() {
-    return labstor_request_queue_PleaseWork(this);
-}
-void labstor_request_queue::FinishWork() {
-    return labstor_request_queue_FinishWork(this);
 }
 
 #endif

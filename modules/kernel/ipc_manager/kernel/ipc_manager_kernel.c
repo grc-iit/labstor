@@ -19,7 +19,7 @@
 #include <linux/device.h>
 
 #include <labstor/constants/constants.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 
@@ -34,16 +34,15 @@ MODULE_ALIAS("ipc_manager");
 struct ipc_manager ipc_manager_ = {0};
 EXPORT_SYMBOL(ipc_manager_);
 
-inline bool ipc_manager_register(struct labstor_ipc_manager_register_request *rq) {
+inline void ipc_manager_register(struct labstor_ipc_manager_register_request *rq) {
     ipc_manager_.region = labstor_find_shmem_region(rq->region_id);
     if(ipc_manager_.region == NULL) {
         pr_warn("IPC Manager could not find region %d\n", rq->region_id);
-        return false;
+        return;
     }
     pr_info("IPCManager region: %p\n", ipc_manager_.region);
     ipc_manager_.region_id = rq->region_id;
     labstor_shmem_allocator_Attach(&ipc_manager_.alloc, ipc_manager_.region, ipc_manager_.region);
-    return true;
 }
 
 void ipc_manager_process_request_fn_netlink(int pid, struct labstor_request *rq) {
@@ -51,9 +50,8 @@ void ipc_manager_process_request_fn_netlink(int pid, struct labstor_request *rq)
     switch(rq->op_) {
         case IPC_MANAGER_REGISTER: {
             pr_info("Creating IPC manager\n");
-            if(ipc_manager_register((struct labstor_ipc_manager_register_request *)rq)) {}
-            else { code = -1; }
-            labstor_msg_trusted_server(&code, sizeof(code), pid);
+            ipc_manager_register((struct labstor_ipc_manager_register_request *)rq);
+            labstor_msg_trusted_server(&ipc_manager_.region, sizeof(void*), pid);
             break;
         }
 

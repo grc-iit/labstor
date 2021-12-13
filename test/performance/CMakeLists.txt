@@ -8,6 +8,17 @@ find_package(OpenMP)
 #Test performance of sched_getcpu()
 add_executable(test_getcpu getcpu/test.cpp)
 
+#Atomic throughput
+add_executable(test_atomic_thrpt atomics/test.cpp)
+
+#Queue throughput
+add_executable(test_queue_thrpt queue_thrpt/test.cpp)
+target_link_libraries(test_queue_thrpt -pthread -lrt)
+
+add_executable(test_queue_thrpt_threaded queue_thrpt/test_threaded.cpp)
+target_compile_options(test_queue_thrpt_threaded PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_queue_thrpt_threaded "${OpenMP_CXX_FLAGS}")
+
 #Server throughput
 add_executable(test_server_thrpt_exec server_thrpt/test.cpp)
 add_dependencies(test_server_thrpt_exec labstor_client_library ipc_test_client)

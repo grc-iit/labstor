@@ -11,7 +11,7 @@
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/namespace.h>
 #include <labstor/types/daemon.h>
-#include <labstor/types/data_structures/shmem_work_queue.h>
+#include <labstor/types/data_structures/spsc/shmem_work_queue.h>
 
 namespace labstor::Server {
 

@@ -7,7 +7,7 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
 #define MQ_DRIVER_MODULE_ID "MQ_DRIVER"
 

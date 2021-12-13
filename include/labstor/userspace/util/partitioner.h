@@ -17,10 +17,16 @@
 #include <errno.h>
 #include <string>
 
+namespace labstor {
+
 class ProcessPartitioner {
 public:
     inline bool isdigit(char digit) {
-        return ('0'<=digit && digit<='9');
+        return ('0' <= digit && digit <= '9');
+    }
+
+    inline int GetNumCPU() {
+        return get_nprocs_conf();
     }
 
     // Helper function to check if a struct dirent from /proc is a PID folder.
@@ -35,15 +41,15 @@ public:
 
     void InitCoreMap(std::vector<bool> &core_map, int n_cpu) {
         core_map.resize(n_cpu);
-        for(int i = 0; i < n_cpu; ++i) {
+        for (int i = 0; i < n_cpu; ++i) {
             core_map[i] = false;
         }
     }
 
     void PrintAffinity(std::string prefix, int pid, int n_cpu, cpu_set_t *cpus) {
         std::string affinity = "";
-        for(int i = 0; i < n_cpu; ++i) {
-            if(CPU_ISSET(i, cpus)) {
+        for (int i = 0; i < n_cpu; ++i) {
+            if (CPU_ISSET(i, cpus)) {
                 affinity += std::to_string(i) + ", ";
             }
         }
@@ -58,7 +64,7 @@ public:
 
     bool SetAffinitySafe(int pid, int n_cpu, cpu_set_t *cpus) {
         int ret = sched_setaffinity(pid, n_cpu, cpus);
-        if(ret == -1) {
+        if (ret == -1) {
             /*printf("%s: Could not set %d's affinity\n", strerror(errno), pid);
             PrintAffinity("proposed", pid, n_cpu, cpus);
             PrintAffinity("current", pid, n_cpu);*/
@@ -93,18 +99,17 @@ public:
             //Get the PID of the running process
             int proc_pid = atoi(entry->d_name);
             //Set the affinity of the process
-            if(proc_pid != isol_pid) {
+            if (proc_pid != isol_pid) {
                 sched_getaffinity(proc_pid, n_cpu, cpus);
-                for(int i = 0; i < n_cpu; ++i) {
-                    if(core_map[i]) {
+                for (int i = 0; i < n_cpu; ++i) {
+                    if (core_map[i]) {
                         CPU_CLR(i, cpus);
                     }
                 }
                 SetAffinitySafe(proc_pid, n_cpu, cpus);
             } else {
-                printf("Should be setting the isolated process's affinity\n");
-                for(int i = 0; i < n_cpu; ++i) {
-                    if(core_map[i]) {
+                for (int i = 0; i < n_cpu; ++i) {
+                    if (core_map[i]) {
                         CPU_SET(i, cpus);
                     } else {
                         CPU_CLR(i, cpus);
@@ -117,5 +122,7 @@ public:
         return 0;
     }
 };
+
+}
 
 #endif //LABSTOR_PARTITIONER_H

@@ -16,12 +16,11 @@
 #include <sched.h>
 #include <yaml-cpp/yaml.h>
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/util/debug.h>
-
+#include <labstor/constants/debug.h>
 #include <labstor/userspace/types/userspace_daemon.h>
-#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/admin_thread.h>
 #include <labstor/userspace/server/module_manager.h>
@@ -138,6 +137,7 @@ int main(int argc, char **argv) {
     //Initialize IPC Manager
     auto ipc_manager_ = LABSTOR_IPC_MANAGER;
     ipc_manager_->InitializeKernelIPCManager();
+
 
     //Initialize workers
     auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;

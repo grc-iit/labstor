@@ -20,8 +20,8 @@
 
 #include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
-#include <labstor/types/data_structures/shmem_work_queue.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_work_queue.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <work_orchestrator/work_orchestrator.h>
@@ -46,7 +46,7 @@ struct labstor_worker_struct *workers = NULL;
 int num_workers = 0;
 typedef int (*kthread_fn)(void*);
 
-#define MS_TO_NS(x) x * 1000000
+#define MS_TO_NS(x) (x * 1000000)
 size_t time_slice_us;
 
 inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labstor_request *rq) {
@@ -105,11 +105,11 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 module->process_request_fn(&qp, rq);
             }
             labstor_queue_pair_GetPointer(&qp, &ptr, region);
-            labstor_work_queue_Enqueue_simple(&worker->work_queue, ptr);
+            labstor_work_queue_Enqueue_simple(&worker->work_queue, &ptr);
         }
 
         end = ktime_get_ns();
-        if(end - start > MS_TO_NS(15)) {
+        if(end - start > MS_TO_NS(20)) {
             start = end;
             yield();
         }
@@ -154,7 +154,7 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
-    labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->ptr);
+    labstor_work_queue_Enqueue_simple(&worker->work_queue, &rq->ptr);
     pr_debug("Registered queue pair: %d %d\n", rq->ptr.cq_off, rq->ptr.sq_off);
     return true;
 }

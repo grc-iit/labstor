@@ -11,6 +11,8 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
+#define LABSTOR_SERVER
+
 namespace labstor::Server {
 
 struct ConfigurationManager {

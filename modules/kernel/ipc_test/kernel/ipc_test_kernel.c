@@ -28,7 +28,7 @@
 #include <linux/sched.h>
 
 #include <labstor/constants/constants.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 

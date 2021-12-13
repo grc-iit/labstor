@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <labstor/userspace/server/worker.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
 namespace labstor::Server {
 

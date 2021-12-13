@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     int isol_pid = atoi(argv[1]);
     int n_cpu = get_nprocs_conf();
     std::vector<bool> core_map;
-    ProcessPartitioner partitioner;
+    labstor::ProcessPartitioner partitioner;
 
     //Get process partitions
     partitioner.InitCoreMap(core_map, n_cpu);

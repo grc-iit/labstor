@@ -5,6 +5,7 @@
 #ifndef LABSTOR_MQ_DRIVER_SERVER_H
 #define LABSTOR_MQ_DRIVER_SERVER_H
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/types/module.h>

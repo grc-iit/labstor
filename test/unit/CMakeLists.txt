@@ -71,6 +71,14 @@ add_executable(test_shmem_queue_mpmc request_queue/mpmc/test.cpp)
 target_compile_options(test_shmem_queue_mpmc PUBLIC "${OpenMP_CXX_FLAGS}")
 target_link_libraries(test_shmem_queue_mpmc "${OpenMP_CXX_FLAGS}")
 
+add_executable(test_shmem_qp_mpmc queue_pair/test.cpp)
+target_compile_options(test_shmem_qp_mpmc PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_qp_mpmc "${OpenMP_CXX_FLAGS}")
+
+add_executable(test_shmem_qp_threaded queue_pair/test_threaded.cpp)
+target_compile_options(test_shmem_qp_threaded PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_shmem_qp_threaded "${OpenMP_CXX_FLAGS}")
+
 ######MODULE MANAGER
 add_executable(test_module_manager_exec module_manager/test.cpp)
 add_dependencies(test_module_manager_exec labstor_server_library)
@@ -78,6 +86,11 @@ target_link_libraries(test_module_manager_exec rt dl labstor_server_library)
 target_include_directories(test_module_manager_exec PUBLIC module_manager)
 add_library(simple_module SHARED module_manager/simple_module.cpp)
 add_custom_target(test_module_manager ${CMAKE_CURRENT_BINARY_DIR}/test_module_manager_exec ${CMAKE_CURRENT_BINARY_DIR}/libsimple_module.so)
+
+#######THREAD LOCAL
+add_executable(test_thread_local thread_local/test.cpp)
+target_compile_options(test_thread_local PUBLIC "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_thread_local "${OpenMP_CXX_FLAGS}")
 
 #######CHARVEC
 add_executable(test_charvec charvec/test.cpp)

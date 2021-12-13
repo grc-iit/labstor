@@ -7,7 +7,7 @@
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/types/module.h>
 
-namespace labstor::Client {
+
+labstor::GenericPosix::Client() {
 
 }
-

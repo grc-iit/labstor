@@ -15,7 +15,7 @@
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/allocator.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include "per_process_ipc.h"
 #include <labstor/types/data_structures/shmem_unordered_map_int_PerProcessIPC.h>
 #include <labstor/types/data_structures/shmem_unordered_map_labstor_qid_t_qp.h>
@@ -76,7 +76,7 @@ public:
 
     inline bool RegisterQueuePair(labstor::ipc::queue_pair *qp) {
         //TODO: Thread safety? Not important now.
-        ++pid_to_ipc_[LABSTOR_GET_QP_PID(qp->GetQid())]->num_stream_qps_;
+        ++pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->num_stream_qps_;
         return qps_by_id_.Set(qp->GetQid(), qp);
     }
     inline bool UnregisterQueuePair(labstor::ipc::queue_pair *qp) {
@@ -91,7 +91,7 @@ public:
         return ipc->GetRegion();
     }
     inline void* GetRegion(labstor::ipc::queue_pair *qp) {
-        return pid_to_ipc_[LABSTOR_GET_QP_PID(qp->GetQid())]->GetRegion();
+        return pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->GetRegion();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
@@ -144,7 +144,7 @@ public:
 
     template<typename T>
     inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
         return (T*)alloc->Alloc(size, labstor::ThreadLocal::GetTid());
     }
     template<typename T>
@@ -157,7 +157,7 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::qid_t qid, T *rq) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qid)]->alloc_;
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
         alloc->Free((void*)rq);
     }
     template<typename T>
@@ -166,7 +166,7 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::queue_pair *qp, T *rq) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_PID(qp->GetQid())]->alloc_;
+        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->alloc_;
         alloc->Free((void*)rq);
     }
 

@@ -4,13 +4,13 @@
 
 #include <memory>
 
+#include <labstor/userspace/client/client.h>
 #include <labstor/userspace/types/messages.h>
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <labstor/userspace/util/errors.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/userspace/client/client.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 

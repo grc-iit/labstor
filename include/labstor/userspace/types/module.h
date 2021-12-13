@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/userspace/util/errors.h>
 
 #ifndef __CLION_IDE__

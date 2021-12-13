@@ -37,13 +37,13 @@ void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_submi
     kern_submit = ipc_manager_->AllocRequest<labstor_submit_ipc_test_request>(kern_qp);
     kern_submit->Init(IPC_TEST_MODULE_RUNTIME_ID);
     TRACEPOINT("labstor::IPCTest::Server::Start", "start_req_id", rq_submit->header_.GetRequestID(), "kern_qp_id", kern_qp->GetQid(), "depth", kern_qp->GetDepth());
-    qtok = kern_qp->Enqueue<labstor_submit_ipc_test_request>(kern_submit);
+    kern_qp->Enqueue<labstor_submit_ipc_test_request>(kern_submit, qtok);
 
     //Poll SERVER -> KERNEL interaction
     TRACEPOINT("labstor::IPCTest::Server::Start", "Allocating Poll RQ")
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_ipc_test_request>(private_qp);
     poll_rq->Init(qp, rq_submit, qtok);
-    private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq);
+    private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
 
     //Release requests
     ipc_manager_->FreeRequest<labstor_submit_ipc_test_request>(qp, rq_submit);
@@ -54,12 +54,13 @@ void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor
     labstor::ipc::queue_pair *qp, *kern_qp;
     labstor_complete_ipc_test_request *kern_complete;
     labstor_complete_ipc_test_request *rq_complete;
+    labstor::ipc::qtok_t qtok;
 
     //Check if the QTOK has been completed
     //TRACEPOINT("labstor::IPCTest::Server::End", "Check if I/O has completed")
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->kqtok_);
     if(!kern_qp->IsComplete<labstor_complete_ipc_test_request>(poll_rq->kqtok_, kern_complete)) {
-        private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq);
+        private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
         return;
     }
 

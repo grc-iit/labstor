@@ -8,7 +8,7 @@
 #include <labstor/types/daemon.h>
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
 namespace labstor::kernel::netlink {
 

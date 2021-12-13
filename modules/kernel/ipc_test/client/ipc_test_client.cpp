@@ -1,7 +1,7 @@
 //
 // Created by lukemartinlogan on 12/3/21.
 //
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "ipc_test.h"
@@ -27,11 +27,7 @@ int labstor::IPCTest::Client::Start() {
     rq_submit->Init(ns_id_, 24);
 
     TRACEPOINT("labstor::IPCTest::Client::Enqueue", rq_submit->header_.ns_id_);
-    qtok = qp->Enqueue<labstor_submit_ipc_test_request>(rq_submit);
-    if(LABSTOR_QTOK_INVALID(qtok)) {
-        printf("Failed to enqueue a request!\n");
-        exit(1);
-    }
+    qp->Enqueue<labstor_submit_ipc_test_request>(rq_submit, qtok);
     TRACEPOINT("labstor::IPCTest::Client::Enqueue", "req_id", qtok.req_id, "qid", qtok.qid, "qdepth", qp->GetDepth());
     rq_complete = ipc_manager_->Wait<labstor_complete_ipc_test_request>(qtok);
     int ret = rq_complete->GetReturnCode();

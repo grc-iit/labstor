@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 12/5/21.
 //
 
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "mq_driver.h"
@@ -40,12 +40,12 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_su
     //Create SERVER -> KERNEL message
     kern_submit = ipc_manager_->AllocRequest<labstor_submit_mq_driver_request>(kern_qp);
     kern_submit->Init(MQ_DRIVER_RUNTIME_ID, rq_submit);
-    qtok = kern_qp->Enqueue<labstor_submit_mq_driver_request>(kern_submit);
+    kern_qp->Enqueue<labstor_submit_mq_driver_request>(kern_submit, qtok);
 
     //Poll SERVER -> KERNEL interaction
     poll_rq = ipc_manager_->AllocRequest<labstor_mq_driver_poll_request>(private_qp);
     poll_rq->Init(qp, rq_submit, qtok);
-    private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq);
+    private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
 
     //Free used requests
     TRACEPOINT("labstor::MQDriver::Server::IO",
@@ -61,12 +61,13 @@ void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *private_qp,
     labstor::ipc::queue_pair *qp, *kern_qp;
     labstor_complete_mq_driver_request *kern_complete;
     labstor_complete_mq_driver_request *rq_complete;
+    labstor::ipc::qtok_t qtok;
 
     //Check if the QTOK has been completed
     TRACEPOINT("labstor::MQDriver::Server::IOComplete", "Check if I/O has completed")
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->kqtok_);
     if(!kern_qp->IsComplete<labstor_complete_mq_driver_request>(poll_rq->kqtok_, kern_complete)) {
-        private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq);
+        private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
         return;
     }
 

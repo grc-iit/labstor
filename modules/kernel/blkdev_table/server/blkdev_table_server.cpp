@@ -44,13 +44,13 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
         //TODO; reply error to user
     }
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdev", "KERN SUBMIT", kern_submit->path_, "dev_id", kern_submit->dev_id_);
-    qtok = kern_qp->Enqueue<labstor_submit_blkdev_table_register_request>(kern_submit);
+    kern_qp->Enqueue<labstor_submit_blkdev_table_register_request>(kern_submit, qtok);
 
     //Poll SERVER -> KERNEL interaction
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdev", "Allocating Poll RQ", "private_qp_id", private_qp->GetQid())
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_blkdev_table_register>(private_qp);
     poll_rq->Init(qp, rq_submit, qtok);
-    private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq);
+    private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq, qtok);
 
     //Release requests
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdev",
@@ -66,12 +66,13 @@ void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pa
     labstor::ipc::queue_pair *qp, *kern_qp;
     labstor_complete_blkdev_table_register_request *kern_complete;
     labstor_complete_blkdev_table_register_request *rq_complete;
+    labstor::ipc::qtok_t qtok;
 
     //Check if the QTOK has been completed
     TRACEPOINT("labstor::BlkdevTable::Server::RegisterBlkdevComplete", "Check if I/O has completed")
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->kqtok_);
     if(!kern_qp->IsComplete<labstor_complete_blkdev_table_register_request>(poll_rq->kqtok_, kern_complete)) {
-        private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq);
+        private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq, qtok);
         return;
     }
 

@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 12/5/21.
 //
 
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "mq_driver.h"
@@ -32,7 +32,7 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
     rq_submit->Init(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Complete CLIENT -> SERVER interaction
-    qtok = qp->Enqueue<labstor_submit_mq_driver_request>(rq_submit);
+    qp->Enqueue<labstor_submit_mq_driver_request>(rq_submit, qtok);
     rq_complete = ipc_manager_->Wait<labstor_complete_mq_driver_request>(qtok);
     TRACEPOINT("labstor::MQDriver::Client::IO", "Complete",
                "rq_submit",

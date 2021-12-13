@@ -11,7 +11,7 @@
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/thread_local.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
@@ -39,6 +39,9 @@ public:
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0)];
+                TRACEPOINT("AcqireSHMEMQueue",
+                           labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0),
+                           qp->GetQid())
             } else {
                 qp = private_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), private_qps_.size(), 1)];
             }
@@ -89,6 +92,7 @@ public:
     }
     template<typename T>
     inline T* AllocRequest(labstor::ipc::queue_pair *qp) {
+        TRACEPOINT("AllocRequest")
         return reinterpret_cast<T*>(AllocRequest<T>(qp->GetQid(), sizeof(T)));
     }
     template<typename T>

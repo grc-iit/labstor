@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "dummy.h"
@@ -28,9 +28,11 @@ void labstor::test::Dummy::Client::GetValue() {
     rq_submit->Init(ns_id_);
     TRACEPOINT("labstor::test::Dummy::Client", "Enqueuing"
                "SubmitRequestID", rq_submit->req_id_,
+               "LabTID", labstor::ThreadLocal::GetTid(),
+               "QID", qp->GetQid(),
                "QP Depth", qp->sq.GetDepth(),
                "QP Max Depth", qp->sq.GetMaxDepth());
-    qtok = qp->Enqueue(rq_submit);
+    qp->Enqueue(rq_submit, qtok);
     if(LABSTOR_QTOK_INVALID(qtok)) {
         printf("Failed to enqueue\n");
         exit(1);
@@ -40,6 +42,6 @@ void labstor::test::Dummy::Client::GetValue() {
                "QP Depth", qp->sq.GetDepth(),
                "QP Max Depth", qp->sq.GetMaxDepth());
     rq_complete = ipc_manager_->Wait<dummy_complete_request>(qtok);
-    printf("labstor::test::Dummy::Client COMPLETE: %d\n", rq_complete->num_);
+    //printf("labstor::test::Dummy::Client COMPLETE: %d\n", rq_complete->num_);
     ipc_manager_->FreeRequest(qtok, rq_complete);
 }

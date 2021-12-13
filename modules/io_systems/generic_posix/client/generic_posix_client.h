@@ -5,13 +5,14 @@
 #ifndef LABSTOR_POSIX_CLIENT_H
 #define LABSTOR_POSIX_CLIENT_H
 
-namespace labstor::Client {
-
-class GenericPosix : public labstor::Module {
-    GenericPosix() : labstor::Module("GENERIC_POSIX") {}
+namespace labstor::GenericPosix {
+class Client {
+private:
+    int hi;
+public:
+    void Write();
+    void Read();
 };
-LABSTOR_MODULE_CREATE(GenericPosix);
-
 }
 
 #endif //LABSTOR_POSIX_CLIENT_H

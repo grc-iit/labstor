@@ -9,6 +9,9 @@
 #if defined(LABSTOR_DEBUG) && defined(__cplusplus)
 #define AUTO_TRACE(...) labstor::AutoTrace auto_tracer(false, __VA_ARGS__);
 #define TRACEPOINT(...) labstor::AutoTrace(true, __VA_ARGS__);
+#elif defined(KERNEL_BUILD) && defined(DEBUG)
+#define AUTO_TRACE(...) pr_info(__VA_ARGS__);
+#define TRACEPOINT(...) pr_info(__VA_ARGS__);
 #else
 #define AUTO_TRACE(...)
 #define TRACEPOINT(...)
@@ -17,8 +20,8 @@
 #ifdef __cplusplus
 
 #include "stdio.h"
-#include "timer.h"
-#include "serializeable.h"
+#include "labstor/userspace/util/timer.h"
+#include "labstor/userspace/util/serializeable.h"
 #include <sched.h>
 #include <unistd.h>
 

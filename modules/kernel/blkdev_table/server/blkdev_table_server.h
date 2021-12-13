@@ -5,9 +5,10 @@
 #ifndef LABSTOR_BLKDEV_TABLE_SERVER_H
 #define LABSTOR_BLKDEV_TABLE_SERVER_H
 
+#include <labstor/userspace/server/server.h>
+
 #include "blkdev_table.h"
 #include <labstor/userspace/types/module.h>
-
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>

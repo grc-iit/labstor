@@ -5,4 +5,6 @@
 #ifndef LABSTOR_CLIENT_H
 #define LABSTOR_CLIENT_H
 
+#define LABSTOR_CLIENT
+
 #endif //LABSTOR_CLIENT_H

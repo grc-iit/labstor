@@ -9,15 +9,6 @@
 
 #include <unistd.h>
 
-void PrintBitmap(labstor_bitmap_t *bitmap, int num_bits) {
-    for(int i = 0; i < num_bits; ++i) {
-        if(i%64 == 0) {
-            printf("\n");
-        }
-        printf("%d", labstor_bitmap_IsSet(bitmap, i));
-    }
-}
-
 int GetNumCompleted(std::vector<int> &was_dequeued) {
     int count = 0;
     for(int i = 0; i < was_dequeued.size(); ++i) {
@@ -82,9 +73,10 @@ void produce_and_consume(bool consume, int total_reqs, int num_producers, int nu
                     req_region[off].ns_id_ = off;
                     being_set[off] = 1;
                     //printf("EnqueueStart[X] = %d\n", off);
-                    labstor::ipc::qtok_t qtok = q.Enqueue(req_region + off);
-                    was_set[off] = 1;
-                    if(qtok.req_id == -1) {
+                    labstor::ipc::qtok_t qtok;
+                    if(q.Enqueue(req_region + off, qtok)) {
+                        was_set[off] = 1;
+                    } else {
                         printf("Failed to queue request %d\n", off);
                         exit(1);
                     }
@@ -141,6 +133,6 @@ void produce_and_consume(bool consume, int total_reqs, int num_producers, int nu
 }
 
 int main(int argc, char **argv) {
-    produce_and_consume(true, (1<<18), 62, 4, 256);
+    produce_and_consume(true, 4096, 1, 1, 256);
     return 0;
 }

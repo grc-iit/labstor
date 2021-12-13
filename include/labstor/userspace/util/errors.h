@@ -47,6 +47,11 @@ namespace labstor {
     const Error KERNEL_IPC_MANAGER_FAILED_TO_REGISTER(506, "IPCManager failed to initialize: {}");
     const Error MODULE_DOES_NOT_EXIST(507, "Module does not exist: {}");
 
+    const Error FAILED_TO_ENQUEUE(508, "Failed to enqueue a request");
+    const Error FAILED_TO_DEQUEUE(509, "Failed to enqueue a request");
+    const Error FAILED_TO_COMPLETE(510, "Failed to enqueue a request");
+    const Error QP_WAIT_TIMED_OUT(511, "Failed to wait for a request");
+
     const Error NOT_YET_IMPLEMENTED(1000, "{} is not yet implemented");
 }
 

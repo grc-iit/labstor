@@ -3,8 +3,9 @@
 //
 
 #include <filesystem>
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <labstor/userspace/util/path_parser.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/module.h>

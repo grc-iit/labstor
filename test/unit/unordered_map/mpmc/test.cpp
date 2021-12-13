@@ -5,7 +5,7 @@
 #include <omp.h>
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/util/timer.h>
-#include <modules/kernel/ipc_test/client/ipc_test_client.h>
+#include <labstor/types/data_structures/mpmc/shmem_queue_pair.h>
 
 #include <unistd.h>
 
@@ -133,7 +133,7 @@ void produce_and_consume(int num_producers, int num_consumers, int total_reqs, i
             fail = true;
         }
     }
-    printf("%d/%d were not set\n", num_null, was_dequeued.size());
+    printf("%d/%lu were not set\n", num_null, was_dequeued.size());
     if(fail) exit(1);
     printf("Success\n");
 }

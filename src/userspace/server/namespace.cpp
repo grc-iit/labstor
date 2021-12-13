@@ -2,7 +2,8 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
-#include <labstor/userspace/util/debug.h>
+#include <labstor/userspace/server/server.h>
+#include <labstor/constants/debug.h>
 #include <labstor/userspace/server/namespace.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include <modules/live_upgrade/live_upgrade.h>

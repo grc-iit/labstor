@@ -5,11 +5,13 @@
 #ifndef LABSTOR_SMALL_SHMEM_ALLOCATOR_H
 #define LABSTOR_SMALL_SHMEM_ALLOCATOR_H
 
+#include <labstor/constants/busy_wait.h>
 #include "private_shmem_allocator.h"
 #ifdef __cplusplus
 #include <sys/sysinfo.h>
 #include "allocator.h"
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
+
 #endif
 
 #define GET_SHMEM_ALLOC_REFCNT(x) (((struct labstor_shmem_allocator_entry*)x - 1)->refcnt_)
@@ -131,7 +133,7 @@ static inline void labstor_shmem_allocator_Attach(struct labstor_shmem_allocator
 }
 
 static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator *alloc, uint32_t size, uint32_t core) {
-    AUTO_TRACE("Allocator start")
+    AUTO_TRACE("labstor_shmem_allocator_Alloc")
     struct labstor_shmem_allocator_entry *page;
     int save;
     core = core % alloc->concurrency_;
@@ -195,7 +197,8 @@ static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator
 }
 
 static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *alloc, void *data) {
-    AUTO_TRACE("Allocator free start")
+    AUTO_TRACE("labstor_shmem_allocator_Free")
+    LABSTOR_INF_SPINWAIT_PREAMBLE()
     struct labstor_shmem_allocator_entry *page = ((struct labstor_shmem_allocator_entry*)data) - 1;
     int core = page->core_;
 
@@ -242,9 +245,12 @@ static inline void labstor_shmem_allocator_Free(struct labstor_shmem_allocator *
                (size_t)labstor_shmem_allocator_GetBaseRegion(alloc));
 #endif
 
-    while(!labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], page)) {
-        core = (core + 1)%alloc->concurrency_;
+    LABSTOR_INF_SPINWAIT_START()
+    if(labstor_private_shmem_allocator_Free(&alloc->per_core_allocs_[core], page)) {
+        return;
     }
+    core = (core + 1)%alloc->concurrency_;
+    LABSTOR_INF_SPINWAIT_END()
 
 #if defined(__cplusplus) && defined(LABSTOR_MEM_DEBUG)
     if(page->stamp_ != ((size_t)page - (size_t)labstor_shmem_allocator_GetBaseRegion(alloc))) {

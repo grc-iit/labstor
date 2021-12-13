@@ -5,6 +5,7 @@
 #ifndef LABSTOR_REGISTRAR_SERVER_H
 #define LABSTOR_REGISTRAR_SERVER_H
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/module_manager.h>

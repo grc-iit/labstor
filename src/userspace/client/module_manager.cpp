@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 11/4/21.
 //
 
+#include <labstor/userspace/client/client.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/util/errors.h>

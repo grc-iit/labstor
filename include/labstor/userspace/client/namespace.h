@@ -12,7 +12,7 @@
 #include <labstor/userspace/client/module_manager.h>
 #include <labstor/userspace/client/ipc_manager.h>
 
-#include <labstor/types/data_structures/shmem_queue_pair.h>
+#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_string_map.h>
 #include <labstor/types/data_structures/shmem_array.h>
 #include <labstor/types/data_structures/shmem_ring_buffer.h>

@@ -13,7 +13,7 @@
 #define LABSTOR_UNORDERED_MAP_labstor_string_uint32_t
 
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/bit2map.h>
+#include <labstor/types/data_structures/mpmc/bit2map.h>
 
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>

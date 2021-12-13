@@ -50,6 +50,7 @@
 #define GETFUN(T, fname, ...) \
     if(!REAL_FUN(fname)) { REAL_FUN(fname) = (FNAME_TYPE(T, fname, __VA_ARGS__))dlsym(RTLD_NEXT, #fname); }
 
+FORWARD_DECL(int, open, const char *path, int oflag, ...)
 FORWARD_DECL(ssize_t, read, int fd, void *buf, size_t count)
 FORWARD_DECL(ssize_t, write, int fd, const void *buf, size_t count)
 FORWARD_DECL(ssize_t, pread, int fd, void *buf, size_t count, labstor::off_t offset)
@@ -66,14 +67,6 @@ FORWARD_DECL(ssize_t, pwritev, int fd, const struct iovec *iov, int iovcnt, labs
 FORWARD_DECL(ssize_t, pwritev64, int fd, const struct iovec *iov, int iovcnt, off64_t offset)
 FORWARD_DECL(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 FORWARD_DECL(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
-FORWARD_DECL(int, aio_read, struct aiocb *aiocbp)
-FORWARD_DECL(int, aio_write, struct aiocb *aiocbp)
-FORWARD_DECL(int, aio_read64, struct aiocb64 *aiocbp)
-FORWARD_DECL(int, aio_write64, struct aiocb64 *aiocbp)
-FORWARD_DECL(ssize_t, aio_return, struct aiocb *aiocbp)
-FORWARD_DECL(ssize_t, aio_return64, struct aiocb64 *aiocbp)
-FORWARD_DECL(int, lio_listio, int mode, struct aiocb *const aiocb_list[], int nitems, struct sigevent *sevp)
-FORWARD_DECL(int, lio_listio64, int mode, struct aiocb64 *const aiocb_list[], int nitems, struct sigevent *sevp)
 
 size_t write_size = 0;
 

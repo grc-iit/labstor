@@ -4,7 +4,7 @@
 
 #include <mpi.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/shmem_request_queue.h>
+#include <labstor/types/data_structures/mpmc/shmem_request_queue.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 struct simple_request : public labstor::ipc::request {
@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     uint32_t queue_region_size = (1<<19);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     labstor::ipc::request_queue q;
+    labstor::ipc::qtok_t qtok;
     labstor::ipc::shmem_allocator alloc;
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     labstor::kernel::netlink::ShmemClient shmem_netlink;
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
             simple_request* rq = (simple_request*)alloc.Alloc(sizeof(simple_request), 0);
             rq->hi = 12341 + i;
             printf("ENQUEUEING REQUEST: %d\n", rq->hi);
-            q.Enqueue(rq);
+            q.Enqueue(rq, qtok);
         }
     }
     MPI_Barrier(MPI_COMM_WORLD);

@@ -5,8 +5,9 @@
 #ifndef labstor_ring_buffer_qp_ptr_H
 #define labstor_ring_buffer_qp_ptr_H
 
+#include <labstor/constants/busy_wait.h>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/bitmap.h>
+#include <labstor/types/data_structures/mpmc/bitmap.h>
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 #include <labstor/userspace/util/errors.h>
@@ -42,6 +43,15 @@ struct labstor_ring_buffer_qp_ptr {
     inline bool Dequeue(struct labstor_queue_pair_ptr &data);
     inline uint32_t GetDepth();
     inline uint32_t GetMaxDepth();
+
+    inline bool TryEnqueueLock();
+    inline bool TryDequeueLock();
+    inline void AcquireEnqueueLock();
+    inline void AcquireDequeueLock();
+    inline bool AcquireTimedEnqueueLock(uint32_t max_ms);
+    inline bool AcquireTimedDequeueLock(uint32_t max_ms);
+    inline void ReleaseEnqueueLock();
+    inline void ReleaseDequeueLock();
 #endif
 };
 
@@ -114,11 +124,11 @@ static inline void labstor_ring_buffer_qp_ptr_Attach(struct labstor_ring_buffer_
 
 static inline bool labstor_ring_buffer_qp_ptr_Enqueue(struct labstor_ring_buffer_qp_ptr *rbuf, struct labstor_queue_pair_ptr data, uint32_t *req_id) {
     uint32_t enqueued, dequeued, entry;
-    if(LABSTOR_SIMPLE_LOCK_TRYLOCK(&rbuf->header_->e_lock_)) {
+    if(LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->e_lock_)) {
         enqueued = rbuf->header_->enqueued_;
         dequeued = rbuf->header_->dequeued_;
         if(enqueued - dequeued >= rbuf->header_->max_depth_) {
-            LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->e_lock_);
+            LABSTOR_INF_LOCK_RELEASE(&rbuf->header_->e_lock_);
             return false;
         }
         entry = enqueued % rbuf->header_->max_depth_;
@@ -126,7 +136,7 @@ static inline bool labstor_ring_buffer_qp_ptr_Enqueue(struct labstor_ring_buffer
         rbuf->queue_[entry] = data;
         labstor_bitmap_Set(rbuf->bitmap_, entry);
         ++rbuf->header_->enqueued_;
-        LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->e_lock_);
+        LABSTOR_INF_LOCK_RELEASE(&rbuf->header_->e_lock_);
         return true;
     }
     return false;
@@ -139,22 +149,56 @@ static inline bool labstor_ring_buffer_qp_ptr_Enqueue_simple(struct labstor_ring
 
 static inline bool labstor_ring_buffer_qp_ptr_Dequeue(struct labstor_ring_buffer_qp_ptr *rbuf, struct labstor_queue_pair_ptr *data) {
     uint32_t enqueued, dequeued, entry;
-    if(LABSTOR_SIMPLE_LOCK_TRYLOCK(&rbuf->header_->d_lock_)) {
+    if(LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->d_lock_)) {
         enqueued = rbuf->header_->enqueued_;
         dequeued = rbuf->header_->dequeued_;
         entry = dequeued % rbuf->header_->max_depth_;
         if(enqueued - dequeued == 0 || !labstor_bitmap_IsSet(rbuf->bitmap_, entry)) {
-            LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->d_lock_);
+            LABSTOR_INF_LOCK_RELEASE(&rbuf->header_->d_lock_);
             return false;
         }
         *data = rbuf->queue_[entry];
         labstor_bitmap_Unset(rbuf->bitmap_, entry);
         ++rbuf->header_->dequeued_;
-        LABSTOR_SIMPLE_LOCK_RELEASE(&rbuf->header_->d_lock_);
+        LABSTOR_INF_LOCK_RELEASE(&rbuf->header_->d_lock_);
         return true;
     }
     return false;
 }
+
+/*For queue plugging*/
+
+static inline bool labstor_ring_buffer_qp_ptr_TryEnqueueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    return LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->e_lock_);
+}
+static inline bool labstor_ring_buffer_qp_ptr_TryDequeueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    return LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->d_lock_);
+}
+static inline void labstor_ring_buffer_qp_ptr_AcquireEnqueueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    LABSTOR_INF_LOCK_PREAMBLE()
+    LABSTOR_INF_LOCK_ACQUIRE(&rbuf->header_->e_lock_);
+}
+static inline void labstor_ring_buffer_qp_ptr_AcquireDequeueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    LABSTOR_INF_LOCK_PREAMBLE();
+    LABSTOR_INF_LOCK_ACQUIRE(&rbuf->header_->d_lock_);
+}
+static inline bool labstor_ring_buffer_qp_ptr_AcquireTimedEnqueueLock(struct labstor_ring_buffer_qp_ptr *rbuf, uint32_t max_ms) {
+    LABSTOR_TIMED_LOCK_PREAMBLE();
+    LABSTOR_TIMED_LOCK_ACQUIRE(&rbuf->header_->e_lock_, max_ms);
+    return LABSTOR_LOCK_TIMED_OUT();
+}
+static inline bool labstor_ring_buffer_qp_ptr_AcquireTimedDequeueLock(struct labstor_ring_buffer_qp_ptr *rbuf, uint32_t max_ms) {
+    LABSTOR_TIMED_LOCK_PREAMBLE();
+    LABSTOR_TIMED_LOCK_ACQUIRE(&rbuf->header_->d_lock_, max_ms);
+    return LABSTOR_LOCK_TIMED_OUT();
+}
+static inline void labstor_ring_buffer_qp_ptr_ReleaseEnqueueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    LABSTOR_SPINLOCK_RELEASE(&rbuf->header_->e_lock_);
+}
+static inline void labstor_ring_buffer_qp_ptr_ReleaseDequeueLock(struct labstor_ring_buffer_qp_ptr *rbuf) {
+    LABSTOR_SPINLOCK_RELEASE(&rbuf->header_->d_lock_);
+}
+
 
 #ifdef __cplusplus
 namespace labstor::ipc {
@@ -190,6 +234,31 @@ uint32_t labstor_ring_buffer_qp_ptr::GetDepth() {
 }
 uint32_t labstor_ring_buffer_qp_ptr::GetMaxDepth() {
     return labstor_ring_buffer_qp_ptr_GetMaxDepth(this);
+}
+
+bool labstor_ring_buffer_qp_ptr::TryEnqueueLock() {
+    return labstor_ring_buffer_qp_ptr_TryEnqueueLock(this);
+}
+bool labstor_ring_buffer_qp_ptr::TryDequeueLock() {
+    return labstor_ring_buffer_qp_ptr_TryDequeueLock(this);
+}
+void labstor_ring_buffer_qp_ptr::AcquireEnqueueLock() {
+    labstor_ring_buffer_qp_ptr_AcquireEnqueueLock(this);
+}
+void labstor_ring_buffer_qp_ptr::AcquireDequeueLock() {
+    labstor_ring_buffer_qp_ptr_AcquireDequeueLock(this);
+}
+bool labstor_ring_buffer_qp_ptr::AcquireTimedEnqueueLock(uint32_t max_ms) {
+    return labstor_ring_buffer_qp_ptr_AcquireTimedEnqueueLock(this, max_ms);
+}
+bool labstor_ring_buffer_qp_ptr::AcquireTimedDequeueLock(uint32_t max_ms) {
+    return labstor_ring_buffer_qp_ptr_AcquireTimedDequeueLock(this, max_ms);
+}
+void labstor_ring_buffer_qp_ptr::ReleaseEnqueueLock() {
+    labstor_ring_buffer_qp_ptr_ReleaseEnqueueLock(this);
+}
+void labstor_ring_buffer_qp_ptr::ReleaseDequeueLock() {
+    labstor_ring_buffer_qp_ptr_ReleaseDequeueLock(this);
 }
 
 #endif

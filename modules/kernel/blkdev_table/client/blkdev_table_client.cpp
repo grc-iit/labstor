@@ -1,7 +1,7 @@
 //
 // Created by lukemartinlogan on 12/3/21.
 //
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
 #include "blkdev_table.h"
@@ -28,7 +28,7 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
     rq_submit->Init(ns_id_, path.c_str(), path.size(), -1);
 
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "path", rq_submit->path_, "qp_id", qp->GetQid());
-    qtok = qp->Enqueue<labstor_submit_blkdev_table_register_request>(rq_submit);
+    qp->Enqueue<labstor_submit_blkdev_table_register_request>(rq_submit, qtok);
     rq_complete = ipc_manager_->Wait<labstor_complete_blkdev_table_register_request>(qtok);
     dev_id = rq_complete->GetDeviceID();
     TRACEPOINT("labstor::BlkdevTable::Client::IO", "Complete",

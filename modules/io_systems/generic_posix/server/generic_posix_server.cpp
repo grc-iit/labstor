@@ -4,6 +4,6 @@
 
 #include <string.h>
 
-#include "../include/generic_posix/posix.h"
+#include <generic_posix/generic_posix.h>
 #include <labstor/util/singleton.h>
 

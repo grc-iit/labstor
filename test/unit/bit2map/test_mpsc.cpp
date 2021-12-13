@@ -6,7 +6,7 @@
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/util/timer.h>
 #include <modules/kernel/ipc_test/client/ipc_test_client.h>
-#include <labstor/types/data_structures/bit2map.h>
+#include <labstor/types/data_structures/mpmc/bit2map.h>
 
 #include <unistd.h>
 
@@ -33,7 +33,7 @@ int GetNumCompleted(std::vector<int> &was_dequeued) {
     return count;
 }
 
-int produce_consume(int num_producers, int num_consumers, int total_reqs) {
+void produce_consume(int num_producers, int num_consumers, int total_reqs) {
     int reqs_per_thread, nthreads;
     labstor_bit2map_t *bit2map = (labstor_bit2map_t *)malloc(labstor_bit2map_GetSize(total_reqs));
     std::vector<int> being_set, was_set, was_dequeued;

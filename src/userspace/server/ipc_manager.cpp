@@ -4,8 +4,9 @@
 
 #include <memory>
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/util/errors.h>
-#include <labstor/userspace/util/debug.h>
+#include <labstor/constants/debug.h>
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/socket.h>
 #include <labstor/userspace/server/server.h>
@@ -22,6 +23,8 @@ void labstor::Server::IPCManager::InitializeKernelIPCManager() {
     AUTO_TRACE("labstor::Server::IPCManager::CreateKernelQueues")
     uint32_t region_size = labstor_config_->config_["ipc_manager"]["kernel_shmem_mb"].as<uint32_t>() * SizeType::MB;
     uint32_t request_unit = labstor_config_->config_["ipc_manager"]["kernel_request_unit_bytes"].as<uint32_t>();
+    //uint32_t queue_size_kb = labstor_config_->config_["ipc_manager"]["kernel_queue_size_kb"];
+    //uint32_t num_kernel_queues = labstor_config_->config_["ipc_manager"]["num_kernel_queues"];
 
     //Create new IPC for the kernel
     pid_to_ipc_.Set(KERNEL_PID, new PerProcessIPC());
@@ -128,7 +131,6 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size);
         TRACEPOINT("labstor::Server::IPCManager::CreatePrivateQueues", "qid", qp->GetQid(), "depth", qp->GetDepth(),
                    "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
-
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
