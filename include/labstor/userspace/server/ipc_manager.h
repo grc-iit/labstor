@@ -15,10 +15,11 @@
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/allocator.h>
+#include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include "per_process_ipc.h"
-#include <labstor/types/data_structures/shmem_unordered_map_int_PerProcessIPC.h>
-#include <labstor/types/data_structures/shmem_unordered_map_labstor_qid_t_qp.h>
+#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_int_PerProcessIPC.h>
+#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_labstor_qid_t_qp.h>
 #include <labstor/types/thread_local.h>
 
 #include "macros.h"
@@ -30,13 +31,13 @@ class IPCManager {
 private:
     int pid_;
     int server_fd_;
-    void *private_mem_;
+    void *private_mem_, *kern_base_region_;
     std::mutex lock_;
-    labstor::GenericAllocator *private_alloc_;
     std::vector<int> pids_;
-    labstor::ipc::int_map_int_PerProcessIPC pid_to_ipc_;
-    labstor::ipc::int_map_labstor_qid_t_qp qps_by_id_;
-    uint32_t per_process_shmem_, allocator_unit_;
+    labstor_segment_allocator *kern_qp_alloc_;
+    labstor::GenericAllocator *private_alloc_;
+    labstor::ipc::mpmc::int_map_int_PerProcessIPC pid_to_ipc_;
+    labstor::ipc::mpmc::int_map_labstor_qid_t_qp qps_by_id_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
 public:
     IPCManager() {
@@ -45,8 +46,6 @@ public:
         uint32_t pid_to_ipc_size = labstor_config_->config_["ipc_manager"]["pid_to_ipc_size_mb"].as<uint32_t>()*SizeType::MB;
         uint32_t qps_by_id_size = labstor_config_->config_["ipc_manager"]["qps_by_id_size_mb"].as<uint32_t>()*SizeType::MB;
         uint32_t max_collisions = labstor_config_->config_["ipc_manager"]["max_collisions"].as<uint32_t>();
-        per_process_shmem_ = labstor_config_->config_["ipc_manager"]["process_shmem_kb"].as<uint32_t>()*SizeType::KB;
-        allocator_unit_ = labstor_config_->config_["ipc_manager"]["allocator_unit_bytes"].as<uint32_t>()*SizeType::BYTES;
 
         void *base_region;
         pid_to_ipc_.Init(base_region = malloc(pid_to_ipc_size), base_region, pid_to_ipc_size, 16);
@@ -69,7 +68,7 @@ public:
     void CreateKernelQueues();
     void CreatePrivateQueues();
     void RegisterClient(int client_fd, labstor::credentials &creds);
-    void RegisterClientQP(PerProcessIPC *client_ipc);
+    void RegisterClientQP(PerProcessIPC *client_ipc, void *region);
     void PauseQueues();
     void WaitForPause();
     void ResumeQueues();

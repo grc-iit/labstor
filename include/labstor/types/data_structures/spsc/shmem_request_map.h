@@ -14,7 +14,6 @@
 
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/unordered_map/constants.h>
 
 #define LABSTOR_INVALID_REQUEST_ID 0xFFFFFFFF
 
@@ -99,6 +98,13 @@ static inline void labstor_request_map_Attach(
         struct labstor_request_map *map, void *base_region, void *region) {
     map->base_region_ = base_region;
     map->header_ = (struct labstor_request_map_header*)region;
+    map->buckets_ = (labstor_off_t*)(map->header_ + 1);
+}
+
+static inline void labstor_request_map_RemoteAttach(
+        struct labstor_request_map *map, void *kern_base_region, void *kern_region) {
+    map->base_region_ = kern_base_region;
+    map->header_ = (struct labstor_request_map_header*)kern_region;
     map->buckets_ = (labstor_off_t*)(map->header_ + 1);
 }
 

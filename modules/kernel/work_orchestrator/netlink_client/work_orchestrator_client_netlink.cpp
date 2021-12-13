@@ -31,15 +31,10 @@ int labstor::kernel::netlink::WorkerClient::CreateWorkers(int num_workers, int r
     return region_id;
 }
 
-void labstor::kernel::netlink::WorkerClient::AssignQueuePair(labstor::ipc::queue_pair *qp, void *base) {
-    int code;
-    struct labstor_assign_queue_pair_request rq;
-    rq.header.ns_id_ = WORKER_MODULE_RUNTIME_ID;
-    rq.header.op_ = LABSTOR_ASSIGN_QP;
-    qp->GetPointer(rq.ptr, base);
-    rq.worker_id = qp->GetQid() % num_workers_;
-    kernel_client_->SendMSG(&rq, sizeof(rq));
-    kernel_client_->RecvMSG(&code, sizeof(code));
+void labstor::kernel::netlink::WorkerClient::AssignQueuePair(labstor::ipc::queue_pair *qp_kern) {
+    work_queue_->Plug();
+    work_queue_->Enqueue(qp_kern);
+    work_queue_->Unplug();
 }
 
 void labstor::kernel::netlink::WorkerClient::SetAffinity(int cpu_id) {

@@ -6,10 +6,9 @@
 #define LABSTOR_REQUEST_QUEUE_H
 
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/spsc/shmem_ring_buffer_labstor_off_t.h>
+#include <labstor/types/data_structures/spsc/shmem_request_ring_buffer.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
-#include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/shmem_atomic_busy.h>
+#include <labstor/types/data_structures/shmem_request.h> 
 
 struct labstor_request_queue_header {
     labstor_qid_t qid_;
@@ -23,7 +22,7 @@ struct labstor_request_queue {
 #endif
     void *base_region_;
     struct labstor_request_queue_header *header_;
-    struct labstor_ring_buffer_labstor_off_t queue_;
+    struct labstor_request_ring_buffer queue_;
 
 #ifdef __cplusplus
     static inline uint32_t GetSize(uint32_t max_depth);
@@ -45,11 +44,11 @@ struct labstor_request_queue {
 };
 
 static inline uint32_t labstor_request_queue_GetSize_global(uint32_t max_depth) {
-    return sizeof(struct labstor_request_queue_header) + labstor_ring_buffer_labstor_off_t_GetSize_global(max_depth);
+    return sizeof(struct labstor_request_queue_header) + labstor_request_ring_buffer_GetSize_global(max_depth);
 }
 
 static inline uint32_t labstor_request_queue_GetSize(struct labstor_request_queue *lrq) {
-    return labstor_request_queue_GetSize_global(labstor_ring_buffer_labstor_off_t_GetMaxDepth(&lrq->queue_));
+    return labstor_request_queue_GetSize_global(labstor_request_ring_buffer_GetMaxDepth(&lrq->queue_));
 }
 
 static inline void* labstor_request_queue_GetRegion(struct labstor_request_queue *lrq) {
@@ -57,11 +56,11 @@ static inline void* labstor_request_queue_GetRegion(struct labstor_request_queue
 }
 
 static inline uint32_t labstor_request_queue_GetDepth(struct labstor_request_queue *lrq) {
-    return labstor_ring_buffer_labstor_off_t_GetDepth(&lrq->queue_);
+    return labstor_request_ring_buffer_GetDepth(&lrq->queue_);
 }
 
 static inline uint32_t labstor_request_queue_GetMaxDepth(struct labstor_request_queue *lrq) {
-    return labstor_ring_buffer_labstor_off_t_GetMaxDepth(&lrq->queue_);
+    return labstor_request_ring_buffer_GetMaxDepth(&lrq->queue_);
 }
 
 static inline labstor_qid_t labstor_request_queue_GetFlags(struct labstor_request_queue *lrq) {
@@ -76,13 +75,19 @@ static inline void labstor_request_queue_Init(
     lrq->header_->qid_ = qid;
     lrq->header_->update_[0] = 0;
     lrq->header_->update_[1] = 0;
-    labstor_ring_buffer_labstor_off_t_Init(&lrq->queue_, lrq->header_+1, region_size - sizeof(struct labstor_request_queue_header), depth);
+    labstor_request_ring_buffer_Init(&lrq->queue_, lrq->header_+1, region_size - sizeof(struct labstor_request_queue_header), depth);
 }
 
 static inline void labstor_request_queue_Attach(struct labstor_request_queue *lrq, void *base_region, void *region) {
     lrq->base_region_ = base_region;
     lrq->header_ = (struct labstor_request_queue_header*)region;
-    labstor_ring_buffer_labstor_off_t_Attach(&lrq->queue_, lrq->header_ + 1);
+    labstor_request_ring_buffer_Attach(&lrq->queue_, lrq->header_ + 1);
+}
+
+static inline void labstor_request_queue_RemoteAttach(struct labstor_request_queue *lrq, void *kern_lrq_region, void *kern_base_region) {
+    lrq->base_region_ = kern_base_region;
+    lrq->header_ = (struct labstor_request_queue_header*)kern_lrq_region;
+    labstor_request_ring_buffer_RemoteAttach(&lrq->queue_, lrq->header_ + 1);
 }
 
 static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_queue *lrq) {
@@ -92,7 +97,7 @@ static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_
 static inline bool labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
     LABSTOR_INF_SPINWAIT_PREAMBLE()
     LABSTOR_INF_SPINWAIT_START()
-    if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
+    if(labstor_request_ring_buffer_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
         qtok->qid = lrq->header_->qid_;
         qtok->req_id = rq->req_id_;
         return true;
@@ -104,7 +109,7 @@ static inline bool labstor_request_queue_Enqueue(struct labstor_request_queue *l
 static inline bool labstor_request_queue_EnqueueSimple(struct labstor_request_queue *lrq, struct labstor_request *rq) {
     LABSTOR_INF_SPINWAIT_PREAMBLE()
     LABSTOR_INF_SPINWAIT_START()
-    if(labstor_ring_buffer_labstor_off_t_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
+    if(labstor_request_ring_buffer_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
         return true;
     }
     LABSTOR_INF_SPINWAIT_END()
@@ -113,7 +118,7 @@ static inline bool labstor_request_queue_EnqueueSimple(struct labstor_request_qu
 
 static inline bool labstor_request_queue_Dequeue(struct labstor_request_queue *lrq, struct labstor_request **rq) {
     labstor_off_t off;
-    if(!labstor_ring_buffer_labstor_off_t_Dequeue(&lrq->queue_, &off)) { return false; }
+    if(!labstor_request_ring_buffer_Dequeue(&lrq->queue_, &off)) { return false; }
     *rq = (struct labstor_request*)(LABSTOR_REGION_ADD(off, lrq->base_region_));
     return true;
 }

@@ -5,7 +5,6 @@
 #ifndef LABSTOR_MESSAGES_H
 #define LABSTOR_MESSAGES_H
 
-#include <labstor/types/data_structures/mpmc/shmem_request_queue.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
@@ -30,9 +29,10 @@ struct admin_reply {
 struct setup_reply : public admin_reply {
     uint32_t region_id;
     uint32_t region_size;
-    uint32_t concurrency;
+    uint32_t request_region_size;
     uint32_t request_unit;
-    uint32_t queue_size;
+    uint32_t queue_region_size;
+    uint32_t queue_depth;
 };
 
 struct register_qp_request : public labstor::ipc::admin_request {

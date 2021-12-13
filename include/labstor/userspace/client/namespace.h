@@ -13,9 +13,9 @@
 #include <labstor/userspace/client/ipc_manager.h>
 
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
-#include <labstor/types/data_structures/shmem_string_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
+#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
 #include <labstor/types/data_structures/shmem_array.h>
-#include <labstor/types/data_structures/shmem_ring_buffer.h>
 #include <labstor/userspace/types/module.h>
 
 #include <modules/registrar/client/registrar_client.h>
@@ -27,7 +27,7 @@ struct Namespace {
     int region_id_;
     void *region_;
     labstor::GenericAllocator *alloc_;
-    labstor::ipc::ring_buffer<uint32_t> ns_ids_;
+    labstor::ipc::mpmc::ring_buffer_uint32_t ns_ids_;
     labstor::ipc::string_map key_to_ns_id_;
     labstor::ipc::array<uint32_t> shared_state_;
     std::vector<labstor::Module*> private_state_;

@@ -6,9 +6,9 @@ class LabStorDataStructures:
         self.data_structures = f"{self.root}/include/labstor/types/data_structures"
         with open(f"{self.data_structures}/ring_buffer/shmem_ring_buffer.h") as fp:
             self.rbuf = fp.read()
-        with open(f"{self.data_structures}/unordered_map/shmem_unordered_map.h") as fp:
+        with open(f"{self.data_structures}/unordered_map_impl/shmem_unordered_map.h") as fp:
             self.unordered_map = fp.read()
-        with open(f"{self.data_structures}/shmem_int_map.h") as fp:
+        with open(f"{self.data_structures}/unordered_map/shmem_int_map.h") as fp:
             self.int_map = fp.read()
 
     def load_templates(self):
@@ -33,7 +33,7 @@ class LabStorDataStructures:
 
     def _create_unordered_map(self, S, S_NAME, S_ATOMIC, T, T_NAME, BUCKET_T_NAME):
         BUCKET_T = f"struct {BUCKET_T_NAME}"
-        output = f"{self.data_structures}/unordered_map/shmem_unordered_map_{S_NAME}_{T_NAME}_impl.h"
+        output = f"{self.data_structures}/unordered_map_impl/shmem_unordered_map_{S_NAME}_{T_NAME}_impl.h"
         text = self.replace(self.unordered_map,
             S=S,
             S_NAME=S_NAME,
@@ -55,7 +55,7 @@ class LabStorDataStructures:
         S_NAME = S
         S_ATOMIC = S
         self._create_unordered_map(S, S_NAME, S_ATOMIC, T, T_NAME, BUCKET_T_NAME)
-        output=f"{self.data_structures}/shmem_unordered_map_{S_NAME}_{T_NAME}.h"
+        output=f"{self.data_structures}/unordered_map/shmem_unordered_map_{S_NAME}_{T_NAME}.h"
         text = self.replace(self.int_map,
             S=S,
             T=T,

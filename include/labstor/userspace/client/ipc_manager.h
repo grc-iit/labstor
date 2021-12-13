@@ -11,6 +11,7 @@
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/shmem_allocator.h>
+#include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/thread_local.h>
 
@@ -20,9 +21,10 @@ namespace labstor::Client {
 
 class IPCManager {
 private:
-    int pid_;
+    int pid_, n_cpu_;
     UnixSocket serversock_;
     labstor::GenericAllocator *shmem_alloc_;
+    labstor::segment_allocator *qp_alloc_;
     labstor::GenericAllocator *private_alloc_;
     std::vector<labstor::ipc::queue_pair*> shmem_qps_;
     std::vector<labstor::ipc::queue_pair*> private_qps_;

@@ -182,7 +182,7 @@ static inline int labstor_unordered_map_int_PerProcessIPC_Remove(struct labstor_
 
 #ifdef __cplusplus
 
-namespace labstor::ipc {
+namespace labstor::ipc::mpmc {
     typedef labstor_unordered_map_int_PerProcessIPC unordered_map_int_PerProcessIPC;
 }
 uint32_t labstor_unordered_map_int_PerProcessIPC::GetSize(uint32_t num_buckets) {

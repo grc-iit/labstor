@@ -5,12 +5,16 @@
 #ifndef LABSTOR_PER_PROCESS_IPC_H
 #define LABSTOR_PER_PROCESS_IPC_H
 
+#include <labstor/types/allocator/allocator.h>
+#include <labstor/types/allocator/segment_allocator.h>
+
 namespace labstor::Server {
 struct PerProcessIPC {
     UnixSocket clisock_;
     labstor::credentials creds_;
     int region_id_;
     labstor::GenericAllocator *alloc_;
+    labstor::segment_allocator *qp_alloc_;
     int num_stream_qps_;
 
     PerProcessIPC() : num_stream_qps_(0) {}

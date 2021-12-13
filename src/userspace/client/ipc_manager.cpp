@@ -11,8 +11,10 @@
 #include <labstor/types/basics.h>
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/allocator/shmem_allocator.h>
+#include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <sys/sysinfo.h>
 
 void labstor::Client::IPCManager::Connect() {
     AUTO_TRACE("labstor::Client::IPCManager::Connect")
@@ -24,6 +26,7 @@ void labstor::Client::IPCManager::Connect() {
 
     //Get our pid
     pid_ = getpid();
+    n_cpu_ = get_nprocs_conf();
 
     //Create UDP socket
     TRACEPOINT("CREATE UDP SOCKET")
@@ -53,35 +56,42 @@ void labstor::Client::IPCManager::Connect() {
     TRACEPOINT("Get SHMEM region")
     labstor::ipc::setup_reply reply;
     serversock_.RecvMSG(&reply, sizeof(reply));
+    region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
 
-    //Attach SHMEM allocator
+    //Initialize SHMEM request allocator
     TRACEPOINT("Attach SHMEM allocator")
     labstor::ipc::shmem_allocator *shmem_alloc;
-    region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
     shmem_alloc = new labstor::ipc::shmem_allocator();
-    shmem_alloc->Attach(region, region);
+    shmem_alloc->Init(region, region, reply.request_region_size, reply.request_unit, n_cpu_);
     shmem_alloc_ = shmem_alloc;
     TRACEPOINT("SHMEM allocator", (size_t)shmem_alloc->GetRegion())
 
+    //Initialize SHMEM queue allocator
+    qp_alloc_ = new labstor::segment_allocator();
+    qp_alloc_->Attach(
+            LABSTOR_REGION_ADD(reply.request_region_size, region), reply.queue_region_size);
+
     //Initialize internal allocator
     TRACEPOINT("Initialize internal allocator")
-    labstor::ipc::shmem_allocator *internal_alloc;
-    internal_alloc = new labstor::ipc::shmem_allocator();
-    internal_alloc->Init(region=malloc(reply.region_size), region, reply.region_size, reply.request_unit);
-    private_alloc_ = internal_alloc;
-    TRACEPOINT("Internal allocator", (size_t)internal_alloc->GetRegion())
+    labstor::ipc::shmem_allocator *private_alloc;
+    private_alloc = new labstor::ipc::shmem_allocator();
+    private_alloc->Init(region=malloc(reply.region_size), region, reply.region_size, reply.request_unit, n_cpu_);
+    private_alloc_ = private_alloc;
+    TRACEPOINT("Internal allocator", (size_t)private_alloc->GetRegion())
 
     //Create the SHMEM queues
     TRACEPOINT("Create SHMEM queues")
-    CreateQueuesSHMEM(reply.concurrency, reply.queue_size);
-    CreatePrivateQueues(reply.concurrency, reply.queue_size);
+    CreateQueuesSHMEM(n_cpu_, reply.queue_depth);
+    CreatePrivateQueues(n_cpu_, reply.queue_depth);
 }
 
-void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int queue_size) {
+void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
     AUTO_TRACE("labstor::Client::IPCManager::CreateQueuesSHMEM")
     labstor::ipc::register_qp_request request(num_queues);
     labstor::ipc::register_qp_reply reply;
     labstor::ipc::queue_pair_ptr *qps = (labstor::ipc::queue_pair_ptr *)malloc(request.GetQueueArrayLength());
+    uint32_t request_queue_size = labstor::ipc::request_queue::GetSize(depth);
+    uint32_t request_map_size = labstor::ipc::request_map::GetSize(depth);
 
     //Allocate SHMEM queues for the client
     for(int i = 0; i < num_queues; ++i) {
@@ -90,9 +100,10 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int queue_si
                 i,
                 num_queues,
                 pid_);
-        void *sq_region = shmem_alloc_->Alloc(queue_size);
-        void *cq_region = shmem_alloc_->Alloc(queue_size);
-        shmem_qps_.emplace_back(new labstor::ipc::queue_pair(qid, shmem_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size));
+        void *sq_region = qp_alloc_->Alloc(request_queue_size);
+        void *cq_region = qp_alloc_->Alloc(request_map_size);
+        shmem_qps_.emplace_back(
+                new labstor::ipc::queue_pair(qid, shmem_alloc_->GetRegion(), sq_region, request_queue_size, cq_region, request_map_size));
         qps[i].Init(qid, sq_region, cq_region, shmem_alloc_->GetRegion());
     }
 

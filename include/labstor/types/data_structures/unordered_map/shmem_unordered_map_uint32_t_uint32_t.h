@@ -5,7 +5,7 @@
 #ifndef LABSTOR_INT_MAP_uint32_t_uint32_t_H
 #define LABSTOR_INT_MAP_uint32_t_uint32_t_H
 
-#include <labstor/types/data_structures/unordered_map/constants.h>
+#include <labstor/types/data_structures/unordered_map_impl/constants.h>
 #include <labstor/userspace/util/errors.h>
 #include <labstor/types/shmem_type.h>
 
@@ -31,9 +31,9 @@ static inline bool labstor_uint32_t_uint32_t_bucket_KeyCompare(uint32_t key1, ui
     return key1==key2;
 }
 
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_uint32_t_uint32_t_impl.h>
+#include <labstor/types/data_structures/unordered_map_impl/shmem_unordered_map_uint32_t_uint32_t_impl.h>
 
-namespace labstor::ipc {
+namespace labstor::ipc::mpmc {
 class int_map_uint32_t_uint32_t : public unordered_map_uint32_t_uint32_t {
 public:
     inline bool Set(uint32_t key, uint32_t value) {

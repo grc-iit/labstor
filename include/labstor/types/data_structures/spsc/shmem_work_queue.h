@@ -16,6 +16,7 @@
 struct labstor_work_queue_header {
     uint32_t enqueued_, dequeued_;
     uint32_t max_depth_;
+    uint16_t plug_[2];
 };
 
 #ifdef __cplusplus
@@ -24,18 +25,21 @@ struct labstor_work_queue : public labstor::shmem_type {
 struct labstor_work_queue {
 #endif
     struct labstor_work_queue_header *header_;
-    struct labstor_queue_pair_ptr *queue_;
+    struct labstor_queue_pair **queue_;
 #ifdef __cplusplus
     static inline uint32_t GetSize(uint32_t max_depth);
     inline uint32_t GetSize();
     inline void* GetRegion();
     inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0);
     inline void Attach(void *region);
-    inline bool Enqueue(struct labstor_queue_pair_ptr &data);
-    inline bool Enqueue(struct labstor_queue_pair_ptr &data, uint32_t &req_id);
-    inline bool Dequeue(struct labstor_queue_pair_ptr  &data);
+    inline bool Enqueue(struct labstor_queue_pair *qp);
+    inline bool Enqueue(struct labstor_queue_pair *qp, uint32_t &req_id);
+    inline bool Dequeue(struct labstor_queue_pair *&data);
     inline uint32_t GetDepth();
     inline uint32_t GetMaxDepth();
+
+    inline void Plug();
+    inline void Unplug();
 #endif
 };
 
@@ -68,6 +72,8 @@ static inline bool labstor_work_queue_Init(struct labstor_work_queue *rbuf, void
     rbuf->header_ = (struct labstor_work_queue_header*)region;
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
+    rbuf->header_->plug_[0] = 0;
+    rbuf->header_->plug_[1] = 0;
     if(region_size < labstor_work_queue_GetSize_global(max_depth)) {
 #ifdef __cplusplus
         throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
@@ -87,42 +93,69 @@ static inline bool labstor_work_queue_Init(struct labstor_work_queue *rbuf, void
 #endif
     }
     rbuf->header_->max_depth_ = max_depth;
-    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(rbuf->header_+1);
+    rbuf->queue_ = (struct labstor_queue_pair**)(rbuf->header_+1);
     return true;
 }
 
 static inline void labstor_work_queue_Attach(struct labstor_work_queue *rbuf, void *region) {
     rbuf->header_ = (struct labstor_work_queue_header*)region;
-    rbuf->queue_ = (struct labstor_queue_pair_ptr*)(rbuf->header_ + 1);
+    rbuf->queue_ = (struct labstor_queue_pair**)(rbuf->header_ + 1);
 }
 
-static inline bool labstor_work_queue_Enqueue(struct labstor_work_queue *rbuf, struct labstor_queue_pair_ptr *data, uint32_t *req_id) {
+static inline bool labstor_work_queue_Enqueue(struct labstor_work_queue *rbuf, struct labstor_queue_pair *qp, uint32_t *req_id) {
     uint32_t entry;
     if(rbuf->header_->enqueued_ - rbuf->header_->dequeued_ >= rbuf->header_->max_depth_) {
         return false;
     }
-    rbuf->header_->enqueued_++;
     entry = rbuf->header_->enqueued_ % rbuf->header_->max_depth_;
     *req_id = rbuf->header_->enqueued_;
-    rbuf->queue_[entry] = *data;
+    rbuf->queue_[entry] = qp;
     rbuf->header_->enqueued_++;
     return true;
 }
 
-static inline bool labstor_work_queue_Enqueue_simple(struct labstor_work_queue *rbuf, struct labstor_queue_pair_ptr *data) {
+static inline bool labstor_work_queue_Enqueue_simple(struct labstor_work_queue *rbuf, struct labstor_queue_pair *qp) {
     uint32_t enqueued;
-    return labstor_work_queue_Enqueue(rbuf, data, &enqueued);
+    return labstor_work_queue_Enqueue(rbuf, qp, &enqueued);
 }
 
-static inline bool labstor_work_queue_Dequeue(struct labstor_work_queue *rbuf, struct labstor_queue_pair_ptr *data) {
+static inline bool labstor_work_queue_Dequeue(struct labstor_work_queue *rbuf, struct labstor_queue_pair **qp) {
     uint32_t entry;
     if(rbuf->header_->enqueued_ - rbuf->header_->dequeued_ == 0) {
         return false;
     }
     entry = rbuf->header_->dequeued_ % rbuf->header_->max_depth_;
-    *data = rbuf->queue_[entry];
+    *qp = rbuf->queue_[entry];
     ++rbuf->header_->dequeued_;
     return true;
+}
+
+static inline void labstor_work_queue_Plug(struct labstor_work_queue *rbuf) {
+    LABSTOR_INF_SPINWAIT_PREAMBLE()
+    rbuf->header_->plug_[0] = 1;
+    LABSTOR_INF_SPINWAIT_START()
+    if(rbuf->header_->plug_[1] == 1) {
+        return;
+    }
+    LABSTOR_INF_SPINWAIT_END()
+}
+
+static inline int labstor_work_queue_IsPlugged(struct labstor_work_queue *rbuf) {
+    return rbuf->header_->plug_[0];
+}
+
+static inline void labstor_work_queue_WaitForPlug(struct labstor_work_queue *rbuf) {
+    LABSTOR_INF_SPINWAIT_PREAMBLE()
+    LABSTOR_INF_SPINWAIT_START()
+    if(rbuf->header_->plug_[0] == 0 && rbuf->header_->plug_[1] == 0) {
+        return;
+    }
+    LABSTOR_INF_SPINWAIT_END()
+}
+
+static inline void labstor_work_queue_Unplug(struct labstor_work_queue *rbuf) {
+    rbuf->header_->plug_[0] = 0;
+    rbuf->header_->plug_[1] = 0;
 }
 
 
@@ -146,20 +179,26 @@ void labstor_work_queue::Init(void *region, uint32_t region_size, uint32_t max_d
 void labstor_work_queue::Attach(void *region) {
     labstor_work_queue_Attach(this, region);
 }
-bool labstor_work_queue::Enqueue(struct labstor_queue_pair_ptr &data) {
-    return labstor_work_queue_Enqueue_simple(this, &data);
+bool labstor_work_queue::Enqueue(struct labstor_queue_pair *qp) {
+    return labstor_work_queue_Enqueue_simple(this, qp);
 }
-bool labstor_work_queue::Enqueue(struct labstor_queue_pair_ptr &data, uint32_t &req_id) {
-    return labstor_work_queue_Enqueue(this, &data, &req_id);
+bool labstor_work_queue::Enqueue(struct labstor_queue_pair *qp, uint32_t &req_id) {
+    return labstor_work_queue_Enqueue(this, qp, &req_id);
 }
-bool labstor_work_queue::Dequeue(struct labstor_queue_pair_ptr  &data) {
-    return labstor_work_queue_Dequeue(this, &data);
+bool labstor_work_queue::Dequeue(struct labstor_queue_pair *&qp) {
+    return labstor_work_queue_Dequeue(this, &qp);
 }
 uint32_t labstor_work_queue::GetDepth() {
     return labstor_work_queue_GetDepth(this);
 }
 uint32_t labstor_work_queue::GetMaxDepth() {
     return labstor_work_queue_GetMaxDepth(this);
+}
+void labstor_work_queue::Plug() {
+    labstor_work_queue_Plug(this);
+}
+void labstor_work_queue::Unplug() {
+    labstor_work_queue_Unplug(this);
 }
 
 #endif

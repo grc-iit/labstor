@@ -182,7 +182,7 @@ static inline int labstor_unordered_map_labstor_string_uint32_t_Remove(struct la
 
 #ifdef __cplusplus
 
-namespace labstor::ipc {
+namespace labstor::ipc::mpmc {
     typedef labstor_unordered_map_labstor_string_uint32_t unordered_map_labstor_string_uint32_t;
 }
 uint32_t labstor_unordered_map_labstor_string_uint32_t::GetSize(uint32_t num_buckets) {

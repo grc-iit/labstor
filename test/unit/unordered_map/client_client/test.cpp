@@ -6,16 +6,16 @@
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
-#include <labstor/types/data_structures/shmem_unordered_map_uint32_t_uint32_t.h>
+#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_uint32_t_uint32_t.h>
 #include <cstdio>
 
 int main(int argc, char **argv) {
     int rank, region_id;
     MPI_Init(&argc, &argv);
     int num_entries = 8192;
-    uint32_t region_size = labstor::ipc::int_map_uint32_t_uint32_t::GetSize(num_entries);
+    uint32_t region_size = labstor::ipc::mpmc::int_map_uint32_t_uint32_t::GetSize(num_entries);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    labstor::ipc::int_map_uint32_t_uint32_t map;
+    labstor::ipc::mpmc::int_map_uint32_t_uint32_t map;
 
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     labstor::kernel::netlink::ShmemClient shmem_netlink;

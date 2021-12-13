@@ -20,7 +20,7 @@ public:
     IPCManager() {
         kernel_client_ = LABSTOR_KERNEL_CLIENT;
     }
-    void Register(int region_id);
+    void *Register(int region_id);
     void Unregister(void);
 };
 

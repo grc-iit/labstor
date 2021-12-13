@@ -60,7 +60,7 @@ inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labst
 int worker_runtime(struct labstor_worker_struct *worker) {
     int work_depth, qp_depth, i, j;
     struct labstor_queue_pair_ptr ptr;
-    struct labstor_queue_pair qp;
+    struct labstor_queue_pair *qp;
     struct labstor_request *rq;
     struct labstor_module *module;
     void *region;
@@ -81,8 +81,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         //Process queues
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
-            if(!labstor_work_queue_Dequeue(&worker->work_queue, &ptr)) { break; }
-            labstor_queue_pair_Attach(&qp, &ptr, region);
+            if(!labstor_work_queue_Dequeue(&worker->work_queue, &qp)) { break; }
             qp_depth = labstor_queue_pair_GetDepth(&qp);
             for(j = 0; j < qp_depth; ++j) {
                 if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
@@ -104,8 +103,7 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 }
                 module->process_request_fn(&qp, rq);
             }
-            labstor_queue_pair_GetPointer(&qp, &ptr, region);
-            labstor_work_queue_Enqueue_simple(&worker->work_queue, &ptr);
+            labstor_work_queue_Enqueue_simple(&worker->work_queue, qp);
         }
 
         end = ktime_get_ns();

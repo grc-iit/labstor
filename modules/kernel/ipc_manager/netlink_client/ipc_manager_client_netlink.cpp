@@ -11,7 +11,7 @@
 #include <labstor/constants/constants.h>
 #include "ipc_manager_client_netlink.h"
 
-void labstor::kernel::netlink::IPCManager::Register(int region_id) {
+void* labstor::kernel::netlink::IPCManager::Register(int region_id) {
     AUTO_TRACE("labstor::kernel::netlink::IPCManager::Register", region_id);
     void *region;
     struct labstor_ipc_manager_register_request rq;
@@ -23,6 +23,7 @@ void labstor::kernel::netlink::IPCManager::Register(int region_id) {
     if(region == 0) {
         throw KERNEL_IPC_MANAGER_FAILED_TO_REGISTER.format(0);
     }
+    return region;
 }
 
 void labstor::kernel::netlink::IPCManager::Unregister() {

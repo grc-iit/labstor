@@ -6,7 +6,6 @@
 #include <labstor/userspace/util/errors.h>
 #include <labstor/constants/debug.h>
 #include <labstor/userspace/types/userspace_daemon.h>
-#include <labstor/types/data_structures/mpmc/shmem_request_queue.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/work_orchestrator.h>
 #include <labstor/userspace/server/worker.h>
@@ -94,5 +93,5 @@ void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair
     worker_id = worker_id % server_workers.size();
     TRACEPOINT("labstor::Server::WorkOrchestrator::AssignQueuePair", worker_id)
     std::shared_ptr<labstor::Server::Worker> worker = std::dynamic_pointer_cast<labstor::Server::Worker>(server_workers[worker_id]->GetWorker());
-    worker->AssignQP(qp, ipc_manager_->GetRegion(qp));
+    worker->AssignQP(qp);
 }

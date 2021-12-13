@@ -13,7 +13,7 @@
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/types/shmem_spinlock.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/shmem_string_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
 //#include <labstor/types/data_structures/array/shmem_array_uint32_t.h>
 #include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
 #include <labstor/types/data_structures/shmem_string.h>
@@ -34,7 +34,7 @@ private:
     labstor::ipc::SpinLock lock_;
 
     std::unordered_map<labstor::id, std::queue<labstor::Module*>> module_id_to_instance_;
-    labstor::ipc::ring_buffer_uint32_t ns_ids_;
+    labstor::ipc::mpmc::ring_buffer_uint32_t ns_ids_;
     labstor::ipc::string_map key_to_ns_id_;
     //labstor::ipc::array_uint32_t shared_state_;
     std::vector<labstor::Module*> private_state_;

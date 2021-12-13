@@ -36,7 +36,7 @@ labstor::Server::Namespace::Namespace() {
     TRACEPOINT("labstor::Server::Namespace::Namespace", "NamespaceTables")
     uint32_t remainder = shmem_size;
     void *section = region_;
-    ns_ids_.Init(section, labstor::ipc::ring_buffer_uint32_t::GetSize(max_entries));
+    ns_ids_.Init(section, labstor::ipc::mpmc::ring_buffer_uint32_t::GetSize(max_entries));
     remainder -= ns_ids_.GetSize();
     section = ns_ids_.GetNextSection();
     key_to_ns_id_.Init(region_, section, labstor::ipc::string_map::GetSize(max_entries), 16);

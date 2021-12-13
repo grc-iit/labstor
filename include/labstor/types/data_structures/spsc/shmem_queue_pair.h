@@ -85,11 +85,13 @@ struct labstor_queue_pair {
     inline labstor_queue_pair(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
         Attach(ptr, base_region);
     }
+    static inline uint32_t GetSize(uint32_t queue_depth);
     inline void GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *region);
     inline uint32_t GetDepth();
     inline void Init(labstor::ipc::qid_t qid, void *base_region, uint32_t depth, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
     inline void Init(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
     inline void Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region);
+    inline void RemoteAttach(labstor::ipc::queue_pair_ptr &ptr, void *kern_base_region);
     inline labstor::ipc::qid_t GetQid();
     template<typename T>
     inline void Enqueue(T *rq, labstor::ipc::qtok_t &qtok);
@@ -128,6 +130,12 @@ static inline void labstor_queue_pair_ptr_Init(struct labstor_queue_pair_ptr *pt
     ptr->pid = LABSTOR_GET_QP_IPC_ID(qid);
 }
 
+static inline uint32_t labstor_queue_pair_GetSize_global(uint32_t queue_depth) {
+    return sizeof(struct labstor_queue_pair) +
+        labstor_request_queue_GetSize_global(queue_depth) +
+        labstor_request_map_GetSize_global(queue_depth);
+}
+
 static inline void labstor_queue_pair_GetPointer(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base_region) {
     labstor_queue_pair_ptr_Init(
             ptr,
@@ -146,6 +154,11 @@ static inline void labstor_queue_pair_Init(
 static inline void labstor_queue_pair_Attach(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *base_region) {
     labstor_request_queue_Attach(&qp->sq, base_region, LABSTOR_REGION_ADD(ptr->sq_off, base_region));
     labstor_request_map_Attach(&qp->cq, base_region, LABSTOR_REGION_ADD(ptr->cq_off, base_region));
+}
+
+static inline void labstor_queue_pair_RemoteAttach(struct labstor_queue_pair *qp, struct labstor_queue_pair_ptr *ptr, void *kern_base_region) {
+    labstor_request_queue_RemoteAttach(&qp->sq, kern_base_region, LABSTOR_REGION_ADD(ptr->sq_off, kern_base_region));
+    labstor_request_map_RemoteAttach(&qp->cq, kern_base_region, LABSTOR_REGION_ADD(ptr->cq_off, kern_base_region));
 }
 
 static inline bool labstor_queue_pair_Enqueue(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
@@ -235,6 +248,10 @@ void labstor::ipc::queue_pair_ptr::Init(labstor::ipc::qid_t qid, void *sq_region
 
 /*queue_pair*/
 
+uint32_t labstor::ipc::queue_pair::GetSize(uint32_t queue_depth) {
+    return labstor_queue_pair_GetSize_global(queue_depth);
+}
+
 void labstor::ipc::queue_pair::GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
     labstor_queue_pair_GetPointer(this, &ptr, base_region);
 }
@@ -253,6 +270,10 @@ void labstor::ipc::queue_pair::Init(labstor::ipc::qid_t qid, void *base_region, 
 
 void labstor::ipc::queue_pair::Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
     labstor_queue_pair_Attach(this, &ptr, base_region);
+}
+
+void labstor::ipc::queue_pair::RemoteAttach(labstor::ipc::queue_pair_ptr &ptr, void *kern_base_region) {
+    labstor_queue_pair_RemoteAttach(this, &ptr, kern_base_region);
 }
 
 labstor::ipc::qid_t labstor::ipc::queue_pair::GetQid() {

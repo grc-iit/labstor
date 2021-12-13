@@ -5,7 +5,7 @@
 #ifndef LABSTOR_INT_MAP_{S}_{T_NAME}_H
 #define LABSTOR_INT_MAP_{S}_{T_NAME}_H
 
-#include <labstor/types/data_structures/unordered_map/constants.h>
+#include <labstor/types/data_structures/unordered_map_impl/constants.h>
 #include <labstor/userspace/util/errors.h>
 #include <labstor/types/shmem_type.h>
 
@@ -31,9 +31,9 @@ static inline bool labstor_{S}_{T_NAME}_bucket_KeyCompare({S} key1, {S} key2) {
     return key1==key2;
 }
 
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_{S}_{T_NAME}_impl.h>
+#include <labstor/types/data_structures/unordered_map_impl/shmem_unordered_map_{S}_{T_NAME}_impl.h>
 
-namespace labstor::ipc {
+namespace labstor::ipc::mpmc {
 class int_map_{S}_{T_NAME} : public unordered_map_{S}_{T_NAME} {
 public:
     inline bool Set({S} key, {T} value) {

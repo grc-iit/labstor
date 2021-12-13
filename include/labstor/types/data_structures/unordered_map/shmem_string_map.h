@@ -6,8 +6,8 @@
 #define LABSTOR_SHMEM_STRING_MAP_H
 
 #include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/unordered_map/constants.h>
-#include "shmem_string.h"
+#include <labstor/types/data_structures/unordered_map_impl/constants.h>
+#include "labstor/types/data_structures/shmem_string.h"
 
 struct labstor_string_map_bucket {
     labstor::off_t off_;
@@ -42,18 +42,18 @@ inline static bool labstor_string_map_bucket_KeyCompare(labstor::ipc::string key
     return key1 == key2;
 }
 
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_labstor_string_uint32_t_impl.h>
+#include <labstor/types/data_structures/unordered_map_impl/shmem_unordered_map_labstor_string_uint32_t_impl.h>
 
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 namespace labstor::ipc {
 
-    class string_map : public unordered_map_labstor_string_uint32_t {
+class string_map : public mpmc::unordered_map_labstor_string_uint32_t {
     public:
         inline bool Set(labstor::ipc::string key, uint32_t value) {
             labstor_string_map_bucket bucket;
             labstor_string_map_bucket_Init(&bucket, key, value, GetBaseRegion());
-            return unordered_map_labstor_string_uint32_t::Set(bucket);
+            return mpmc::unordered_map_labstor_string_uint32_t::Set(bucket);
         }
     };
 
