@@ -17,16 +17,15 @@ class WorkerClient : public labstor::Daemon {
 private:
     int num_workers_;
     int worker_id_;
-    labstor::ipc::work_queue *work_queue_;
     LABSTOR_KERNEL_CLIENT_T kernel_client_;
 public:
     WorkerClient() = default;
-    WorkerClient(int worker_id, labstor::ipc::work_queue *work_queue) : worker_id_(worker_id), work_queue_(work_queue) {
+    WorkerClient(int worker_id) : worker_id_(worker_id) {
         kernel_client_ = LABSTOR_KERNEL_CLIENT;
     }
 
     int CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us);
-    void AssignQueuePair(labstor::ipc::queue_pair *qp);
+    void AssignQueuePair(labstor::ipc::queue_pair *qp, labstor::ipc::queue_pair *qp_kern);
 
     void Start();
     void Pause();

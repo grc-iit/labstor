@@ -59,7 +59,6 @@ inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labst
 
 int worker_runtime(struct labstor_worker_struct *worker) {
     int work_depth, qp_depth, i, j;
-    struct labstor_queue_pair_ptr ptr;
     struct labstor_queue_pair *qp;
     struct labstor_request *rq;
     struct labstor_module *module;
@@ -82,26 +81,26 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
             if(!labstor_work_queue_Dequeue(&worker->work_queue, &qp)) { break; }
-            qp_depth = labstor_queue_pair_GetDepth(&qp);
+            qp_depth = labstor_queue_pair_GetDepth(qp);
             for(j = 0; j < qp_depth; ++j) {
-                if(!labstor_queue_pair_Dequeue(&qp, &rq)) { break; }
+                if(!labstor_queue_pair_Dequeue(qp, &rq)) { break; }
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 if(module == NULL) {
                     pr_warn("An invalid module was requested: %d (req_id=%u, qid=%llu, rq_off=%u)\n",
                             rq->ns_id_,
                             rq->req_id_,
-                            labstor_queue_pair_GetQid(&qp),
+                            labstor_queue_pair_GetQid(qp),
                             LABSTOR_REGION_SUB(rq, region));
-                    complete_invalid_request(&qp, rq);
+                    complete_invalid_request(qp, rq);
                     continue;
                 }
                 if(!module->process_request_fn) {
                     pr_warn("A module without a kernel worker component was selected: %d %s (rq_ptr=%u)\n",
                             module->runtime_id, module->module_id.key, LABSTOR_REGION_SUB(rq, region));
-                    complete_invalid_request(&qp, rq);
+                    complete_invalid_request(qp, rq);
                     continue;
                 }
-                module->process_request_fn(&qp, rq);
+                module->process_request_fn(qp, rq);
             }
             labstor_work_queue_Enqueue_simple(&worker->work_queue, qp);
         }
@@ -135,6 +134,7 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
         pr_err("Could not allocate worker array");
         return false;
     }
+
     //Get shared memory
     shmem_region_id = region_id;
     shmem_region = labstor_find_shmem_region(shmem_region_id);
@@ -152,8 +152,10 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
-    labstor_work_queue_Enqueue_simple(&worker->work_queue, &rq->ptr);
-    pr_debug("Registered queue pair: %d %d\n", rq->ptr.cq_off, rq->ptr.sq_off);
+    labstor_work_queue_Plug(&worker->work_queue);
+    labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->qp);
+    labstor_work_queue_Unplug(&worker->work_queue);
+    pr_debug("Registered queue pair: %llu\n", labstor_queue_pair_GetQid(rq->qp));
     return true;
 }
 

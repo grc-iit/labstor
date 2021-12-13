@@ -113,10 +113,10 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
         }
 
-        //Acquire kernel QP (kernel address) & enqueue in work orchestrator
+        //Eqneueue in work orchestrator
         TRACEPOINT("AssignQueuePair")
         labstor::ipc::queue_pair *qp_kern = kern_qp_alloc_->Alloc<labstor::ipc::queue_pair>(queue_size);
-        kernel_work_orchestrator->AssignQueuePair(qp_kern);
+        kernel_work_orchestrator->AssignQueuePair(qp, qp_kern);
     }
 }
 

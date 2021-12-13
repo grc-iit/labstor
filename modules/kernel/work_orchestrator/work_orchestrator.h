@@ -29,7 +29,7 @@ struct labstor_spawn_worker_request {
 
 struct labstor_assign_queue_pair_request {
     struct labstor_request header;
-    struct labstor_queue_pair_ptr ptr;
+    struct labstor_queue_pair *qp;
     int worker_id;
 };
 
