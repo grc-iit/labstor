@@ -124,9 +124,7 @@ static inline bool labstor_request_ring_buffer_Enqueue_simple(struct labstor_req
 
 static inline bool labstor_request_ring_buffer_Dequeue(struct labstor_request_ring_buffer *rbuf, labstor_off_t *data) {
     uint32_t entry;
-    if(rbuf->header_->enqueued_ == rbuf->header_->dequeued_) {
-        return false;
-    }
+    if(rbuf->header_->enqueued_ == rbuf->header_->dequeued_) { return false; }
     entry = rbuf->header_->dequeued_ % rbuf->header_->max_depth_;
     *data = rbuf->queue_[entry];
     ++rbuf->header_->dequeued_;

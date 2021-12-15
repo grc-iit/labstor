@@ -99,7 +99,7 @@ void produce_consume(int num_producers, int num_consumers, int total_reqs) {
     }
 
     int count = GetNumCompleted(was_dequeued);
-    printf("%d / %d were dequeued\n", count, was_dequeued.size());
+    printf("%d / %lu were dequeued\n", count, was_dequeued.size());
 }
 
 int main() {

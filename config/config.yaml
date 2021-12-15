@@ -29,18 +29,20 @@ ipc_manager:
   qps_by_id_size_mb: 2
   max_collisions: 64
 
-  allocator_unit_bytes: 128
-  process_shmem_kb: 128
+  client_shmem_kb: 64
+  num_client_queues: 48
+  client_request_unit_bytes: 64
+  client_queue_depth: 32
 
   kernel_shmem_mb: 1
-  num_kernel_queues: 8
-  kernel_queue_size_kb: 4
-  kernel_request_unit_bytes: 256
+  num_kernel_queues: 48
+  kernel_queue_depth: 32
+  kernel_request_unit_bytes: 64
 
   private_mem_mb: 2
   num_private_queues: 48
-  private_queue_size_kb: 4
-  private_request_unit_bytes: 256
+  private_queue_depth: 32
+  private_request_unit_bytes: 64
 
 namespace:
   max_entries: 1024

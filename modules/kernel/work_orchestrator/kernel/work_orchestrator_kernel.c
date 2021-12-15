@@ -80,9 +80,13 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         //Process queues
         work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
         for(i = 0; i < work_depth; ++i) {
-            if(!labstor_work_queue_Dequeue(&worker->work_queue, &qp)) { break; }
+            if(!labstor_work_queue_Peek(&worker->work_queue, &qp, i)) { break; }
             qp_depth = labstor_queue_pair_GetDepth(qp);
             for(j = 0; j < qp_depth; ++j) {
+                if(qp->sq.base_region_ == NULL) {
+                    pr_err("Invalid base region: %p %llu %p %p\n", qp, labstor_queue_pair_GetQid(qp), qp->sq.base_region_, region);
+                    return -1;
+                }
                 if(!labstor_queue_pair_Dequeue(qp, &rq)) { break; }
                 module = get_labstor_module_by_runtime_id(rq->ns_id_);
                 if(module == NULL) {
@@ -102,7 +106,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 }
                 module->process_request_fn(qp, rq);
             }
-            labstor_work_queue_Enqueue_simple(&worker->work_queue, qp);
         }
 
         end = ktime_get_ns();
@@ -151,11 +154,19 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
 }
 
 bool register_qp(struct labstor_assign_queue_pair_request *rq) {
+    void *region;
     struct labstor_worker_struct *worker = &workers[rq->worker_id];
-    labstor_work_queue_Plug(&worker->work_queue);
-    labstor_work_queue_Enqueue_simple(&worker->work_queue, rq->qp);
-    labstor_work_queue_Unplug(&worker->work_queue);
-    pr_debug("Registered queue pair: %llu\n", labstor_queue_pair_GetQid(rq->qp));
+    //struct labstor_queue_pair *qp = (struct labstor_queue_pair*)rq->qp;
+    struct labstor_queue_pair *qp;
+    if(!ipc_manager_IsInitialized()) {
+        pr_err("IPCManager was not initalized before starting the workers!\n");
+        return -1;
+    }
+    region = ipc_manager_GetRegion();
+    qp = LABSTOR_REGION_ADD(rq->qp_ptr.sq_off - sizeof(struct labstor_queue_pair), region);
+    labstor_queue_pair_Attach(qp, &rq->qp_ptr, region);
+    pr_info("Registered queue pair(a): %lu %llu %lu %lu\n", (size_t)qp, labstor_queue_pair_GetQid(qp), (size_t)qp->sq.base_region_, (size_t)qp->sq.header_);
+    labstor_work_queue_Enqueue(&worker->work_queue, qp);
     return true;
 }
 

@@ -30,9 +30,14 @@ public:
     Module(labstor::id module_id) : module_id_(module_id) {}
     inline labstor::id GetModuleID() { return module_id_; }
 
-    virtual void ReinforceRequestStats(labstor::ipc::request *request, size_t time_measure_ns) {};
-    virtual size_t EstRequestTime(labstor::ipc::request *request){ return 1; };
-    virtual void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {};
+    virtual void ReinforceRequestStats(
+            labstor::ipc::request *request, size_t time_measure_ns) {};
+    virtual size_t EstRequestTime(
+            labstor::ipc::request *request){ return 1; };
+    virtual void ProcessRequest(
+            labstor::ipc::queue_pair *qp,
+            labstor::ipc::request *request,
+            labstor::credentials *creds) {};
     virtual void StateUpdate(labstor::Module *prior) {}
 };
 typedef labstor::Module* (*create_module_fn)(void);

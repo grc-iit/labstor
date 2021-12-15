@@ -138,7 +138,6 @@ int main(int argc, char **argv) {
     auto ipc_manager_ = LABSTOR_IPC_MANAGER;
     ipc_manager_->InitializeKernelIPCManager();
 
-
     //Initialize workers
     auto work_orchestrator_ = LABSTOR_WORK_ORCHESTRATOR;
     work_orchestrator_->CreateWorkers();

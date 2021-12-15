@@ -14,7 +14,7 @@
 #endif
 
 struct labstor_work_queue_header {
-    uint32_t enqueued_, dequeued_;
+    uint32_t enqueued_;
     uint32_t max_depth_;
     uint16_t plug_[2];
 };
@@ -33,13 +33,9 @@ struct labstor_work_queue {
     inline void Init(void *region, uint32_t region_size, uint32_t max_depth = 0);
     inline void Attach(void *region);
     inline bool Enqueue(struct labstor_queue_pair *qp);
-    inline bool Enqueue(struct labstor_queue_pair *qp, uint32_t &req_id);
-    inline bool Dequeue(struct labstor_queue_pair *&data);
+    inline bool Peek(struct labstor_queue_pair *&qp, int i);
     inline uint32_t GetDepth();
     inline uint32_t GetMaxDepth();
-
-    inline void Plug();
-    inline void Unplug();
 #endif
 };
 
@@ -61,7 +57,7 @@ static inline void* labstor_work_queue_GetNextSection(struct labstor_work_queue 
 }
 
 static inline uint32_t labstor_work_queue_GetDepth(struct labstor_work_queue *rbuf) {
-    return rbuf->header_->enqueued_ - rbuf->header_->dequeued_;
+    return rbuf->header_->enqueued_;
 }
 
 static inline uint32_t labstor_work_queue_GetMaxDepth(struct labstor_work_queue *rbuf) {
@@ -71,7 +67,6 @@ static inline uint32_t labstor_work_queue_GetMaxDepth(struct labstor_work_queue 
 static inline bool labstor_work_queue_Init(struct labstor_work_queue *rbuf, void *region, uint32_t region_size, uint32_t max_depth) {
     rbuf->header_ = (struct labstor_work_queue_header*)region;
     rbuf->header_->enqueued_ = 0;
-    rbuf->header_->dequeued_ = 0;
     rbuf->header_->plug_[0] = 0;
     rbuf->header_->plug_[1] = 0;
     if(region_size < labstor_work_queue_GetSize_global(max_depth)) {
@@ -83,7 +78,7 @@ static inline bool labstor_work_queue_Init(struct labstor_work_queue *rbuf, void
     }
     if(max_depth == 0) {
         max_depth = region_size - sizeof(struct labstor_work_queue_header);
-        max_depth /= sizeof(labstor_off_t);
+        max_depth /= sizeof(struct queue_pair*);
     }
     if(max_depth ==0) {
 #ifdef __cplusplus
@@ -102,60 +97,17 @@ static inline void labstor_work_queue_Attach(struct labstor_work_queue *rbuf, vo
     rbuf->queue_ = (struct labstor_queue_pair**)(rbuf->header_ + 1);
 }
 
-static inline bool labstor_work_queue_Enqueue(struct labstor_work_queue *rbuf, struct labstor_queue_pair *qp, uint32_t *req_id) {
-    uint32_t entry;
-    if(rbuf->header_->enqueued_ - rbuf->header_->dequeued_ >= rbuf->header_->max_depth_) {
-        return false;
-    }
-    entry = rbuf->header_->enqueued_ % rbuf->header_->max_depth_;
-    *req_id = rbuf->header_->enqueued_;
-    rbuf->queue_[entry] = qp;
-    rbuf->header_->enqueued_++;
+static inline bool labstor_work_queue_Enqueue(struct labstor_work_queue *rbuf, struct labstor_queue_pair *qp) {
+    if(rbuf->header_->enqueued_ >= rbuf->header_->max_depth_) { return false; }
+    rbuf->queue_[rbuf->header_->enqueued_] = qp;
+    ++rbuf->header_->enqueued_;
     return true;
 }
 
-static inline bool labstor_work_queue_Enqueue_simple(struct labstor_work_queue *rbuf, struct labstor_queue_pair *qp) {
-    uint32_t enqueued;
-    return labstor_work_queue_Enqueue(rbuf, qp, &enqueued);
-}
-
-static inline bool labstor_work_queue_Dequeue(struct labstor_work_queue *rbuf, struct labstor_queue_pair **qp) {
-    uint32_t entry;
-    if(rbuf->header_->enqueued_ - rbuf->header_->dequeued_ == 0) {
-        return false;
-    }
-    entry = rbuf->header_->dequeued_ % rbuf->header_->max_depth_;
-    *qp = rbuf->queue_[entry];
-    ++rbuf->header_->dequeued_;
+static inline bool labstor_work_queue_Peek(struct labstor_work_queue *rbuf, struct labstor_queue_pair **qp, int i) {
+    if(i >= rbuf->header_->enqueued_) { return false; }
+    *qp = rbuf->queue_[i];
     return true;
-}
-
-static inline void labstor_work_queue_Plug(struct labstor_work_queue *rbuf) {
-    LABSTOR_INF_SPINWAIT_PREAMBLE()
-    rbuf->header_->plug_[0] = 1;
-    LABSTOR_INF_SPINWAIT_START()
-    if(rbuf->header_->plug_[1] == 1) {
-        return;
-    }
-    LABSTOR_INF_SPINWAIT_END()
-}
-
-static inline int labstor_work_queue_IsPlugged(struct labstor_work_queue *rbuf) {
-    return rbuf->header_->plug_[0];
-}
-
-static inline void labstor_work_queue_WaitForPlug(struct labstor_work_queue *rbuf) {
-    LABSTOR_INF_SPINWAIT_PREAMBLE()
-    LABSTOR_INF_SPINWAIT_START()
-    if(rbuf->header_->plug_[0] == 0 && rbuf->header_->plug_[1] == 0) {
-        return;
-    }
-    LABSTOR_INF_SPINWAIT_END()
-}
-
-static inline void labstor_work_queue_Unplug(struct labstor_work_queue *rbuf) {
-    rbuf->header_->plug_[0] = 0;
-    rbuf->header_->plug_[1] = 0;
 }
 
 
@@ -180,25 +132,16 @@ void labstor_work_queue::Attach(void *region) {
     labstor_work_queue_Attach(this, region);
 }
 bool labstor_work_queue::Enqueue(struct labstor_queue_pair *qp) {
-    return labstor_work_queue_Enqueue_simple(this, qp);
+    return labstor_work_queue_Enqueue(this, qp);
 }
-bool labstor_work_queue::Enqueue(struct labstor_queue_pair *qp, uint32_t &req_id) {
-    return labstor_work_queue_Enqueue(this, qp, &req_id);
-}
-bool labstor_work_queue::Dequeue(struct labstor_queue_pair *&qp) {
-    return labstor_work_queue_Dequeue(this, &qp);
+bool labstor_work_queue::Peek(struct labstor_queue_pair *&qp, int i) {
+    return labstor_work_queue_Peek(this, &qp, i);
 }
 uint32_t labstor_work_queue::GetDepth() {
     return labstor_work_queue_GetDepth(this);
 }
 uint32_t labstor_work_queue::GetMaxDepth() {
     return labstor_work_queue_GetMaxDepth(this);
-}
-void labstor_work_queue::Plug() {
-    labstor_work_queue_Plug(this);
-}
-void labstor_work_queue::Unplug() {
-    labstor_work_queue_Unplug(this);
 }
 
 #endif

@@ -24,6 +24,13 @@ struct labstor_id {
     char key[MODULE_KEY_SIZE];
 };
 
+struct labstor_credentials {
+    int pid;
+    int uid;
+    int gid;
+    int priority;
+};
+
 #ifdef __cplusplus
 
 namespace labstor {
@@ -50,16 +57,12 @@ struct id {
     }
 };
 
-struct credentials {
-    int pid;
-    int uid;
-    int gid;
-    int priority;
-};
-
 typedef int32_t off_t;
+typedef labstor_credentials credentials;
 
 }
+
+
 
 namespace std {
     template<>

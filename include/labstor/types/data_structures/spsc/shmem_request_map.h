@@ -46,7 +46,7 @@ struct labstor_request_map {
 
 
 static inline uint32_t labstor_request_map_GetSize_global(uint32_t num_buckets) {
-    return sizeof(struct labstor_request_map_header) * sizeof(labstor_off_t)*num_buckets;
+    return sizeof(struct labstor_request_map_header) + sizeof(labstor_off_t)*num_buckets;
 }
 
 static inline uint32_t labstor_request_map_GetSize(struct labstor_request_map *map) {

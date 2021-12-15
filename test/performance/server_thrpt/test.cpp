@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
     #pragma omp parallel shared(n_server_cores, server_core_mult, n_kernel_cores, dedicated, n_clients, n_msgs, client, t) num_threads(n_clients)
     {
         LABSTOR_ERROR_HANDLE_START()
-        printf("Starting client[%d]");
         int rank;
         rank = omp_get_thread_num();
         if(rank == 0) {

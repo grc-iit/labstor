@@ -34,8 +34,9 @@ static inline void labstor_segment_allocator_Attach(struct labstor_segment_alloc
 }
 
 static inline void *labstor_segment_allocator_Alloc(struct labstor_segment_allocator *alloc, uint32_t size) {
+    void *region = LABSTOR_REGION_ADD(alloc->offset_, alloc->region_);
     alloc->offset_ += size;
-    return LABSTOR_REGION_ADD(alloc->offset_, alloc->region_);
+    return region;
 }
 
 #ifdef __cplusplus

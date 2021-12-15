@@ -88,6 +88,7 @@ struct labstor_queue_pair {
     static inline uint32_t GetSize(uint32_t queue_depth);
     inline void GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *region);
     inline uint32_t GetDepth();
+    inline int GetPID();
     inline void Init(labstor::ipc::qid_t qid, void *base_region, uint32_t depth, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
     inline void Init(labstor::ipc::qid_t qid, void *base_region, void *sq_region, uint32_t sq_size, void *cq_region, uint32_t cq_size);
     inline void Attach(labstor::ipc::queue_pair_ptr &ptr, void *base_region);
@@ -236,6 +237,10 @@ static inline labstor_qid_t labstor_queue_pair_GetQid(struct labstor_queue_pair 
     return labstor_request_queue_GetQid(&qp->sq);
 }
 
+static inline int labstor_queue_pair_GetPID(struct labstor_queue_pair *qp) {
+    return LABSTOR_GET_QP_IPC_ID(labstor_queue_pair_GetQid(qp));
+}
+
 
 
 #ifdef __cplusplus
@@ -254,6 +259,10 @@ uint32_t labstor::ipc::queue_pair::GetSize(uint32_t queue_depth) {
 
 void labstor::ipc::queue_pair::GetPointer(labstor::ipc::queue_pair_ptr &ptr, void *base_region) {
     labstor_queue_pair_GetPointer(this, &ptr, base_region);
+}
+
+int labstor::ipc::queue_pair::GetPID() {
+    return labstor_queue_pair_GetPID(this);
 }
 
 uint32_t labstor::ipc::queue_pair::GetDepth() {

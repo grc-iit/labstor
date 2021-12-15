@@ -30,6 +30,7 @@ static inline labstor::off_t LABSTOR_REGION_SUB(void *ptr, void *region) {
 #define LABSTOR_REGION_SUB(ptr,region) (labstor_off_t)((size_t) ptr - (size_t) region)
 #endif
 #define LABSTOR_REGION_ADD(off, region) (void*)((char*)region + off)
+#define LABSTOR_PTR_DIFF(region1,region2) (region1 >= region2 ? (size_t)region1 - (size_t)region2 : (int64_t)((size_t)region1 - (size_t)region2))
 
 /*YIELD*/
 #ifdef KERNEL_BUILD
