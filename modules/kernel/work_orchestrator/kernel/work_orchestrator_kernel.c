@@ -63,8 +63,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_request *rq;
     struct labstor_module *module;
     void *region;
-    //ktime_t start, end;
-    //uint32_t counter = 0;
 
     //Check if IPCManager is initalized & get region
     if(!ipc_manager_IsInitialized()) {
@@ -73,9 +71,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     }
     region = ipc_manager_GetRegion();
     pr_info("Worker %p has started\n", worker);
-
-    //Get initial time
-    //start = ktime_get_ns();
 
     while(keep_running) {
         //Process queues
@@ -110,15 +105,6 @@ int worker_runtime(struct labstor_worker_struct *worker) {
         }
 
         yield();
-        /*++counter;
-        if(counter > 1<<20) {
-            end = ktime_get_ns();
-            if (end - start > MS_TO_NS(20)) {
-                start = end;
-                yield();
-            }
-            counter = 0;
-        }*/
     }
     return 0;
 }
