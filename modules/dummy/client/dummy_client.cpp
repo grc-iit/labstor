@@ -9,39 +9,32 @@
 #include "dummy_client.h"
 
 void labstor::test::Dummy::Client::Register() {
-    AUTO_TRACE("labstor::test::Dummy::Client::Register")
+    AUTO_TRACE("")
     auto registrar = labstor::Registrar::Client();
     ns_id_ = registrar.RegisterInstance("Dummy", "DummyExample");
-    TRACEPOINT("labstor::test::Dummy::Client::Register::NamespaceID", ns_id_)
+    TRACEPOINT(ns_id_)
 }
 
 void labstor::test::Dummy::Client::GetValue() {
-    AUTO_TRACE("labstor::test::Dummy::Client::GetValue", ns_id_)
+    AUTO_TRACE(ns_id_)
     labstor::ipc::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
-    dummy_submit_request *rq_submit;
-    dummy_complete_request *rq_complete;
+    dummy_request *rq;
+    labstor::HighResCpuTimer t;
+    std::vector<labstor::ipc::qtok_t> qtoks;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    TRACEPOINT("labstor::test::Dummy::Client", "Allocating Request")
-    rq_submit = ipc_manager_->AllocRequest<dummy_submit_request>(qp);
-    rq_submit->Init(ns_id_);
-    TRACEPOINT("labstor::test::Dummy::Client", "Enqueuing"
-               "SubmitRequestID", rq_submit->req_id_,
-               "LabTID", labstor::ThreadLocal::GetTid(),
-               "QID", qp->GetQid(),
-               "QP Depth", qp->sq.GetDepth(),
-               "QP Max Depth", qp->sq.GetMaxDepth());
-    qp->Enqueue(rq_submit, qtok);
-    if(LABSTOR_QTOK_INVALID(qtok)) {
-        printf("Failed to enqueue\n");
-        exit(1);
+    for(int i = 0; i < 100; ++i) {
+        rq = ipc_manager_->AllocRequest<dummy_request>(qp);
+        rq->Start(ns_id_);
+        TRACEPOINT("START", t.GetUsFromEpoch());
+        qp->Enqueue(rq, qtok);
+        qtoks.emplace_back(qtok);
     }
-    TRACEPOINT("labstor::test::Dummy::Client", "Enqueued & Waiting"
-                "SubmitRequestID", rq_submit->req_id_,
-               "QP Depth", qp->sq.GetDepth(),
-               "QP Max Depth", qp->sq.GetMaxDepth());
-    rq_complete = ipc_manager_->Wait<dummy_complete_request>(qtok);
-    //printf("labstor::test::Dummy::Client COMPLETE: %d\n", rq_complete->num_);
-    ipc_manager_->FreeRequest(qtok, rq_complete);
+
+    for(int i = 0; i < 100; ++i) {
+        rq = ipc_manager_->Wait<dummy_request>(qtoks[i]);
+        TRACEPOINT("END", t.GetUsFromEpoch());
+        ipc_manager_->FreeRequest(qtok, rq);
+    }
 }

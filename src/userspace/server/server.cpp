@@ -53,6 +53,7 @@ public:
         LABSTOR_ERROR_HANDLE_START()
 
         //Accept client connection
+        clilen = sizeof(client_addr_);
         client_fd_ = accept(server_fd_, (struct sockaddr *) &client_addr_, &clilen);
         if (client_fd_ < 0) {
             throw labstor::UNIX_ACCEPT_FAILED.format(strerror(errno));

@@ -46,9 +46,8 @@ namespace labstor {
     const Error IPC_MANAGER_CANT_REGISTER_QP(505, "IPCManager failed to register qp");
     const Error KERNEL_IPC_MANAGER_FAILED_TO_REGISTER(506, "IPCManager failed to initialize: {}");
     const Error MODULE_DOES_NOT_EXIST(507, "Module does not exist: {}");
-    const Error KERNEL_MAX_MEMORY(508, "Kernel: {} were allocated. No more than {} expected");
-    const Error CLIENT_MAX_MEMORY(509, "Client: {} were allocated. No more than {} expected");
-    const Error PRIVATE_MAX_MEMORY(510, "Private: {} were allocated. No more than {} expected");
+    const Error NOT_ENOUGH_REQUEST_MEMORY(508, "{}: {} were allocated. Minimum of {} expected");
+    const Error FAILED_TO_ASSIGN_QUEUE(509, "Failed to assign queue {} to worker {}");
 
     const Error FAILED_TO_ENQUEUE(508, "Failed to enqueue a request");
     const Error FAILED_TO_DEQUEUE(509, "Failed to enqueue a request");

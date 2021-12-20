@@ -23,7 +23,7 @@ int GetNumCompleted(std::vector<int> &was_dequeued) {
 }
 
 void produce_and_consume(int total_reqs, int num_producers, int num_consumers, int dedicate, int queue_depth) {
-    labstor::Timer t;
+    labstor::HighResMonotonicTimer t;
     labstor::ipc::queue_pair qps[num_producers];
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
@@ -80,9 +80,9 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
         if(dedicate) {
             cpu_set_t cpus[num_cpu];
             CPU_ZERO(cpus);
-            CPU_SET(4+rank, cpus);
+            CPU_SET(1+rank, cpus);
             sched_setaffinity(gettid(), num_cpu, cpus);
-            printf("Setting affinity for: %d -> %d\n", gettid(), rank);
+            printf("Setting affinity for: %d -> %d\n", gettid(), 1+rank*16);
         }
 
 #pragma omp barrier
@@ -135,7 +135,7 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
 
 void test_syscall(uint32_t total_reqs) {
     int fd = open("/tmp/hi.txt", O_RDWR);
-    labstor::Timer t;
+    labstor::HighResMonotonicTimer t;
 
     printf("Testing syscalls\n");
     t.Resume();
@@ -148,8 +148,8 @@ void test_syscall(uint32_t total_reqs) {
 }
 
 int main(int argc, char **argv) {
-    labstor::Timer t;
+    labstor::HighResMonotonicTimer t;
     produce_and_consume(1<<18, 1, 1, true, 8192);
-    test_syscall(1<<18);
+    //test_syscall(1<<18);
     return 0;
 }

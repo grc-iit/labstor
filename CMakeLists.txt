@@ -7,6 +7,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOUR
 
 option(DEBUG OFF)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
     set(CMAKE_C_FLAGS "-g -fPIC -DLABSTOR_DEBUG")
     set(CMAKE_CXX_FLAGS "-g -fPIC -DLABSTOR_DEBUG")

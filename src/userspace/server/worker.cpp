@@ -17,7 +17,7 @@ void labstor::Server::Worker::DoWork() {
         if(!work_queue_.Peek(qp, creds, i)) { break; }
         qp_depth = qp->GetDepth();
         for(uint32_t j = 0; j < qp_depth; ++j) {
-            if(!qp->Dequeue(rq)) { break; }
+            if (!qp->Dequeue(rq)) { break; }
             module = namespace_->Get(rq->ns_id_);
             module->ProcessRequest(qp, rq, creds);
         }

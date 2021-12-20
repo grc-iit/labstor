@@ -27,6 +27,18 @@
 
 namespace labstor::Server {
 
+struct MemoryConfig {
+    uint32_t region_size;
+    uint32_t request_unit;
+    uint32_t min_request_region;
+    uint32_t queue_depth;
+    uint32_t num_queues;
+    uint32_t queue_region_size;
+    uint32_t request_region_size;
+    uint32_t request_queue_size;
+    uint32_t request_map_size;
+};
+
 class IPCManager {
 private:
     int pid_;
@@ -34,7 +46,6 @@ private:
     void *private_mem_, *kern_base_region_;
     std::mutex lock_;
     std::vector<int> pids_;
-    labstor_segment_allocator *kern_qp_alloc_;
     labstor::GenericAllocator *private_alloc_;
     labstor::ipc::mpmc::int_map_int_PerProcessIPC pid_to_ipc_;
     labstor::ipc::mpmc::int_map_labstor_qid_t_qp qps_by_id_;
@@ -64,6 +75,7 @@ public:
     inline void SetServerFd(int fd) { server_fd_ = fd; }
     inline int GetServerFd() { return server_fd_; }
 
+    void LoadMemoryConfig(std::string pid_type, MemoryConfig &config);
     void InitializeKernelIPCManager();
     void CreateKernelQueues();
     void CreatePrivateQueues();

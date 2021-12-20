@@ -126,7 +126,7 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
                 //printf("Poller[%d]: %lu\n",rank, to_poll.size());
 
                 //Start polling
-                labstor::Timer t;
+                labstor::HighResMonotonicTimer t;
                 int i = 0;
                 t.Resume();
                 while (i < total_reqs && t.GetMsecFromStart() < 5000) {

@@ -18,7 +18,7 @@ void test_throughput(int total_reqs) {
     size_t sq_size, cq_size;
     void *region, *sq_region, *cq_region;
     labstor::ipc::qtok_t qtok;
-    labstor::Timer t[4];
+    labstor::HighResMonotonicTimer t[4];
     int queue_depth = total_reqs;
 
     //Allocate region & initialize queue

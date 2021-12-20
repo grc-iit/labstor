@@ -80,7 +80,7 @@ void produce_consume(int num_producers, int num_consumers, int total_reqs) {
                 }
                 printf("FinishedProducing[%d]\n", rank);
             } else {
-                labstor::Timer t;
+                labstor::HighResMonotonicTimer t;
                 t.Resume();
                 int count = 0;
                 while (count != total_reqs && t.GetMsecFromStart() < 6000) {

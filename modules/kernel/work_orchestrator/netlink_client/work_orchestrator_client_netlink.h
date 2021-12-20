@@ -10,6 +10,7 @@
 #include <labstor/kernel/client/kernel_client.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/spsc/shmem_work_queue.h>
+#include <modules/kernel/work_orchestrator/work_orchestrator.h>
 
 namespace labstor::kernel::netlink {
 
@@ -25,7 +26,7 @@ public:
     }
 
     int CreateWorkers(int num_workers, int region_id, size_t region_size, size_t time_slice_us);
-    void AssignQueuePair(labstor::ipc::queue_pair *qp, labstor::ipc::queue_pair *qp_kern, labstor::ipc::queue_pair_ptr &ptr);
+    void AssignQueuePairs(std::vector<struct labstor_assign_qp_request> &assign_qp_vec);
 
     void Start();
     void Pause();

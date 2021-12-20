@@ -34,8 +34,8 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS("work_orchestrator");
 
 struct labstor_worker_struct {
-    struct task_struct *worker_task;
-    struct labstor_work_queue work_queue;
+    struct task_struct *worker_task_;
+    struct labstor_work_queue work_queue_;
 };
 
 bool keep_running = true;
@@ -63,7 +63,8 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     struct labstor_request *rq;
     struct labstor_module *module;
     void *region;
-    ktime_t start, end;
+    //ktime_t start, end;
+    //uint32_t counter = 0;
 
     //Check if IPCManager is initalized & get region
     if(!ipc_manager_IsInitialized()) {
@@ -74,13 +75,13 @@ int worker_runtime(struct labstor_worker_struct *worker) {
     pr_info("Worker %p has started\n", worker);
 
     //Get initial time
-    start = ktime_get_ns();
+    //start = ktime_get_ns();
 
     while(keep_running) {
         //Process queues
-        work_depth = labstor_work_queue_GetDepth(&worker->work_queue);
+        work_depth = labstor_work_queue_GetDepth(&worker->work_queue_);
         for(i = 0; i < work_depth; ++i) {
-            if(!labstor_work_queue_Peek(&worker->work_queue, &qp, i)) { break; }
+            if(!labstor_work_queue_Peek(&worker->work_queue_, &qp, i)) { break; }
             qp_depth = labstor_queue_pair_GetDepth(qp);
             for(j = 0; j < qp_depth; ++j) {
                 if(qp->sq.base_region_ == NULL) {
@@ -108,11 +109,16 @@ int worker_runtime(struct labstor_worker_struct *worker) {
             }
         }
 
-        end = ktime_get_ns();
-        if(end - start > MS_TO_NS(20)) {
-            start = end;
-            yield();
-        }
+        yield();
+        /*++counter;
+        if(counter > 1<<20) {
+            end = ktime_get_ns();
+            if (end - start > MS_TO_NS(20)) {
+                start = end;
+                yield();
+            }
+            counter = 0;
+        }*/
     }
     return 0;
 }
@@ -126,9 +132,9 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
     int i;
 
     //Get request variables
-    num_workers = rq->num_workers;
-    region_id = rq->region_id;
-    region_size = rq->region_size;
+    num_workers = rq->num_workers_;
+    region_id = rq->region_id_;
+    region_size = rq->region_size_;
     work_queue_size = region_size / num_workers;
 
     //Create worker array
@@ -146,42 +152,48 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
     //Create worker threads
     for(i = 0; i < num_workers; ++i) {
         worker = workers + i;
-        labstor_work_queue_Init(&worker->work_queue, region, work_queue_size, 0);
-        region = labstor_work_queue_GetNextSection(&worker->work_queue);
-        worker->worker_task = kthread_create((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
+        labstor_work_queue_Init(&worker->work_queue_, region, work_queue_size, 0);
+        region = labstor_work_queue_GetNextSection(&worker->work_queue_);
+        worker->worker_task_ = kthread_create((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
 }
 
-bool register_qp(struct labstor_assign_queue_pair_request *rq) {
+bool register_qp(struct labstor_assign_qp_request_vec *rq_vec) {
     void *region;
-    struct labstor_worker_struct *worker = &workers[rq->worker_id];
-    //struct labstor_queue_pair *qp = (struct labstor_queue_pair*)rq->qp;
+    int i;
+    struct labstor_assign_qp_request *rq;
     struct labstor_queue_pair *qp;
+    struct labstor_worker_struct *worker;
     if(!ipc_manager_IsInitialized()) {
         pr_err("IPCManager was not initalized before starting the workers!\n");
         return -1;
     }
     region = ipc_manager_GetRegion();
-    qp = LABSTOR_REGION_ADD(rq->qp_ptr.sq_off - sizeof(struct labstor_queue_pair), region);
-    labstor_queue_pair_Attach(qp, &rq->qp_ptr, region);
-    pr_info("Registered queue pair(a): %lu %llu %lu %lu\n", (size_t)qp, labstor_queue_pair_GetQid(qp), (size_t)qp->sq.base_region_, (size_t)qp->sq.header_);
-    labstor_work_queue_Enqueue(&worker->work_queue, qp);
+    for(i = 0; i < rq_vec->count_; ++i) {
+        rq = &rq_vec->rqs_[i];
+        worker = &workers[rq->worker_id_];
+        qp = LABSTOR_REGION_ADD(rq->qp_ptr_.sq_off - sizeof(struct labstor_queue_pair), region);
+        labstor_queue_pair_Attach(qp, &rq->qp_ptr_, region);
+        pr_debug("Registered queue pair(a): %lu %llu %lu %lu\n", (size_t) qp, labstor_queue_pair_GetQid(qp),
+                (size_t) qp->sq.base_region_, (size_t) qp->sq.header_);
+        labstor_work_queue_Enqueue(&worker->work_queue_, qp);
+    }
     return true;
 }
 
 void pause_worker(int worker_id) {
-    //set_task_state(workers[worker_id].worker_task, TASK_INTERRUPTIBLE);
+    //set_task_state(workers[worker_id].worker_task_, TASK_INTERRUPTIBLE);
 }
 
 void resume_worker(int worker_id) {
-    //set_task_state(workers[worker_id].worker_task, TASK_RUNNING);
+    //set_task_state(workers[worker_id].worker_task_, TASK_RUNNING);
 }
 
 void set_worker_affinity(struct labstor_set_worker_affinity_request *rq) {
-    pr_debug("Setting CPU to %d for worker %d\n", rq->cpu_id, rq->worker_id);
-    kthread_bind(workers[rq->worker_id].worker_task, rq->cpu_id);
-    wake_up_process(workers[rq->worker_id].worker_task);
+    pr_debug("Setting CPU to %d for worker %d\n", rq->cpu_id_, rq->worker_id_);
+    kthread_bind(workers[rq->worker_id_].worker_task_, rq->cpu_id_);
+    wake_up_process(workers[rq->worker_id_].worker_task_);
 }
 
 void pause_worker_user(struct labstor_pause_worker_request *rq) {
@@ -207,7 +219,7 @@ void worker_process_request_fn_netlink(int pid, struct labstor_request *rq) {
 
         case LABSTOR_ASSIGN_QP: {
             pr_debug("Registering queue pairs\n");
-            code = register_qp((struct labstor_assign_queue_pair_request *)rq);
+            code = register_qp((struct labstor_assign_qp_request_vec *)rq);
             labstor_msg_trusted_server(&code, sizeof(code), pid);
             break;
         }

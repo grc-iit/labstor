@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
     int n_clients = atoi(argv[1]);
     int n_msgs = atoi(argv[2]);
     labstor::test::Dummy::Client client;
+    labstor::HighResMonotonicTimer t;
 
     //Register client with trusted server
     LABSTOR_ERROR_HANDLE_START()
@@ -27,16 +28,18 @@ int main(int argc, char **argv) {
 
     //Spam the trusted server
     omp_set_dynamic(0);
-    #pragma omp parallel shared(n_clients, n_msgs, client) num_threads(n_clients)
+    #pragma omp parallel shared(n_clients, n_msgs, client, t) num_threads(n_clients)
     {
+        t.Resume();
         LABSTOR_ERROR_HANDLE_START()
         for (int i = 0; i < n_msgs; ++i) {
             client.GetValue();
         }
+        t.Pause();
         printf("Thread[%d] Completed\n", omp_get_thread_num());
         #pragma omp barrier
         LABSTOR_ERROR_HANDLE_END()
     }
 
-    printf("Completed test\n");
+    printf("Completed test: %lf\n", t.GetUsec());
 }

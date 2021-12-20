@@ -69,7 +69,7 @@ void produce_and_consume(int num_producers, int num_consumers, int total_reqs, i
             int rank = omp_get_thread_num();
 
             if(rank < num_producers) {
-                labstor::Timer t;
+                labstor::HighResMonotonicTimer t;
                 t.Resume();
                 for (int i = 0; i < reqs_per_thread; ++i) {
                     labstor::ipc::request *rq;
@@ -84,7 +84,7 @@ void produce_and_consume(int num_producers, int num_consumers, int total_reqs, i
                 }
             }
             else if(rank > num_producers) {
-                labstor::Timer t;
+                labstor::HighResMonotonicTimer t;
                 t.Resume();
                 labstor::ipc::request *rq;
                 int i = 0;

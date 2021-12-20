@@ -64,9 +64,14 @@ namespace labstor {
         SizeType(double bytes, size_t unit) : num_(((double)bytes)/unit), unit_(unit) {}
 
         size_t serialize(char *buf) {
-            std::string serial = std::to_string(num_) + unit_to_str(unit_);
+            std::string serial = ToString();
             memcpy(buf, serial.c_str(), serial.size());
+            printf("serial: %s\n", serial.c_str());
             return serial.size();
+        }
+
+        std::string ToString() {
+            return std::to_string(num_) + unit_to_str(unit_);
         }
     };
 

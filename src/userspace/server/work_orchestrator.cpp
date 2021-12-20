@@ -35,9 +35,9 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     for (const auto &worker_conf : config["server_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
-        TRACEPOINT("labstor::Server::WorkOrchestrator::CreateWorkers", "id", worker_id, "cpu", cpu_id)
+        TRACEPOINT("id", worker_id, "cpu", cpu_id)
         std::shared_ptr<labstor::UserspaceDaemon> worker_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
-        std::shared_ptr<labstor::Server::Worker> worker = std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth));
+        std::shared_ptr<labstor::Server::Worker> worker = std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth, worker_id));
         worker_daemon->SetWorker(worker);
         worker_daemon->Start();
         worker_daemon->SetAffinity(cpu_id);
@@ -71,7 +71,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     for (const auto &worker_conf : config["kernel_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
-        TRACEPOINT("labstor::Server::WorkOrchestrator::CreateKernelWorkers", "id", worker_id, "cpu", cpu_id)
+        TRACEPOINT("id", worker_id, "cpu", cpu_id)
         std::shared_ptr<labstor::kernel::netlink::WorkerClient> worker_daemon =
                 std::shared_ptr<labstor::kernel::netlink::WorkerClient>(new labstor::kernel::netlink::WorkerClient(worker_id));
         worker_daemon->SetAffinity(cpu_id);
@@ -80,7 +80,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
 }
 
 void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair *qp, int worker_id) {
-    AUTO_TRACE("labstor::Server::WorkOrchestrator::AssignQueuePair")
+    AUTO_TRACE("")
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     labstor::credentials *creds;
     ipc_manager_->GetRegion(qp, creds);
@@ -89,7 +89,8 @@ void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair
         throw NOT_YET_IMPLEMENTED.format("Dynamic work orchestration");
     }
     worker_id = worker_id % server_workers.size();
-    TRACEPOINT("labstor::Server::WorkOrchestrator::AssignQueuePair", worker_id)
+    TRACEPOINT(worker_id)
     std::shared_ptr<labstor::Server::Worker> worker = std::dynamic_pointer_cast<labstor::Server::Worker>(server_workers[worker_id]->GetWorker());
     worker->AssignQP(qp, creds);
+    TRACEPOINT("Depth", worker->GetQueueDepth());
 }

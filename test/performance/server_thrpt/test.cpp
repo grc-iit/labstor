@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     int n_clients = atoi(argv[5]);
     int n_msgs = atoi(argv[6]);
     labstor::IPCTest::Client client;
-    labstor::Timer t;
+    labstor::HighResMonotonicTimer t;
     printf("Server throughput test starting (%d clients)\n", n_clients);
 
     //Register client with trusted server

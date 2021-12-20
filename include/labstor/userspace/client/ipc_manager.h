@@ -38,12 +38,13 @@ public:
         return shmem_alloc_->GetRegion();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0)];
-                TRACEPOINT("AcqireSHMEMQueue",
+                /*TRACEPOINT("AcqireSHMEMQueue",
                            labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0),
-                           qp->GetQid())
+                           qp->GetQid())*/
             } else {
                 qp = private_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), private_qps_.size(), 1)];
             }
@@ -52,6 +53,7 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int hash) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, hash, shmem_qps_.size(), 0)];
@@ -63,6 +65,7 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, str, ns_id, shmem_qps_.size(), 0)];
@@ -74,6 +77,7 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_SHMEM(qtok.qid)) {
             qp = shmem_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
         } else {
@@ -82,6 +86,7 @@ public:
     }
     template<typename T>
     inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_SHMEM(qid)) {
             return reinterpret_cast<T*>(shmem_alloc_->Alloc(size, labstor::ThreadLocal::GetTid()));
         } else {
@@ -94,11 +99,12 @@ public:
     }
     template<typename T>
     inline T* AllocRequest(labstor::ipc::queue_pair *qp) {
-        TRACEPOINT("AllocRequest")
+        AUTO_TRACE("")
         return reinterpret_cast<T*>(AllocRequest<T>(qp->GetQid(), sizeof(T)));
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::qid_t qid, T *rq) {
+        AUTO_TRACE("")
         if(LABSTOR_QP_IS_SHMEM(qid)) {
             shmem_alloc_->Free(reinterpret_cast<void*>(rq));
         } else {
@@ -107,10 +113,12 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::qtok_t &qtok, T *rq) {
+        AUTO_TRACE("")
         return FreeRequest(qtok.qid, rq);
     }
     template<typename T>
     T* Wait(labstor::ipc::qtok_t &qtok) {
+        AUTO_TRACE("")
         T *rq;
         labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
@@ -119,6 +127,7 @@ public:
     }
     template<typename T>
     void Wait(labstor::ipc::qtok_set &qtoks) {
+        AUTO_TRACE("")
         for(int i = 0; i < qtoks.GetLength(); ++i) {
             FreeRequest(qtoks[i], Wait<T>(qtoks[i]));
         }

@@ -14,7 +14,7 @@
 #if defined(__cplusplus)
 #include <labstor/userspace/util/timer.h>
 #define LABSTOR_TIMER_PREAMBLE()\
-    labstor::Timer labstor_timer;\
+    labstor::HighResMonotonicTimer labstor_timer;\
     int labstor_timer_out;
 #define LABSTOR_TIMER_START()\
     labstor_timer_out = 0;\
@@ -58,12 +58,20 @@
 
 /*INFINITE SPINWAIT*/
 
+#ifdef LABSTOR_YIELD_SPINWAIT
 #define LABSTOR_INF_SPINWAIT_PREAMBLE()\
     LABSTOR_SIMPLE_SPINWAIT_PREAMBLE()
 #define LABSTOR_INF_SPINWAIT_START() \
     while(1) {  LABSTOR_SIMPLE_SPINWAIT_START()
 #define LABSTOR_INF_SPINWAIT_END()\
     LABSTOR_SIMPLE_SPINWAIT_END() }
+#else
+#define LABSTOR_INF_SPINWAIT_PREAMBLE()
+#define LABSTOR_INF_SPINWAIT_START() \
+    while(1) {
+#define LABSTOR_INF_SPINWAIT_END()\
+    }
+#endif
 
 /*TIMED SPINWAIT*/
 
@@ -89,6 +97,7 @@
 
 /*INFINITE SPINLOCK*/
 
+#ifdef LABSTOR_YIELD_SPINWAIT
 #define LABSTOR_INF_LOCK_PREAMBLE()\
     LABSTOR_INF_SPINWAIT_PREAMBLE()
 static inline int LABSTOR_INF_LOCK_TRYLOCK(uint16_t *lockptr) {
@@ -101,6 +110,18 @@ static inline int LABSTOR_INF_LOCK_TRYLOCK(uint16_t *lockptr) {
     LABSTOR_SIMPLE_SPINWAIT_END()
 #define LABSTOR_INF_LOCK_RELEASE(lockptr) \
     LABSTOR_SPINLOCK_RELEASE(lockptr);
+#else
+#define LABSTOR_INF_LOCK_PREAMBLE()
+static inline int LABSTOR_INF_LOCK_TRYLOCK(uint16_t *lockptr) {
+    uint16_t unlocked = 0, is_locked = 1;
+    return __atomic_compare_exchange_n(lockptr, &unlocked, is_locked, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+}
+#define LABSTOR_INF_LOCK_ACQUIRE(lockptr) \
+    TRACEPOINT("INF SPINLOCK")                                      \
+    while(1) { if(LABSTOR_INF_LOCK_TRYLOCK(lockptr)) { break; } }
+#define LABSTOR_INF_LOCK_RELEASE(lockptr) \
+    LABSTOR_SPINLOCK_RELEASE(lockptr);
+#endif
 
 /*TIMED SPINLOCK*/
 

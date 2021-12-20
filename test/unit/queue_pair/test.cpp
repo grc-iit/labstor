@@ -93,7 +93,7 @@ void produce_and_consume(bool consume, int total_reqs, int num_producers, int nu
                 }
                 printf("EnqueuingDone[%d]\n", rank);
             } else if(rank >= num_producers && consume) {
-                labstor::Timer t;
+                labstor::HighResMonotonicTimer t;
                 t.Resume();
                 while (i < total_reqs) {
                 //while (i < total_reqs && t.GetMsecFromStart() < 5000) {

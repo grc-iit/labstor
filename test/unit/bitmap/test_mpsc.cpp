@@ -24,7 +24,7 @@ int main() {
     int reqs_per_thread = 256000;
     int total_reqs = reqs_per_thread * (nthreads - 1);
     labstor_bitmap_t *bitmap = (labstor_bitmap_t *)malloc(labstor_bitmap_GetSize(total_reqs));
-    labstor::Timer t;
+    labstor::HighResMonotonicTimer t;
     int count = 0;
     bool basic = false;
 

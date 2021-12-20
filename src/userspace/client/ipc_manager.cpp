@@ -17,7 +17,7 @@
 #include <sys/sysinfo.h>
 
 void labstor::Client::IPCManager::Connect() {
-    AUTO_TRACE("labstor::Client::IPCManager::Connect")
+    AUTO_TRACE("")
     ssize_t ret;
     int serverfd;
     struct sockaddr_un client_addr;
@@ -56,6 +56,7 @@ void labstor::Client::IPCManager::Connect() {
     TRACEPOINT("Get SHMEM region")
     labstor::ipc::setup_reply reply;
     serversock_.RecvMSG(&reply, sizeof(reply));
+    TRACEPOINT("Receive reply", "region_id", reply.region_id, "region_size", reply.region_size, "queue_size", reply.queue_region_size, "queue_depth", reply.queue_depth)
     region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
 
     //Initialize SHMEM request allocator
@@ -81,12 +82,12 @@ void labstor::Client::IPCManager::Connect() {
 
     //Create the SHMEM queues
     TRACEPOINT("Create SHMEM queues")
-    CreateQueuesSHMEM(n_cpu_, reply.queue_depth);
+    CreateQueuesSHMEM(reply.num_queues, reply.queue_depth);
     CreatePrivateQueues(n_cpu_, reply.queue_depth);
 }
 
 void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
-    AUTO_TRACE("labstor::Client::IPCManager::CreateQueuesSHMEM")
+    AUTO_TRACE("")
     labstor::ipc::register_qp_request request(num_queues);
     labstor::ipc::register_qp_reply reply;
     labstor::ipc::queue_pair_ptr *qps = (labstor::ipc::queue_pair_ptr *)malloc(request.GetQueueArrayLength());
@@ -102,8 +103,10 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
                 pid_);
         void *sq_region = qp_alloc_->Alloc(request_queue_size);
         void *cq_region = qp_alloc_->Alloc(request_map_size);
+        TRACEPOINT("Creating queue", i, qid);
         shmem_qps_.emplace_back(
                 new labstor::ipc::queue_pair(qid, shmem_alloc_->GetRegion(), sq_region, request_queue_size, cq_region, request_map_size));
+        TRACEPOINT("Created queue", i, qid);
         qps[i].Init(qid, sq_region, cq_region, shmem_alloc_->GetRegion());
     }
 
@@ -117,7 +120,7 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
 }
 
 void labstor::Client::IPCManager::CreatePrivateQueues(int num_queues, int queue_size) {
-    AUTO_TRACE("labstor::Client::IPCManager::CreatePrivateQueues")
+    AUTO_TRACE("")
     for(int i = 0; i < num_queues; ++i) {
         labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
                 LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,

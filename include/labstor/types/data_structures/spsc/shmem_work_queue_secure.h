@@ -11,6 +11,7 @@
 #ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 #include <labstor/userspace/util/errors.h>
+#include <labstor/constants/debug.h>
 #endif
 
 struct labstor_work_queue_secure_header {
@@ -46,7 +47,7 @@ struct labstor_work_queue_secure {
 
 static inline uint32_t labstor_work_queue_secure_GetSize_global(uint32_t max_depth) {
     return sizeof(struct labstor_work_queue_secure_header) +
-            sizeof(labstor_off_t)*max_depth;
+            sizeof(labstor_work_queue_secure_entry)*max_depth;
 }
 
 static inline uint32_t labstor_work_queue_secure_GetSize(struct labstor_work_queue_secure *rbuf) {
@@ -103,6 +104,7 @@ static inline void labstor_work_queue_secure_Attach(struct labstor_work_queue_se
 }
 
 static inline bool labstor_work_queue_secure_Enqueue(struct labstor_work_queue_secure *rbuf, struct labstor_queue_pair *qp, struct labstor_credentials *creds) {
+    AUTO_TRACE("Enqueued", rbuf->header_->enqueued_, "depth", rbuf->header_->max_depth_)
     if(rbuf->header_->enqueued_ >= rbuf->header_->max_depth_) { return false; }
     rbuf->queue_[rbuf->header_->enqueued_].qp_ = qp;
     rbuf->queue_[rbuf->header_->enqueued_].creds_ = creds;

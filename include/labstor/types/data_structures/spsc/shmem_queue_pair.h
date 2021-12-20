@@ -101,6 +101,8 @@ struct labstor_queue_pair {
     template<typename S, typename T=S>
     inline void Complete(S *rq, T *msg);
     template<typename T>
+    inline void Complete(T *rq);
+    template<typename T>
     inline void Complete(labstor::ipc::qtok_t &qtok, T *msg);
     template<typename T>
     inline bool IsComplete(labstor::ipc::qtok_t &qtok, T *&rq);
@@ -163,14 +165,16 @@ static inline void labstor_queue_pair_RemoteAttach(struct labstor_queue_pair *qp
 }
 
 static inline bool labstor_queue_pair_Enqueue(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
+    //AUTO_TRACE("")
     return labstor_request_queue_Enqueue(&qp->sq, rq, qtok);
 }
 
 static inline bool labstor_queue_pair_Dequeue(struct labstor_queue_pair *qp, struct labstor_request** rq) {
+    //AUTO_TRACE("")
     return labstor_request_queue_Dequeue(&qp->sq, rq);
 }
 
-static inline bool labstor_queue_pair_CompleteReqIdTimed(struct labstor_queue_pair *qp, int req_id, struct labstor_request *msg) {
+static inline bool labstor_queue_pair_CompleteTimed(struct labstor_queue_pair *qp, int req_id, struct labstor_request *msg) {
     LABSTOR_TIMED_SPINWAIT_PREAMBLE()
     msg->req_id_ = req_id;
     LABSTOR_TIMED_SPINWAIT_START(50)
@@ -181,9 +185,8 @@ static inline bool labstor_queue_pair_CompleteReqIdTimed(struct labstor_queue_pa
     return false;
 }
 
-static inline bool labstor_queue_pair_CompleteReqInf(struct labstor_queue_pair *qp, int req_id, struct labstor_request *msg) {
+static inline bool labstor_queue_pair_CompleteInf(struct labstor_queue_pair *qp, struct labstor_request *msg) {
     LABSTOR_INF_SPINWAIT_PREAMBLE()
-    msg->req_id_ = req_id;
     LABSTOR_INF_SPINWAIT_START()
     if(labstor_request_map_Set(&qp->cq, msg)) {
         return true;
@@ -193,15 +196,19 @@ static inline bool labstor_queue_pair_CompleteReqInf(struct labstor_queue_pair *
 }
 
 static inline bool labstor_queue_pair_CompleteQuick(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_request *msg) {
-    return labstor_queue_pair_CompleteReqIdTimed(qp, rq->req_id_, msg);
+    msg->req_id_ = rq->req_id_;
+    return labstor_queue_pair_CompleteInf(qp, msg);
 }
 
 static inline bool labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *msg) {
-    return labstor_queue_pair_CompleteReqIdTimed(qp, qtok->req_id, msg);
+    msg->req_id_ = qtok->req_id;
+    return labstor_queue_pair_CompleteInf(qp, msg);
 }
 
 static inline bool labstor_queue_pair_Complete(struct labstor_queue_pair *qp,  struct labstor_request *rq, struct labstor_request *msg) {
-    return labstor_queue_pair_CompleteReqIdTimed(qp, rq->req_id_, msg);
+    TRACEPOINT("Completing request on queue", qp->GetQid(), rq->req_id_);
+    msg->req_id_ = rq->req_id_;
+    return labstor_queue_pair_CompleteInf(qp, msg);
 }
 
 static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, uint32_t req_id, struct labstor_request **rq) {
@@ -211,8 +218,10 @@ static inline bool labstor_queue_pair_IsComplete(struct labstor_queue_pair *qp, 
 static inline struct labstor_request* labstor_queue_pair_Wait(struct labstor_queue_pair *qp, uint32_t req_id) {
     LABSTOR_INF_SPINWAIT_PREAMBLE()
     struct labstor_request *ret = NULL;
+    TRACEPOINT("Waiting on queue", qp->GetQid(), req_id)
     LABSTOR_INF_SPINWAIT_START()
     if(labstor_queue_pair_IsComplete(qp, req_id, &ret)) {
+        TRACEPOINT("Finishing request", qp->GetQid(), req_id, (size_t)ret)
         return ret;
     }
     LABSTOR_INF_SPINWAIT_END()
@@ -304,6 +313,13 @@ bool labstor::ipc::queue_pair::Dequeue(T *&rq) {
 template<typename S, typename T=S>
 void labstor::ipc::queue_pair::Complete(S *rq, T *msg) {
     if(!labstor_queue_pair_Complete(this, reinterpret_cast<labstor::ipc::request*>(rq), reinterpret_cast<labstor::ipc::request*>(msg))) {
+        throw labstor::FAILED_TO_COMPLETE.format();
+    }
+}
+
+template<typename T>
+void labstor::ipc::queue_pair::Complete(T *rq) {
+    if(!labstor_queue_pair_CompleteInf(this, rq)) {
         throw labstor::FAILED_TO_COMPLETE.format();
     }
 }

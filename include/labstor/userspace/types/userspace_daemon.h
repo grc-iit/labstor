@@ -7,6 +7,7 @@
 
 #include <labstor/types/daemon.h>
 #include <labstor/userspace/util/errors.h>
+#include <labstor/userspace/util/timer.h>
 #include <sys/sysinfo.h>
 #include <sched.h>
 #include <thread>
@@ -18,15 +19,11 @@ namespace labstor {
 class UserspaceDaemon : public Daemon {
 private:
     std::thread thread_;
-    std::promise<bool> promise_;
-    std::future<bool> future_;
+    bool continue_work_;
 public:
     void Start() override {
-        std::promise<bool> is_started;
-        std::future<bool> is_started_future = is_started.get_future();
-        future_ = promise_.get_future();
-        thread_ = std::thread(daemon_thread, worker_, std::ref(is_started), std::ref(future_));
-        while(is_started_future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {}
+        continue_work_ = true;
+        thread_ = std::thread(daemon_thread, this, worker_);
     }
 
     void Pause() override {
@@ -40,7 +37,7 @@ public:
     }
 
     void Stop() override {
-        promise_.set_value(true);
+        continue_work_ = false;
         thread_.join();
     }
 
@@ -57,10 +54,13 @@ public:
         affinity_ = cpu_id;
     }
 
+    bool ShouldContinue() {
+        return continue_work_;
+    }
+
 private:
-    static void daemon_thread(std::shared_ptr<DaemonWorker> worker, std::promise<bool>& is_started, std::future<bool>& future) {
-        is_started.set_value(true);
-        while(future.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
+    static void daemon_thread(UserspaceDaemon *daemon, std::shared_ptr<DaemonWorker> worker) {
+        while(daemon->ShouldContinue()) {
             worker->DoWork();
         }
     }

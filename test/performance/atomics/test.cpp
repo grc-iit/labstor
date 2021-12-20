@@ -8,7 +8,7 @@
 const int hi = 124;
 
 void test_atomics(int total_reqs) {
-    labstor::Timer t[4];
+    labstor::HighResMonotonicTimer t[4];
     uint32_t number = 0;
 
     t[0].Resume();
