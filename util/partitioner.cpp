@@ -13,16 +13,14 @@ int main(int argc, char **argv) {
     }
     int isol_pid = atoi(argv[1]);
     int n_cpu = get_nprocs_conf();
-    std::vector<bool> core_map;
-    labstor::ProcessPartitioner partitioner;
+    labstor::ProcessAffiner mask;
 
     //Get process partitions
-    partitioner.InitCoreMap(core_map, n_cpu);
-    for(int i = 2; i < argc; ++i) {
-        int core = atoi(argv[i]);
-        core_map[core] = true;
-    }
+    mask.SetCpu(0);
+    mask.AffineAll();
 
     //Set process affinities
-    partitioner.Partition(isol_pid, core_map, n_cpu);
+    mask.Clear();
+    mask.SetCpu(1);
+    mask.Affine(isol_pid);
 }

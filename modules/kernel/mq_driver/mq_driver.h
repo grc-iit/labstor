@@ -7,9 +7,21 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_poll.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
 #define MQ_DRIVER_MODULE_ID "MQ_DRIVER"
+
+enum {
+    LABSTOR_MQ_OK=0,
+    LABSTOR_MQ_CANT_ALLOCATE_PAGES=-102,
+    LABSTOR_MQ_INVALID_DEVICE_ID=-103,
+    LABSTOR_MQ_CANNOT_ALLOCATE_BIO=-104,
+    LABSTOR_MQ_CANNOT_ALLOCATE_REQUEST=-105,
+    LABSTOR_MQ_DEVICE_BUSY=-106,
+    LABSTOR_MQ_NOT_OK=-107,
+
+};
 
 #ifdef __cplusplus
 namespace labstor::MQDriver {
@@ -30,7 +42,7 @@ enum {
 };
 #endif
 
-struct labstor_submit_mq_driver_request {
+struct labstor_mq_driver_request {
     struct labstor_request header_;
     int dev_id_;
     void *user_buf_;
@@ -40,13 +52,13 @@ struct labstor_submit_mq_driver_request {
     int pid_;
 
 #ifdef __cplusplus
-    inline void Init(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        Init(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
+    inline void Start(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        Start(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
     }
-    inline void Init(int ns_id, struct labstor_submit_mq_driver_request *rq) {
-        Init(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
+    inline void Start(int ns_id, struct labstor_mq_driver_request *rq) {
+        Start(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
     }
-    inline void Init(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+    inline void Start(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         header_.ns_id_ = ns_id;
         header_.op_ = op;
         pid_ = pid;
@@ -56,28 +68,22 @@ struct labstor_submit_mq_driver_request {
         sector_ = sector;
         hctx_ = hctx;
     }
+    void Copy(labstor_mq_driver_request *rq) {
+        header_.Copy(&rq->header_);
+    }
 #endif
 
     struct labstor_queue_pair *qp_;
 };
 
-struct labstor_mq_driver_poll_request {
-    struct labstor_request header_;
-    struct labstor_qtok_t kqtok_;
-    struct labstor_qtok_t uqtok_;
 #ifdef __cplusplus
-    void Init(labstor_queue_pair *qp, labstor_submit_mq_driver_request *rq, labstor::ipc::qtok_t &qtok) {
-        header_.ns_id_ = rq->header_.ns_id_;
-        header_.op_ = static_cast<int>(labstor::MQDriver::Ops::kIOComplete);
-        kqtok_ = qtok;
-        uqtok_.qid = qp->GetQid();
-        uqtok_.req_id = rq->header_.req_id_;
+struct labstor_mq_driver_poll_request : public labstor::ipc::poll_request_single<labstor_mq_driver_request> {
+    void Init(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
+        int op = static_cast<int>(labstor::MQDriver::Ops::kIOComplete);
+        labstor::ipc::poll_request_single<labstor_mq_driver_request>::Init(qp, reply_rq, poll_qtok, op);
     }
-#endif
-};
 
-struct labstor_complete_mq_driver_request {
-    struct labstor_request header_;
 };
+#endif
 
 #endif //LABSTOR_MQ_DRIVER_H

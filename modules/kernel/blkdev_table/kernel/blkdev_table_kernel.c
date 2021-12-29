@@ -44,52 +44,50 @@ struct block_device *bdevs[MAX_MOUNTED_BDEVS];
 struct kmem_cache *page_cache;
 EXPORT_SYMBOL(page_cache);
 
-inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_register_request *rq) {
+inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_blkdev_table_register_request *kern_rq) {
     struct block_device *bdev;
-    struct labstor_complete_blkdev_table_register_request *rq_complete;
     int code;
-    bdev = blkdev_get_by_path(rq->path_, BDEV_ACCESS_FLAGS, NULL);
-    pr_info("Assigning BDEV[%d]: %s\n", rq->dev_id_, rq->path_);
+    bdev = blkdev_get_by_path(kern_rq->path_, BDEV_ACCESS_FLAGS, NULL);
+    pr_info("Assigning BDEV[%d]: %s\n", kern_rq->dev_id_, kern_rq->path_);
     code = -1;
     if(bdev == NULL || IS_ERR(bdev)) {
         switch(PTR_ERR(bdev)) {
             case -EACCES: {
                 code = -2;
-                pr_err("BDEV %s may be read-only\n", rq->path_);
+                pr_err("BDEV %s may be read-only\n", kern_rq->path_);
                 break;
             }
             case -ENOTBLK: {
                 code = -3;
-                pr_err("BDEV %s is not a block device\n", rq->path_);
+                pr_err("BDEV %s is not a block device\n", kern_rq->path_);
                 break;
             }
             case -ENOMEM: {
                 code = -4;
-                pr_err("BDEV %s has ran into some memory error...\n", rq->path_);
+                pr_err("BDEV %s has ran into some memory error...\n", kern_rq->path_);
                 break;
             }
             default: {
                 code = -5;
-                pr_err("BDEV %s ran into an error: %ld?\n", rq->path_, PTR_ERR(bdev));
+                pr_err("BDEV %s ran into an error: %ld?\n", kern_rq->path_, PTR_ERR(bdev));
                 break;
             }
         }
         bdev = NULL;
     }
-    if(rq->dev_id_ < MAX_MOUNTED_BDEVS) {
-        bdevs[rq->dev_id_] = bdev;
+    if(kern_rq->dev_id_ < MAX_MOUNTED_BDEVS) {
+        bdevs[kern_rq->dev_id_] = bdev;
     } else {
         code = -5;
-        pr_err("Dev id %d is too large\n", rq->dev_id_);
+        pr_err("Dev id %d is too large\n", kern_rq->dev_id_);
     }
     pr_debug("Finished assigning bdev\n");
-    rq_complete = (struct labstor_complete_blkdev_table_register_request*)rq;
-    rq_complete->header_.code_ = code;
-    labstor_queue_pair_Complete(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete);
+    kern_rq->header_.code_ = code;
+    labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)kern_rq);
     pr_debug("Completed request\n");
 }
 
-inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_submit_blkdev_table_unregister_request *rq) {
+inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_blkdev_table_unregister_request *kern_rq) {
 }
 
 struct block_device* labstor_get_bdev(int bdev_id) {
@@ -97,14 +95,14 @@ struct block_device* labstor_get_bdev(int bdev_id) {
 }
 EXPORT_SYMBOL(labstor_get_bdev);
 
-void bdev_table_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
-    switch(rq->op_) {
+void bdev_table_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *kern_rq) {
+    switch(kern_rq->op_) {
         case LABSTOR_BLKDEV_TABLE_REGISTER_BDEV: {
-            register_bdev(qp, (struct labstor_submit_blkdev_table_register_request *)rq);
+            register_bdev(qp, (struct labstor_blkdev_table_register_request *)kern_rq);
             break;
         }
         case LABSTOR_BLKDEV_TABLE_UNREGISTER_BDEV: {
-            unregister_bdev(qp, (struct labstor_submit_blkdev_table_unregister_request *)rq);
+            unregister_bdev(qp, (struct labstor_blkdev_table_unregister_request *)kern_rq);
             break;
         }
     }

@@ -39,10 +39,9 @@ MODULE_DESCRIPTION("A dummy kernel module for performance tests");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("ipc_test");
 
-inline void complete_test(struct labstor_queue_pair *qp, struct labstor_submit_ipc_test_request *rq) {
-    struct labstor_complete_ipc_test_request *rq_complete = (struct labstor_complete_ipc_test_request*)rq;
-    rq_complete->header_.code_ = IPC_TEST_SUCCESS;
-    if(!labstor_queue_pair_CompleteQuick(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete)) {
+inline void complete_test(struct labstor_queue_pair *qp, struct labstor_ipc_test_request *kern_rq) {
+    kern_rq->header_.code_ = IPC_TEST_SUCCESS;
+    if(!labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)kern_rq)) {
         pr_err("Could not complete IPC test quickly! Giving up.\n");
     }
 }
@@ -50,7 +49,7 @@ inline void complete_test(struct labstor_queue_pair *qp, struct labstor_submit_i
 void ipc_test_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
     switch(rq->op_) {
         case LABSTOR_START_IPC_TEST: {
-            complete_test(qp, (struct labstor_submit_ipc_test_request *)rq);
+            complete_test(qp, (struct labstor_ipc_test_request *)rq);
             break;
         }
     }

@@ -13,6 +13,7 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
+#include <labstor/types/data_structures/shmem_poll.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 
@@ -35,39 +36,32 @@ namespace labstor::BlkdevTable {
 }
 #endif
 
-struct labstor_submit_blkdev_table_register_request {
+struct labstor_blkdev_table_register_request {
     struct labstor_request header_;
     int pathlen_;
     uint32_t dev_id_;
     char path_[];
 #ifdef __cplusplus
     static inline uint32_t GetSize(uint32_t pathlen) {
-        return sizeof(labstor_submit_blkdev_table_register_request) + pathlen + 1;
+        return sizeof(labstor_blkdev_table_register_request) + pathlen + 1;
     }
-    inline void Init(int ns_id, const char *path, int pathlen, int devid) {
+    inline void Start(int ns_id, const char *path, int pathlen, int devid) {
         header_.op_ = static_cast<int>(labstor::BlkdevTable::Ops::kRegisterBdev);
         header_.ns_id_ = ns_id;
         pathlen_ = pathlen;
         memcpy(path_, path, pathlen);
         path_[pathlen_] = 0;
     }
-    inline void Init(int ns_id, labstor_submit_blkdev_table_register_request *rq) {
+    inline void Start(int ns_id, labstor_blkdev_table_register_request *rq) {
         header_.ns_id_ = ns_id;
         header_.op_ = rq->header_.op_;
         pathlen_ = rq->pathlen_;
         memcpy(path_, rq->path_, pathlen_);
         path_[pathlen_] = 0;
     }
-#endif
-};
-
-struct labstor_complete_blkdev_table_register_request {
-    struct labstor_reply header_;
-    int dev_id_;
-#ifdef __cplusplus
-    void Copy(labstor_complete_blkdev_table_register_request *rq) {
+    void Copy(labstor_blkdev_table_register_request *rq) {
+        header_.Copy(&rq->header_);
         dev_id_ = rq->GetDeviceID();
-        header_.SetCode(rq->GetReturnCode());
     }
     int GetDeviceID() {
         return dev_id_;
@@ -78,28 +72,18 @@ struct labstor_complete_blkdev_table_register_request {
 #endif
 };
 
-struct labstor_poll_blkdev_table_register {
-    struct labstor_request header_;
-    struct labstor_qtok_t kqtok_;
-    struct labstor_qtok_t uqtok_;
 #ifdef __cplusplus
-    void Init(labstor::ipc::queue_pair *qp, labstor_submit_blkdev_table_register_request *rq, labstor::ipc::qtok_t &qtok) {
-        header_.ns_id_ = rq->header_.ns_id_;
-        header_.op_ = static_cast<int>(labstor::BlkdevTable::Ops::kRegisterBdevComplete);
-        kqtok_ = qtok;
-        uqtok_.qid = qp->GetQid();
-        uqtok_.req_id = rq->header_.req_id_;
+struct labstor_poll_blkdev_table_register : public labstor::ipc::poll_request_single<labstor_blkdev_table_register_request>{
+    void Init(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
+        int op = static_cast<int>(labstor::BlkdevTable::Ops::kRegisterBdevComplete);
+        labstor::ipc::poll_request_single<labstor_blkdev_table_register_request>::Init(qp, reply_rq, poll_qtok, op);
     }
-#endif
 };
+#endif
 
-struct labstor_submit_blkdev_table_unregister_request {
+struct labstor_blkdev_table_unregister_request {
     struct labstor_request header_;
     int dev_id_;
-};
-
-struct labstor_complete_blkdev_table_unregister_request {
-    struct labstor_request header_;
 };
 
 

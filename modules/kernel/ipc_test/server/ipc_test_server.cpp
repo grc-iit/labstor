@@ -2,15 +2,13 @@
 // Created by lukemartinlogan on 11/26/21.
 //
 
-
 #include "ipc_test_server.h"
 #include <labstor/constants/constants.h>
 
 void labstor::IPCTest::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
-    //AUTO_TRACE("labstor::IPCTest::ProcessRequest", request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kStartIPCTest: {
-            Start(qp, reinterpret_cast<labstor_submit_ipc_test_request *>(request));
+            Start(qp, reinterpret_cast<labstor_ipc_test_request *>(request));
             break;
         }
         case Ops::kCompleteIPCTest: {
@@ -20,10 +18,10 @@ void labstor::IPCTest::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labs
     }
 }
 
-void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_submit_ipc_test_request *rq_submit) {
+void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_ipc_test_request *client_rq) {
     AUTO_TRACE("labstor::IPCTest::Server::Start");
     labstor_poll_ipc_test_request *poll_rq;
-    labstor_submit_ipc_test_request *kern_submit;
+    labstor_ipc_test_request *kern_rq;
     labstor::ipc::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
@@ -35,51 +33,45 @@ void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_submi
                                    LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
 
     //Create SERVER -> KERNEL message
-    kern_submit = ipc_manager_->AllocRequest<labstor_submit_ipc_test_request>(kern_qp);
-    kern_submit->Init(IPC_TEST_MODULE_RUNTIME_ID);
-    TRACEPOINT("labstor::IPCTest::Server::Start", "start_req_id", rq_submit->header_.GetRequestID(), "kern_qp_id", kern_qp->GetQid(), "depth", kern_qp->GetDepth());
-    kern_qp->Enqueue<labstor_submit_ipc_test_request>(kern_submit, qtok);
+    kern_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(kern_qp);
+    kern_rq->Start(IPC_TEST_MODULE_RUNTIME_ID);
+    TRACEPOINT("labstor::IPCTest::Server::Start", "start_req_id", client_rq->header_.GetRequestID(), "kern_qp_id", kern_qp->GetQid(), "depth", kern_qp->GetDepth());
+    kern_qp->Enqueue<labstor_ipc_test_request>(kern_rq, qtok);
 
     //Poll SERVER -> KERNEL interaction
     TRACEPOINT("labstor::IPCTest::Server::Start", "Allocating Poll RQ")
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_ipc_test_request>(private_qp);
-    poll_rq->Init(qp, rq_submit, qtok);
+    poll_rq->Init(qp, client_rq, qtok);
     private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
-
-    //Release requests
-    ipc_manager_->FreeRequest<labstor_submit_ipc_test_request>(qp, rq_submit);
 }
 
 void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor_poll_ipc_test_request *poll_rq) {
-    //AUTO_TRACE("labstor::IPCTest::Server::End");
     labstor::ipc::queue_pair *qp, *kern_qp;
-    labstor_complete_ipc_test_request *kern_complete;
-    labstor_complete_ipc_test_request *rq_complete;
+    labstor_ipc_test_request *kern_rq, *client_rq;
     labstor::ipc::qtok_t qtok;
 
     //Check if the QTOK has been completed
-    //TRACEPOINT("labstor::IPCTest::Server::End", "Check if I/O has completed")
-    ipc_manager_->GetQueuePair(kern_qp, poll_rq->kqtok_);
-    if(!kern_qp->IsComplete<labstor_complete_ipc_test_request>(poll_rq->kqtok_, kern_complete)) {
+    ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
+    if(!kern_qp->IsComplete<labstor_ipc_test_request>(poll_rq->poll_qtok_, kern_rq)) {
         private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
         return;
     }
 
     //Create message for the USER
-    TRACEPOINT("labstor::IPCTest::Server::End")
-    ipc_manager_->GetQueuePair(qp, poll_rq->uqtok_);
-    rq_complete = ipc_manager_->AllocRequest<labstor_complete_ipc_test_request>(qp);
-    rq_complete->Copy(kern_complete);
+    TRACEPOINT("kernel_return_code", kern_rq->GetReturnCode());
+    ipc_manager_->GetQueuePair(qp, poll_rq->reply_qtok_);
+    client_rq = poll_rq->reply_rq_;
+    client_rq->Copy(kern_rq);
 
     //Complete SERVER -> USER interaction
-    TRACEPOINT("labstor::IPCTest::Server::End", "end_rq_id", poll_rq->uqtok_.req_id, "end_qid", poll_rq->uqtok_.qid)
-    qp->Complete<labstor_complete_ipc_test_request>(poll_rq->uqtok_, rq_complete);
+    TRACEPOINT("client_return_code",
+               client_rq->GetReturnCode());
+    qp->Complete<labstor_ipc_test_request>(poll_rq->reply_qtok_, client_rq);
 
     //Free completed requests
-    TRACEPOINT("labstor::IPCTest::Server::End", "Free",
-               "return_code",
-               rq_complete->GetReturnCode());
-    ipc_manager_->FreeRequest<labstor_complete_ipc_test_request>(kern_qp, kern_complete);
+    TRACEPOINT("client_return_code",
+               client_rq->GetReturnCode());
+    ipc_manager_->FreeRequest<labstor_ipc_test_request>(kern_qp, kern_rq);
     ipc_manager_->FreeRequest<labstor_poll_ipc_test_request>(private_qp, poll_rq);
 }
 

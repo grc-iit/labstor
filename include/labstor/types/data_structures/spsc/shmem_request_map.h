@@ -109,26 +109,19 @@ static inline void labstor_request_map_RemoteAttach(
 }
 
 static inline bool labstor_request_map_Set(struct labstor_request_map *map, struct labstor_request *rq) {
-    AUTO_TRACE("")
-    static uint32_t counter = 0;
     uint32_t b = rq->req_id_ % map->header_->num_buckets_;
-    if(__atomic_load_n(&map->buckets_[b], __ATOMIC_SEQ_CST) != -1) {
-        ++counter;
+    if(map->buckets_[b] != -1) {
         return false;
     }
-    __atomic_store_n(&map->buckets_[b], LABSTOR_REGION_SUB(rq, map->base_region_), __ATOMIC_SEQ_CST);\
-    //TRACEPOINT("setting", rq->req_id_, b, map->buckets_[b])
+    map->buckets_[b] = LABSTOR_REGION_SUB(rq, map->base_region_);
     return true;
 }
 
 static inline int labstor_request_map_FindAndRemove(struct labstor_request_map *map, uint32_t key, struct labstor_request **value) {
-    static uint32_t counter = 0;
     uint32_t b = key % map->header_->num_buckets_;
-    if(__atomic_load_n(&map->buckets_[b], __ATOMIC_SEQ_CST) == -1) {
-        ++counter;
+    if(__atomic_load_n(&map->buckets_[b], __ATOMIC_RELAXED) == -1) {
         return false;
     }
-    //TRACEPOINT("bucket", map->buckets_[b])
     *value = (struct labstor_request*)LABSTOR_REGION_ADD(map->buckets_[b], map->base_region_);
     map->buckets_[b] = -1;
     return true;

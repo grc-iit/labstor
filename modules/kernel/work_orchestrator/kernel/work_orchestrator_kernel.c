@@ -36,6 +36,8 @@ MODULE_ALIAS("work_orchestrator");
 struct labstor_worker_struct {
     struct task_struct *worker_task_;
     struct labstor_work_queue work_queue_;
+    bool complete_ack_;
+    int worker_id_;
 };
 
 bool keep_running = true;
@@ -50,7 +52,7 @@ typedef int (*kthread_fn)(void*);
 size_t time_slice_us;
 
 inline void complete_invalid_request(struct labstor_queue_pair *qp, struct labstor_request *rq) {
-    struct labstor_reply *rq_complete = (struct labstor_reply*)rq;
+    struct labstor_request *rq_complete = (struct labstor_request*)rq;
     rq_complete->code_ = LABSTOR_REQUEST_FAILED;
     if(!labstor_queue_pair_CompleteQuick(qp, (struct labstor_request*)rq, (struct labstor_request*)rq_complete)) {
         pr_err("Could not complete invalid request quickly! Giving up.\n");
@@ -103,9 +105,10 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 module->process_request_fn(qp, rq);
             }
         }
-
         yield();
     }
+
+    worker->complete_ack_ = true;
     return 0;
 }
 
@@ -140,6 +143,8 @@ bool spawn_workers(struct labstor_spawn_worker_request *rq) {
         worker = workers + i;
         labstor_work_queue_Init(&worker->work_queue_, region, work_queue_size, 0);
         region = labstor_work_queue_GetNextSection(&worker->work_queue_);
+        worker->complete_ack_ = false;
+        worker->worker_id_ = i;
         worker->worker_task_ = kthread_create((kthread_fn)worker_runtime, worker, "labstor_worker%d", i);
     }
     return true;
@@ -193,6 +198,16 @@ void resume_worker_user(struct labstor_resume_worker_request *rq) {
     //schedule();
 }
 
+bool check_if_workers_stopped(void) {
+    int i;
+    for(i = 0; i < num_workers; ++i) {
+        if(!workers[i].complete_ack_) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void worker_process_request_fn_netlink(int pid, struct labstor_request *rq) {
     int code = 0;
     switch(rq->op_) {
@@ -244,9 +259,11 @@ static int __init init_work_orchestrator_kernel(void) {
 
 static void __exit exit_work_orchestrator_kernel(void) {
     keep_running = false;
-    /*if(workers) {
+    while(!check_if_workers_stopped()) { yield(); }
+    pr_info("Workers have stopped!\n");
+    if(workers) {
         kvfree(workers);
-    }*/
+    }
     unregister_labstor_module(&worker_module);
     pr_info("Work orchestrator ended");
 }

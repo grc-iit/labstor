@@ -7,7 +7,6 @@
 
 #include <labstor/constants/macros.h>
 #include <labstor/types/basics.h>
-//#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_labstor_off_t.h>
 #include <labstor/types/data_structures/spsc/shmem_request_ring_buffer.h>
 #ifdef __cplusplus
 #include "allocator.h"

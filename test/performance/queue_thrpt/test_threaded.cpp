@@ -27,7 +27,6 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
     labstor::ipc::queue_pair qps[num_producers];
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
-    labstor::ProcessPartitioner partition_;
     int reqs_per_producer, nthreads = num_producers + num_consumers;
     size_t sq_size, cq_size;
     size_t sq_region_size, cq_region_size, req_region_size;
@@ -60,14 +59,12 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
     printf("Starting\n");
 
     //Isolate this process
+    labstor::ProcessAffiner mask;
     if(dedicate) {
-        num_cpu = partition_.GetNumCPU();
-        std::vector<bool> cpus;
-        partition_.InitCoreMap(cpus, num_cpu);
-        for(int i = 0; i < num_consumers; ++i) {
-            cpus[i] = true;
+        for(int i = num_consumers; i < mask.GetNumCPU(); ++i) {
+            mask.SetCpu(i);
         }
-        partition_.Partition(getpid(), cpus, num_cpu);
+        mask.AffineAll();
     }
 
     //Spam the trusted server
@@ -78,11 +75,10 @@ void produce_and_consume(int total_reqs, int num_producers, int num_consumers, i
 
         //Set this thread's affinity
         if(dedicate) {
-            cpu_set_t cpus[num_cpu];
-            CPU_ZERO(cpus);
-            CPU_SET(1+rank, cpus);
-            sched_setaffinity(gettid(), num_cpu, cpus);
-            printf("Setting affinity for: %d -> %d\n", gettid(), 1+rank*16);
+            labstor::ProcessAffiner mask;
+            mask.SetCpu(4+rank);
+            mask.Affine(gettid());
+            printf("Setting affinity for: %d -> %d\n", gettid(), rank);
         }
 
 #pragma omp barrier

@@ -409,7 +409,7 @@ static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
     blk_status_t ret;
     int srcu_idx;
     struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
-    int success = 0;
+    int success = LABSTOR_MQ_OK;
 
     might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 
@@ -418,11 +418,11 @@ static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
     ret = __blk_mq_try_issue_directly(hctx, rq, cookie, true, true); //TODO: May not be last...
     if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE) {
         blk_mq_end_request(rq, ret); //TODO: theoretically requeue
-        success = -1;
+        success = LABSTOR_MQ_DEVICE_BUSY;
     }
     else if (ret != BLK_STS_OK) {
         blk_mq_end_request(rq, ret);
-        success = -2;
+        success = LABSTOR_MQ_NOT_OK;
     }
 
     hctx_unlock(hctx, srcu_idx);
@@ -434,13 +434,14 @@ static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
  * I/O REQUEST FUNCTIONS
  * */
 
-static void labstor_complete_io(struct labstor_submit_mq_driver_request *rq, int code) {
-    rq->header_.op_ = code;
-    labstor_queue_pair_Complete(rq->qp_, (struct labstor_request*)rq, (struct labstor_request*)rq);
+static void labstor_complete_io(struct labstor_mq_driver_request *rq, int code) {
+    rq->header_.code_ = code;
+    labstor_queue_pair_CompleteInf(rq->qp_, (struct labstor_request*)rq);
 }
 
 static void io_complete(struct bio *bio) {
-    struct labstor_submit_mq_driver_request *rq;
+    int code = 0;
+    struct labstor_mq_driver_request *rq;
     if(!bio || IS_ERR(bio)) {
         pr_err("io_complete was passed NULL bio");
         return;
@@ -450,8 +451,13 @@ static void io_complete(struct bio *bio) {
         pr_err("io_complete request is NULL\n");
         return;
     }
-    pr_debug("Bio: %p, Request: %p\n", bio, rq);
-    labstor_complete_io(rq, bio->bi_status == BLK_STS_OK);
+    if(bio->bi_status != BLK_STS_OK) {
+        code = bio->bi_status;
+        pr_debug("Request did not complete: %d\n", code);
+    }
+    pr_debug("SUCCESS! Request: (qid=%llu,req_id=%u, code=%d)\n",
+             labstor_queue_pair_GetQid(rq->qp_), rq->header_.req_id_, code);
+    labstor_complete_io(rq, code);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -473,7 +479,7 @@ static inline struct page **convert_user_buf(int pid, void *user_buf, size_t len
     return pages;
 }
 
-static inline struct bio *create_bio(struct labstor_submit_mq_driver_request *rq, struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op) {
+static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struct block_device *bdev, struct page **pages, int num_pages, size_t sector, int op) {
     struct bio *bio;
     int i;
 
@@ -485,7 +491,7 @@ static inline struct bio *create_bio(struct labstor_submit_mq_driver_request *rq
     bio_set_dev(bio, bdev);
     //bio_set_op_attrs(bio, op, 0);
     bio->bi_opf = op;
-    //bio_set_flag(bio, BIO_USER_MAPPED);
+    bio_set_flag(bio, BIO_USER_MAPPED);
     //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     for(i = 0; i < num_pages; ++i) {
@@ -538,7 +544,7 @@ struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio
     return rq;
 }
 
-inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {
+inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
     struct page **pages;
     struct request *dev_rq;
     blk_qc_t cookie;
@@ -547,6 +553,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     struct request_queue *q;
     struct bio *bio;
     rq->qp_ = qp;
+    success = LABSTOR_MQ_OK;
 
     pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
 
@@ -555,6 +562,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     pages = convert_user_buf(rq->pid_, rq->user_buf_, rq->buf_size_, &num_pages);
     if(pages == NULL) {
         pr_err("Not enough space to allocate user pages\n");
+        success = LABSTOR_MQ_CANT_ALLOCATE_PAGES;
         goto err_complete_before;
     }
     //Get block device associated with semantic label
@@ -562,7 +570,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     pr_debug("BDEV device: %p\n", bdev);
     if(bdev == NULL) {
         pr_err("Invalid block device id: %d\n", rq->dev_id_);
-        success = -100;
+        success = LABSTOR_MQ_INVALID_DEVICE_ID;
         goto err_complete;
     }
     //Get request queue associated with device
@@ -573,22 +581,22 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
     pr_debug("Create BIO: %p\n", bio);
     if(bio == NULL) {
-        success = -101;
+        success = LABSTOR_MQ_CANNOT_ALLOCATE_BIO;
+        pr_err("Cannot allocate more BIOs\n");
         goto err_complete;
     }
     //Create request to hctx
     dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages, bio->bi_opf);
     pr_debug("Create HCTX request: %p\n", dev_rq);
     if(dev_rq == NULL) {
-        success = -102;
+        success = LABSTOR_MQ_CANNOT_ALLOCATE_REQUEST;
         goto err_complete;
     }
     //Submit I/O
     pr_debug("Submitting I/O\n");
     success = blk_mq_try_issue_directly(dev_rq, &cookie);
-    pr_debug("SUCCESS: %d\n", success);
-    if(!success) {
-        success = - 103;
+    pr_debug("Driver Submission Status: %d\n", success);
+    if(success <  0) {
         goto err_complete;
     }
 
@@ -605,7 +613,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_su
     labstor_complete_io(rq, success);
 }
 
-inline int get_stats(struct labstor_queue_pair *qp, struct labstor_submit_mq_driver_request *rq) {
+inline int get_stats(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
     //int nr_hw_queues;
     //nr_hw_queues = q->nr_hw_queues;
     return 0;
@@ -615,7 +623,7 @@ void mq_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request
     switch(rq->op_) {
         case LABSTOR_MQ_DRIVER_WRITE:
         case LABSTOR_MQ_DRIVER_READ: {
-            submit_mq_driver_io(qp, (struct labstor_submit_mq_driver_request*)rq);
+            submit_mq_driver_io(qp, (struct labstor_mq_driver_request*)rq);
             break;
         }
         default: {
