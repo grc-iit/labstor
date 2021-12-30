@@ -2,8 +2,6 @@
 // Created by lukemartinlogan on 6/7/21.
 //
 
-#include <labstor/interfaces/posix.h>
-
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -36,7 +34,7 @@
 #include <sys/mman.h>
 #include <aio.h>
 
-#include <generic_posix/client/client.h>
+#include "generic_posix_client.h"
 
 /**
  * PROTOTYPES
@@ -51,12 +49,13 @@
     if(!REAL_FUN(fname)) { REAL_FUN(fname) = (FNAME_TYPE(T, fname, __VA_ARGS__))dlsym(RTLD_NEXT, #fname); }
 
 FORWARD_DECL(int, open, const char *path, int oflag, ...)
-FORWARD_DECL(ssize_t, read, int fd, void *buf, size_t count)
-FORWARD_DECL(ssize_t, write, int fd, const void *buf, size_t count)
-FORWARD_DECL(ssize_t, pread, int fd, void *buf, size_t count, labstor::off_t offset)
-FORWARD_DECL(ssize_t, pwrite, int fd, const void *buf, size_t count, labstor::off_t offset)
-FORWARD_DECL(ssize_t, pread64, int fd, void *buf, size_t count, off64_t offset)
-FORWARD_DECL(ssize_t, pwrite64, int fd, const void *buf, size_t count, off64_t offset)
+FORWARD_DECL(int, close, int fd)
+FORWARD_DECL(ssize_t, read, int fd, void *buf, size_t size)
+FORWARD_DECL(ssize_t, write, int fd, void *buf, size_t size)
+FORWARD_DECL(ssize_t, pread, int fd, void *buf, size_t size, labstor::off_t offset)
+FORWARD_DECL(ssize_t, pwrite, int fd, const void *buf, size_t size, labstor::off_t offset)
+FORWARD_DECL(ssize_t, pread64, int fd, void *buf, size_t size, off64_t offset)
+FORWARD_DECL(ssize_t, pwrite64, int fd, const void *buf, size_t size, off64_t offset)
 FORWARD_DECL(ssize_t, readv, int fd, const struct iovec *iov, int iovcnt)
 FORWARD_DECL(ssize_t, preadv, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset)
 FORWARD_DECL(ssize_t, preadv64, int fd, const struct iovec *iov, int iovcnt, off64_t offset)
@@ -70,45 +69,65 @@ FORWARD_DECL(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, 
 
 size_t write_size = 0;
 
+labstor::GenericPosix::Client client;
+
 /**
  * POSIX FUNCTIONS
  * */
 
-ssize_t WRAPPER_FUN(open)(int fd, void *buf, size_t count)
+int WRAPPER_FUN(open)(const char *path, int oflag, ...)
 {
-    GenericFS_Client::
-    return REAL_FUN(read)(fd, buf, count);
+    int fd = client.Open(path, oflag);
+    if(fd == INVALID_LABSTOR_FD) {
+        return REAL_FUN(open)(path, oflag);
+    }
+    return fd;
 }
 
-ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t count)
-{
-    //Submit request to user-space server
-    return REAL_FUN(read)(fd, buf, count);
+int WRAPPER_FUN(close)(int fd) {
+    int ret = client.Close(fd);
+    if(ret == INVALID_LABSTOR_FD) {
+        return REAL_FUN(close)(fd);
+    }
+    return ret;
 }
 
-ssize_t WRAPPER_FUN(write)(int fd, const void *buf, size_t count)
+ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t size)
 {
-    return REAL_FUN(write)(fd, buf, count);
+    ssize_t ret_size = client.Read(fd, buf, size);
+    if(ret_size == INVALID_LABSTOR_FD) {
+        return REAL_FUN(read)(fd, buf, size);
+    }
+    return ret_size;
 }
 
-ssize_t WRAPPER_FUN(pread)(int fd, void *buf, size_t count, labstor::off_t offset)
+ssize_t WRAPPER_FUN(write)(int fd, void *buf, size_t size)
 {
-    return REAL_FUN(pread)(fd, buf, count, offset);
+    ssize_t ret_size = client.Write(fd, buf, size);
+    if(ret_size == INVALID_LABSTOR_FD) {
+        return REAL_FUN(write)(fd, buf, size);
+    }
+    return ret_size;
 }
 
-ssize_t WRAPPER_FUN(pwrite)(int fd, const void *buf, size_t count, labstor::off_t offset)
+ssize_t WRAPPER_FUN(pread)(int fd, void *buf, size_t size, labstor::off_t offset)
 {
-    return REAL_FUN(pwrite)(fd, buf, count, offset);
+    return REAL_FUN(pread)(fd, buf, size, offset);
 }
 
-ssize_t WRAPPER_FUN(pread64)(int fd, void *buf, size_t count, off64_t offset)
+ssize_t WRAPPER_FUN(pwrite)(int fd, const void *buf, size_t size, labstor::off_t offset)
 {
-    return REAL_FUN(pread64)(fd, buf, count, offset);
+    return REAL_FUN(pwrite)(fd, buf, size, offset);
 }
 
-ssize_t WRAPPER_FUN(pwrite64)(int fd, const void *buf, size_t count, off64_t offset)
+ssize_t WRAPPER_FUN(pread64)(int fd, void *buf, size_t size, off64_t offset)
 {
-    return REAL_FUN(pwrite64)(fd, buf, count, offset);
+    return REAL_FUN(pread64)(fd, buf, size, offset);
+}
+
+ssize_t WRAPPER_FUN(pwrite64)(int fd, const void *buf, size_t size, off64_t offset)
+{
+    return REAL_FUN(pwrite64)(fd, buf, size, offset);
 }
 
 ssize_t WRAPPER_FUN(readv)(int fd, const struct iovec *iov, int iovcnt)
@@ -159,44 +178,4 @@ ssize_t WRAPPER_FUN(pwritev2)(int fd, const struct iovec *iov, int iovcnt, labst
 ssize_t WRAPPER_FUN(pwritev64v2)(int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
 {
     return REAL_FUN(pwritev64v2)(fd, iov, iovcnt, offset, flags);
-}
-
-int WRAPPER_FUN(aio_read)(struct aiocb *aiocbp)
-{
-    return REAL_FUN(aio_read)(aiocbp);
-}
-
-int WRAPPER_FUN(aio_write)(struct aiocb *aiocbp)
-{
-    return REAL_FUN(aio_write)(aiocbp);
-}
-
-int WRAPPER_FUN(aio_read64)(struct aiocb64 *aiocbp)
-{
-    return REAL_FUN(aio_read64)(aiocbp);
-}
-
-int WRAPPER_FUN(aio_write64)(struct aiocb64 *aiocbp)
-{
-    return REAL_FUN(aio_write64)(aiocbp);
-}
-
-ssize_t WRAPPER_FUN(aio_return)(struct aiocb *aiocbp)
-{
-    return REAL_FUN(aio_return)(aiocbp);
-}
-
-ssize_t WRAPPER_FUN(aio_return64)(struct aiocb64 *aiocbp)
-{
-    return REAL_FUN(aio_return64)(aiocbp);
-}
-
-int WRAPPER_FUN(lio_listio)(int mode, struct aiocb *const aiocb_list[], int nitems, struct sigevent *sevp)
-{
-    return REAL_FUN(lio_listio)(mode, aiocb_list, nitems, sevp);
-}
-
-int WRAPPER_FUN(lio_listio64)(int mode, struct aiocb64 *const aiocb_list[], int nitems, struct sigevent *sevp)
-{
-    return REAL_FUN(lio_listio64)(mode, aiocb_list, nitems, sevp);
 }

@@ -42,6 +42,11 @@ struct string {
         length_ = strlen(str);
     }
 
+    inline string(char *str, int length) {
+        data_ = str;
+        length_ = length;
+    }
+
     inline string(labstor::id key) {
         header_ = nullptr;
         data_ = (char*)key.key;

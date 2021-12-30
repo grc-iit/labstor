@@ -91,7 +91,15 @@ public:
         region_id = region_id_;
         region_size = region_size_;
     }
-    inline uint32_t Get(labstor::ipc::string key) { return key_to_ns_id_[key]; }
+    inline uint32_t Get(labstor::ipc::string key) {
+        return key_to_ns_id_[key];
+    }
+    inline bool GetIfExists(labstor::ipc::string key, uint32_t &ns_id) {
+        if(key_to_ns_id_.Find(key, ns_id)) {
+            return true;
+        }
+        return false;
+    }
     inline labstor::Module *Get(uint32_t ns_id) {
         if(0 <= ns_id && ns_id < private_state_.size()) {
             return private_state_[ns_id];

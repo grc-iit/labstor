@@ -8,13 +8,8 @@
 #include <labstor/constants/busy_wait.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/mpmc/bitmap.h>
-#ifdef __cplusplus
 #include <labstor/types/shmem_type.h>
 #include <labstor/userspace/util/errors.h>
-#endif
-
-//{T_NAME}: The semantic name of the type
-//{T}: The type being buffered
 
 struct labstor_ring_buffer_mpmc_{T_NAME}_header {
     uint32_t enqueued_, dequeued_;

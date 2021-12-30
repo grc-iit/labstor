@@ -14,12 +14,10 @@
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/userspace/util/errors.h>
 
-#ifndef __CLION_IDE__
 #define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME) \
     extern "C" {                              \
         labstor::Module* create_module() { return new MODULE_NAME(); } \
     }
-#endif
 
 namespace labstor {
 

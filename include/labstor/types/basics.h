@@ -5,7 +5,7 @@
 #ifndef LABSTOR_BASICS_H
 #define LABSTOR_BASICS_H
 
-#define MODULE_KEY_SIZE 64
+#define MODULE_KEY_SIZE 32
 
 
 #ifdef KERNEL_BUILD
