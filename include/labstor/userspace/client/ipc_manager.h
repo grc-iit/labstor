@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <vector>
+#include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/types/socket.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/shmem_allocator.h>

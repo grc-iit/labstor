@@ -13,15 +13,15 @@
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/types/shmem_spinlock.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
-//#include <labstor/types/data_structures/array/shmem_array_uint32_t.h>
-#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
+#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
+#include <labstor/types/data_structures/mpmc/unordered_map/shmem_string_map.h>
 #include <labstor/types/data_structures/shmem_string.h>
 
 #include "macros.h"
 #include "server.h"
 
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+
 
 namespace labstor::Server {
 
@@ -34,8 +34,8 @@ private:
     labstor::ipc::SpinLock lock_;
 
     std::unordered_map<labstor::id, std::queue<labstor::Module*>> module_id_to_instance_;
-    labstor::ipc::mpmc::ring_buffer_uint32_t ns_ids_;
-    labstor::ipc::string_map key_to_ns_id_;
+    labstor::ipc::mpmc::ring_buffer<uint32_t> ns_ids_;
+    labstor::ipc::mpmc::string_map key_to_ns_id_;
     //labstor::ipc::array_uint32_t shared_state_;
     std::vector<labstor::Module*> private_state_;
 public:
@@ -63,7 +63,7 @@ public:
             ns_id = private_state_.size();
             private_state_.emplace_back(module);
         }
-        TRACEPOINT("labstor::Server::AddKey", key.data_, ns_id);
+        TRACEPOINT(key.data_, ns_id);
         key_to_ns_id_.Set(key, ns_id);
         module_id_to_instance_[module->GetModuleID()].push(module);
         return ns_id;

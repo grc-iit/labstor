@@ -13,7 +13,6 @@
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
-#include <labstor/types/data_structures/unordered_map/
 #include <mutex>
 
 //TODO: Make this configurable

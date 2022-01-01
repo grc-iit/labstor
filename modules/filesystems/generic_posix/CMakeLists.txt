@@ -45,3 +45,8 @@ endif()
 add_library(generic_posix_overload client/${MODULE_NAME}_overload.cpp)
 add_dependencies(generic_posix_overload labstor_client_library ${MODULE_NAME}_client)
 target_link_libraries(generic_posix_overload labstor_client_library ${MODULE_NAME}_client)
+
+#BUILD UTIL
+add_executable(mount.generic_posix util/mount.generic_posix.cpp)
+add_dependencies(mount.generic_posix labstor_client_library ${MODULE_NAME}_client)
+target_link_libraries(mount.generic_posix labstor_client_library ${MODULE_NAME}_client)

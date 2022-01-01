@@ -11,16 +11,21 @@ int main(int argc, char **argv) {
         printf("USAGE: ./partitions [PID] [core1] ... [coreN]\n");
         exit(1);
     }
-    int isol_pid = atoi(argv[1]);
-    int n_cpu = get_nprocs_conf();
+    int pid;
+    int n_cpu = argc - 2;
     labstor::ProcessAffiner mask;
 
-    //Get process partitions
-    mask.SetCpu(0);
-    mask.AffineAll();
+    //Get CPU set
+    for(int i = 0; i < n_cpu; ++i) {
+        int cpu = atoi(argv[i+2]);
+        mask.SetCpu(cpu);
+    }
 
-    //Set process affinities
-    mask.Clear();
-    mask.SetCpu(1);
-    mask.Affine(isol_pid);
+    //Determine the PIDs being set
+    if(std::string(argv[1]) == "all") {
+        mask.AffineAll();
+    } else {
+        pid = atoi(argv[1]);
+        mask.Affine(pid);
+    }
 }

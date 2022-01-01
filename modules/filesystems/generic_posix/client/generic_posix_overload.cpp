@@ -78,7 +78,7 @@ labstor::GenericPosix::Client client;
 int WRAPPER_FUN(open)(const char *path, int oflag, ...)
 {
     int fd = client.Open(path, oflag);
-    if(fd == INVALID_LABSTOR_FD) {
+    if(fd == LABSTOR_GENERIC_FS_PATH_NOT_FOUND) {
         return REAL_FUN(open)(path, oflag);
     }
     return fd;
@@ -86,7 +86,7 @@ int WRAPPER_FUN(open)(const char *path, int oflag, ...)
 
 int WRAPPER_FUN(close)(int fd) {
     int ret = client.Close(fd);
-    if(ret == INVALID_LABSTOR_FD) {
+    if(ret == LABSTOR_GENERIC_FS_INVALID_FD) {
         return REAL_FUN(close)(fd);
     }
     return ret;
@@ -95,7 +95,7 @@ int WRAPPER_FUN(close)(int fd) {
 ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t size)
 {
     ssize_t ret_size = client.Read(fd, buf, size);
-    if(ret_size == INVALID_LABSTOR_FD) {
+    if(ret_size == LABSTOR_GENERIC_FS_INVALID_FD) {
         return REAL_FUN(read)(fd, buf, size);
     }
     return ret_size;
@@ -104,7 +104,7 @@ ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t size)
 ssize_t WRAPPER_FUN(write)(int fd, void *buf, size_t size)
 {
     ssize_t ret_size = client.Write(fd, buf, size);
-    if(ret_size == INVALID_LABSTOR_FD) {
+    if(ret_size == LABSTOR_GENERIC_FS_INVALID_FD) {
         return REAL_FUN(write)(fd, buf, size);
     }
     return ret_size;

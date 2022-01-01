@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(include kernel io_systems)
+include_directories(include kernel filesystems iosched)
 
 ##MODULES WITH KERNEL COMPONENT
 add_subdirectory(kernel/secure_shmem)
@@ -26,3 +26,4 @@ add_custom_target(clean_modules COMMAND
 add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_subdirectory(filesystems/generic_posix)
+add_subdirectory(filesystems/labstor_fs)
