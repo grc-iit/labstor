@@ -108,7 +108,7 @@ struct ring_buffer : public labstor::shmem_type {
 
     inline bool Enqueue(T data) {
         uint32_t enqueued;
-        return Enqueue(data, &enqueued);
+        return Enqueue(data, enqueued);
     }
 
     inline bool Dequeue(T &data) {

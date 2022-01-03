@@ -40,7 +40,6 @@ void direct_read(int value, size_t sector, size_t buf_size, const char *path) {
 }
 
 int main(int argc, char **argv) {
-
     if(argc < 2) {
         printf("USAGE: ./test_mq_driver_exec [path]");
         exit(1);

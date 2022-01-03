@@ -13,7 +13,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>
 
-#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
+#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
 
 namespace labstor::IPCTest {
 

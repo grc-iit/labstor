@@ -13,18 +13,18 @@
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>
 
-#include <labstor/types/data_structures/ring_buffer/shmem_ring_buffer_uint32_t.h>
+#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
 
 namespace labstor::BlkdevTable {
 
 class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
-    labstor::ipc::mpmc::ring_buffer_uint32_t dev_ids_;
+    labstor::ipc::mpmc::ring_buffer<uint32_t> dev_ids_;
 public:
     Server() : labstor::Module(BLKDEV_TABLE_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
-        uint32_t region_size = labstor::ipc::mpmc::ring_buffer_uint32_t::GetSize(MAX_MOUNTED_BDEVS);
+        uint32_t region_size = labstor::ipc::mpmc::ring_buffer<uint32_t>::GetSize(MAX_MOUNTED_BDEVS);
         void *region = malloc(region_size);
         dev_ids_.Init(region, region_size);
         for(int i = 0; i < MAX_MOUNTED_BDEVS; ++i) {

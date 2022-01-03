@@ -5,7 +5,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 
 int main() {
-    labstor::ipc::mpmc::int_map_labstor_qid_t_qp qps_by_id_;
+    labstor::ipc::mpmc::int_map<labstor::ipc::qid_t,labstor::ipc::queue_pair*> qps_by_id_;
     uint32_t region_size = (1<<20);
     int queue_size = 2048;
     void *region = malloc(region_size);

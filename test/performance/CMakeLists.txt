@@ -31,4 +31,11 @@ add_executable(test_chrono_exec chrono/test.cpp)
 #SHMEM latency
 add_executable(test_shmem_latency shmem/test.cpp)
 target_compile_options(test_shmem_latency PUBLIC "${OpenMP_CXX_FLAGS}")
+add_dependencies(test_shmem_latency labstor_client_library ipc_test_client)
 target_link_libraries(test_shmem_latency labstor_client_library ipc_test_client "${OpenMP_CXX_FLAGS}")
+
+#IO throughput
+add_executable(test_io_thrpt io_thrpt/test.cpp)
+target_compile_options(test_io_thrpt PUBLIC "${OpenMP_CXX_FLAGS}")
+add_dependencies(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client)
+target_link_libraries(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client "${OpenMP_CXX_FLAGS}")

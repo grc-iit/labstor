@@ -18,9 +18,8 @@
 #include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include "per_process_ipc.h"
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_int_PerProcessIPC.h>
-#include <labstor/types/data_structures/unordered_map/shmem_unordered_map_labstor_qid_t_qp.h>
 #include <labstor/types/thread_local.h>
+#include <labstor/types/data_structures/mpmc/unordered_map/shmem_int_map.h>
 
 #include "macros.h"
 #include "server.h"
@@ -47,8 +46,8 @@ private:
     std::mutex lock_;
     std::vector<int> pids_;
     labstor::GenericAllocator *private_alloc_;
-    labstor::ipc::mpmc::int_map_int_PerProcessIPC pid_to_ipc_;
-    labstor::ipc::mpmc::int_map_labstor_qid_t_qp qps_by_id_;
+    labstor::ipc::mpmc::int_map<int,PerProcessIPC*> pid_to_ipc_;
+    labstor::ipc::mpmc::int_map<labstor::ipc::qid_t,labstor::ipc::queue_pair*> qps_by_id_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
 public:
     IPCManager() {

@@ -3,7 +3,7 @@
 //
 
 #include <labstor/userspace/util/errors.h>
-#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
+#include <labstor/types/data_structures/mpmc/unordered_map/shmem_string_map.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
@@ -13,11 +13,11 @@ int main() {
     int num_inserts = 50;
     int max_collisions = 16;
     int num_buckets = 2*num_inserts + max_collisions;
-    uint32_t map_region_size = labstor::ipc::string_map::GetSize(num_buckets);
+    uint32_t map_region_size = labstor::ipc::mpmc::string_map::GetSize(num_buckets);
     void *region = malloc(region_size);
     char *string_region = (char*)region;
     char *map_region = (char*)region + region_size - map_region_size;
-    labstor::ipc::string_map map;
+    labstor::ipc::mpmc::string_map map;
     uint32_t value;
     LABSTOR_ERROR_HANDLE_START()
     map.Init(region, map_region, map_region_size, max_collisions);
