@@ -3,7 +3,7 @@
 //
 
 #include "posix.h"
-#include "labstor.h"
+#include "labstor_mq.h"
 
 void io_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t[2];
@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
         test->Init(path, block_size, total_size);
         io_test(test);
     }
-    if(io_method == "labstor") {
+    if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
-        labstor::LabstorIO *test = new labstor::LabstorIO();
+        labstor::LabstorMQ *test = new labstor::LabstorMQ();
         test->Init(path, block_size, total_size);
         io_test(test);
         LABSTOR_ERROR_HANDLE_END();

@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 1/3/22.
 //
 
-#ifndef LABSTOR_LABSTOR_H
-#define LABSTOR_LABSTOR_H
+#ifndef LABSTOR_LABSTOR_MQ_H
+#define LABSTOR_LABSTOR_MQ_H
 
 #include <labstor/userspace/client/client.h>
 #include <modules/kernel/blkdev_table/client/blkdev_table_client.h>
@@ -12,7 +12,7 @@
 
 namespace labstor {
 
-class LabstorIO : public IOTest {
+class LabstorMQ : public IOTest {
 private:
     int fd_;
     labstor::BlkdevTable::Client blkdev_table_;
@@ -82,4 +82,4 @@ public:
 
 }
 
-#endif //LABSTOR_LABSTOR_H
+#endif //LABSTOR_LABSTOR_MQ_H
