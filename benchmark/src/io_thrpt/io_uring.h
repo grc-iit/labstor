@@ -23,7 +23,7 @@ struct IOUringThread {
     int fd_;
     size_t io_offset_;
     struct io_uring ring_;
-    IOUringThread(char *path, int ops_per_thread, int ops_per_batch, size_t block_size, size_t io_offset) {
+    IOUringThread(char *path, int ops_per_batch, size_t block_size, size_t io_offset) {
         int ret;
         //Open file
         fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
@@ -49,9 +49,27 @@ private:
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
+        //Open file & truncate
+        int fd = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
+        if(fd < 0) {
+            perror("Could not open/create file\n");
+            exit(1);
+        }
+        if(do_truncate) {
+            if(ftruncate(fd, GetTotalIO()) < 0) {
+                perror("Failed to trunacate file\n");
+                exit(1);
+            }
+        }
+        close(fd);
+        //Store per-thread data
+        for(int i = 0; i < nthreads_; ++i) {
+            thread_bufs_.emplace_back(path, GetOpsPerBatch(), block_size_, i*GetIOPerThread());
+        }
     }
     void AIO(int op) {
         //Get per-thread data
+        int ret;
         int tid = labstor::ThreadLocal::GetTid();
         struct IOUringThread &thread = thread_bufs_[tid];
         size_t off = 0;
@@ -64,21 +82,37 @@ public:
             }
             //Submit I/O request
             io_uring_prep_rw(op, sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
+            io_uring_sqe_set_data(sqe, thread.buf_+off);
+            ret = io_uring_submit(&thread.ring_);
+            if(ret != 1) {
+                printf("Failed to submit request\n");
+                exit(1);
+            }
+            off += block_size_;
         }
 
         //Wait for completion
         struct io_uring_cqe *cqe;
         for(int i = 0; i < GetOpsPerBatch(); ++i) {
-            io_uring_wait_cqe(&thread.ring_, &cqe);
+            ret = io_uring_wait_cqe(&thread.ring_, &cqe);
+            if(ret < 0) {
+                printf("io_uring_wait_cqe: %s\n", strerror(-ret));
+                exit(1);
+            }
+            if(cqe->res < 0) {
+                printf("io_uring_wait_cqe: %s\n", strerror(-cqe->res));
+                exit(1);
+            }
+            io_uring_cqe_seen(&thread.ring_, cqe);
         }
     }
 
     void Read() {
-        AIO(IORING_OP_READ_FIXED);
+        AIO(IORING_OP_READ);
     }
 
     void Write() {
-        AIO(IORING_OP_WRITE_FIXED);
+        AIO(IORING_OP_WRITE);
     }
 };
 
