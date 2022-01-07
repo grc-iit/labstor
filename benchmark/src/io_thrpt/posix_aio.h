@@ -2,8 +2,8 @@
 // Created by lukemartinlogan on 1/3/22.
 //
 
-#ifndef LABSTOR_POSIX_H
-#define LABSTOR_POSIX_H
+#ifndef LABSTOR_POSIX_AIO_H
+#define LABSTOR_POSIX_AIO_H
 
 #include "io_test.h"
 #include <sys/types.h>
@@ -23,11 +23,13 @@
 
 namespace labstor {
 
-struct PosixIOThread {
+struct PosixAIOThread {
+    aiocb64 *cbs_;
+    struct aiocb64 **cb_list_;
     char *buf_;
     int fd_;
     size_t io_offset_;
-    PosixIOThread(char *path, int ops_per_thread, size_t block_size, size_t io_offset) {
+    PosixAIOThread(char *path, int ops_per_thread, size_t block_size, size_t io_offset) {
         //Open file
         fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
         if(fd_ < 0) {
@@ -35,15 +37,19 @@ struct PosixIOThread {
             exit(1);
         }
         buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
+        cbs_ = reinterpret_cast<aiocb64*>(calloc(sizeof(aiocb), ops_per_thread));
+        cb_list_ = reinterpret_cast<aiocb64**>(calloc(sizeof(aiocb*), ops_per_thread));
+        for(int i = 0; i < ops_per_thread; ++i) {
+            cb_list_[i] = cbs_ + i;
+        }
         memset(buf_, 0, block_size);
-        lseek(fd_, io_offset, SEEK_SET);
         io_offset_ = io_offset;
     }
 };
 
-class PosixIO : public IOTest {
+class PosixAIO : public IOTest {
 private:
-    std::vector<PosixIOThread> thread_bufs_;
+    std::vector<PosixAIOThread> thread_bufs_;
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
@@ -65,29 +71,34 @@ public:
             thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetIOPerBatch(), i*GetIOPerThread());
         }
     }
-
-    void Write() {
+    void AIO(int op) {
+        struct aiocb64 *cb;
         int tid = labstor::ThreadLocal::GetTid();
-        struct PosixIOThread &thread = thread_bufs_[tid];
-        lseek(thread.fd_, thread.io_offset_, SEEK_SET);
-        int ret = write(thread.fd_, thread.buf_, block_size_);
-        if (ret != block_size_) {
-            printf("Error, could not write POSIX: %s\n", strerror(errno));
+        struct PosixAIOThread &thread = thread_bufs_[tid];
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            cb = thread.cbs_ + i;
+            cb->aio_buf = thread.buf_ + i*block_size_;
+            cb->aio_offset = thread.io_offset_ + i*block_size_;
+            cb->aio_nbytes = block_size_;
+            cb->aio_fildes = thread.fd_;
+            cb->aio_lio_opcode = op;
+        }
+        if (lio_listio64(LIO_WAIT, thread.cb_list_, GetOpsPerBatch(), NULL) < 0) {
+            printf("Error, APOSIX IO failed: %s\n", strerror(errno));
+            printf("Ops per batch: %lu\n", GetOpsPerBatch());
             exit(1);
         }
     }
 
     void Read() {
-        int tid = labstor::ThreadLocal::GetTid();
-        struct PosixIOThread &thread = thread_bufs_[tid];
-        int ret = read(thread.fd_, thread.buf_, block_size_);
-        if(ret != block_size_) {
-            printf("Error, could not read POSIX: %s\n", strerror(errno));
-            exit(1);
-        }
+        AIO(LIO_READ);
+    }
+
+    void Write() {
+        AIO(LIO_WRITE);
     }
 };
 
 }
 
-#endif //LABSTOR_POSIX_H
+#endif //LABSTOR_POSIX_AIO_H

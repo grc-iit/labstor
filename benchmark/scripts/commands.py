@@ -1,6 +1,18 @@
 from scsbench.runtime.bash_runtime import BashRuntime
 import os
 
+class DropCaches:
+    def Run(self):
+        BashRuntime(GetSyncCachesCommand(), view_stdout=True).Run()
+        DropCaches()
+
+    def GetSyncCachesCommand(self):
+        return f'sync'
+
+    def DropCaches(self):
+        with open("/proc/sys/vm/drop_caches", "w") as fp:
+            fp.write("3")
+
 class LabStorKernelServer:
     def Start(self):
         command = self.GetStartCommand()

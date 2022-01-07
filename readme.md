@@ -80,6 +80,18 @@ make -j8
 make install
 ```
 
+### LIBURING
+
+```
+scspkg create liburing
+cd `scspkg pkg-src liburing`
+git clone https://github.com/axboe/liburing.git
+cd liburing
+./configure --prefix=`scspkg pkg-root liburing`
+make -j8
+make install
+```
+
 ## 2. Building
 
 ```

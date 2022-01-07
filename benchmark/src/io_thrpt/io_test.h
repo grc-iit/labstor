@@ -24,13 +24,8 @@ protected:
 public:
     virtual void Read() = 0;
     virtual void Write() = 0;
-    virtual void ARead() = 0;
-    virtual void AWrite() = 0;
 
-    void Init(size_t block_size, size_t total_size, int nthreads) {
-        AInit(block_size, total_size, 1, nthreads);
-    }
-    void AInit(size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
+    void Init(size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
         block_size_ = block_size;
         total_size_ = total_size;
         nthreads_ = nthreads;

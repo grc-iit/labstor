@@ -15,4 +15,4 @@ target_link_libraries(test_usr_usr_ipc_thrpt labstor_client_library ipc_test_cli
 add_executable(test_io_thrpt src/io_thrpt/test.cpp)
 target_compile_options(test_io_thrpt PUBLIC "${OpenMP_CXX_FLAGS}")
 add_dependencies(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client)
-target_link_libraries(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client "${OpenMP_CXX_FLAGS}")
+target_link_libraries(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client "${OpenMP_CXX_FLAGS}" rt)
