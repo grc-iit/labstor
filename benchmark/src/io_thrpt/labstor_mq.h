@@ -5,6 +5,7 @@
 #ifndef LABSTOR_LABSTOR_MQ_H
 #define LABSTOR_LABSTOR_MQ_H
 
+#include <vector>
 #include <labstor/userspace/client/client.h>
 #include <modules/kernel/blkdev_table/client/blkdev_table_client.h>
 #include <modules/kernel/mq_driver/client/mq_driver_client.h>
@@ -12,17 +13,34 @@
 
 namespace labstor {
 
-class LabstorMQ : public IOTest {
+struct LabStorMQThread {
+    size_t sector_;
+    void *buf_;
+    labstor::ipc::qtok_set qtoks_;
+    LabStorMQThread(int ops_per_batch, size_t block_size) : sector_(0) {
+        int nonce = 12;
+        buf_ = aligned_alloc(4096, block_size);
+        memset(buf_, nonce, block_size);
+        void *qtok_buf_ = malloc(labstor::ipc::qtok_set::GetSize(ops_per_batch));
+        qtoks_.Init(qtok_buf_, labstor::ipc::qtok_set::GetSize(ops_per_batch));
+    }
+};
+
+class LabStorMQ : public IOTest {
 private:
-    int fd_;
+    LABSTOR_IPC_MANAGER_T ipc_manager_;
+    int dev_id_;
     labstor::BlkdevTable::Client blkdev_table_;
     labstor::MQDriver::Client mq_driver_;
-    int dev_id_;
     size_t block_size_, block_size_sectors_;
-    size_t total_size_;
-    void *buf_;
+    std::vector<LabStorMQThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size) {
+    void Init(char *path, size_t block_size, size_t total_size, int nthreads) {
+        AInit(path, block_size, total_size, 1, nthreads);
+    }
+    
+    void AInit(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
+        IOTest::AInit(block_size, total_size, ops_per_batch, nthreads);
         //Inputs
         block_size_ = block_size;
         block_size_sectors_ = block_size / 512;
@@ -30,53 +48,60 @@ public:
             printf("Error: block size is not a multiple of 512 bytes\n");
             exit(1);
         }
-        total_size_ = total_size;
 
         //Connect to trusted server
-        LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
+        ipc_manager_ = LABSTOR_IPC_MANAGER;
         ipc_manager_->Connect();
 
         //Register BDEV
         blkdev_table_.Register();
         dev_id_ = blkdev_table_.RegisterBlkdev(path);
 
-        //Create I/O request data
-        int nonce = 12;
-        buf_ = aligned_alloc(4096, block_size_);
-        memset(buf_, nonce, block_size_);
-
         //Register MQ driver
         mq_driver_.Register();
+
+        //Store per-thread data
+        for(int i = 0; i < nthreads_; ++i) {
+            thread_bufs_.emplace_back(ops_per_batch, block_size_);
+        }
     }
 
     void Write() {
         int hctx = 0;
-        size_t sector = 0;
-        for (size_t i = 0; i < total_size_; i += block_size_) {
-            mq_driver_.Write(dev_id_, buf_, block_size_, sector, hctx);
-            sector += block_size_sectors_;
-        }
+        int tid = labstor::ThreadLocal::GetTid();
+        struct LabStorMQThread &thread = thread_bufs_[tid];
+        mq_driver_.Write(dev_id_, thread.buf_, block_size_, thread.sector_, hctx);
+        thread.sector_ += block_size_sectors_;
     }
 
     void Read() {
         int hctx = 0;
-        size_t sector = 0;
-        for (size_t i = 0; i < total_size_; i += block_size_) {
-            mq_driver_.Read(dev_id_, buf_, block_size_, sector, hctx);
-            sector += block_size_sectors_;
-        }
+        int tid = labstor::ThreadLocal::GetTid();
+        struct LabStorMQThread &thread = thread_bufs_[tid];
+        mq_driver_.Read(dev_id_, thread.buf_, block_size_, thread.sector_, hctx);
+        thread.sector_ += block_size_sectors_;
     }
 
-    size_t GetTotalIO() {
-        return total_size_;
+    void AWrite() {
+        int hctx = 0;
+        int tid = labstor::ThreadLocal::GetTid();
+        struct LabStorMQThread &thread = thread_bufs_[tid];
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            thread.qtoks_.Enqueue(mq_driver_.AWrite(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
+        }
+        ipc_manager_->Wait(thread.qtoks_);
+        thread.sector_ += block_size_sectors_;
     }
 
-    size_t GetNumOps() {
-        if ((total_size_ % block_size_) == 0) {
-            return total_size_ / block_size_;
-        } else {
-            return total_size_ / block_size_ + 1;
+    void ARead() {
+        int hctx = 0;
+        int tid = labstor::ThreadLocal::GetTid();
+        struct LabStorMQThread &thread = thread_bufs_[tid];
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            thread.qtoks_.Enqueue(mq_driver_.ARead(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
         }
+        ipc_manager_->Wait(thread.qtoks_);
+        thread.sector_ += block_size_sectors_;
     }
 };
 

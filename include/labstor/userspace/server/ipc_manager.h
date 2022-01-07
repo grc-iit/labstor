@@ -190,10 +190,15 @@ public:
     }
 
     template<typename T>
-    inline void Wait(labstor::ipc::qtok_set &qtoks) {
-        for(int i = 0; i < qtoks.GetLength(); ++i) {
-            FreeRequest(qtoks[i], Wait<T>(qtoks[i]));
+    inline int Wait(labstor::ipc::qtok_set &qtoks) {
+        AUTO_TRACE("")
+        labstor::ipc::qtok_t qtok;
+        while(qtoks.Dequeue(qtok)) {
+            T *rq = Wait<T>(qtok);
+            //TODO: Check if request successful
+            FreeRequest(qtok, rq);
         }
+        return LABSTOR_REQUEST_SUCCESS;
     }
     inline std::vector<int> &GetConnectedProcesses() {
         return pids_;

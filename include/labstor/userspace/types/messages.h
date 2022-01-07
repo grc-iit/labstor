@@ -6,6 +6,7 @@
 #define LABSTOR_MESSAGES_H
 
 #include <labstor/types/data_structures/shmem_qtok.h>
+#include <labstor/types/data_structures/shmem_qtok_set.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 
 namespace labstor::ipc {

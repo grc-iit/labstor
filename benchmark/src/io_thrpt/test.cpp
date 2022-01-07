@@ -16,10 +16,10 @@ void io_test(labstor::IOTest *test) {
     t[1].Pause();
 
     printf("Write Bandwidth: %lf MBps\n", test->GetTotalIO()/t[0].GetUsec());
-    printf("Write Throughput: %lf KOps\n", test->GetNumOps()/t[0].GetMsec());
+    printf("Write Throughput: %lf KOps\n", test->GetTotalNumOps()/t[0].GetMsec());
 
     printf("Read Bandwidth: %lf MBps\n", test->GetTotalIO()/t[1].GetUsec());
-    printf("Read Throughput: %lf KOps\n", test->GetNumOps()/t[1].GetMsec());
+    printf("Read Throughput: %lf KOps\n", test->GetTotalNumOps()/t[1].GetMsec());
 }
 
 int main(int argc, char **argv) {
@@ -34,13 +34,13 @@ int main(int argc, char **argv) {
 
     if(io_method == "posix") {
         labstor::PosixIO *test = new labstor::PosixIO();
-        test->Init(path, block_size, total_size);
+        //test->Init(path, block_size, total_size);
         io_test(test);
     }
     if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
-        labstor::LabstorMQ *test = new labstor::LabstorMQ();
-        test->Init(path, block_size, total_size);
+        labstor::LabStorMQ *test = new labstor::LabStorMQ();
+        //test->Init(path, block_size, total_size);
         io_test(test);
         LABSTOR_ERROR_HANDLE_END();
     }

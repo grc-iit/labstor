@@ -25,12 +25,20 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     void Register();
-    void IO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sectore, int hctx);
+    void IO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx);
     inline void Read(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         IO(Ops::kRead, dev_id, user_buf, buf_size, sector, hctx);
     }
     inline void Write(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         IO(Ops::kWrite, dev_id, user_buf, buf_size, sector, hctx);
+    }
+
+    labstor::ipc::qtok_t AIO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx);
+    inline labstor::ipc::qtok_t ARead(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        return AIO(Ops::kRead, dev_id, user_buf, buf_size, sector, hctx);
+    }
+    inline labstor::ipc::qtok_t AWrite(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        return AIO(Ops::kWrite, dev_id, user_buf, buf_size, sector, hctx);
     }
 };
 

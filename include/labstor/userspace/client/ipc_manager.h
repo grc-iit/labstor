@@ -10,10 +10,12 @@
 #include <vector>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/types/socket.h>
+#include <labstor/constants/constants.h>
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include <labstor/types/data_structures/shmem_qtok_set.h>
 #include <labstor/types/thread_local.h>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
@@ -117,7 +119,7 @@ public:
         AUTO_TRACE("")
         return FreeRequest(qtok.qid, rq);
     }
-    template<typename T>
+    template<typename T=labstor::ipc::request>
     T* Wait(labstor::ipc::qtok_t &qtok) {
         AUTO_TRACE("")
         T *rq;
@@ -126,12 +128,16 @@ public:
         rq = qp->Wait<T>(qtok.req_id);
         return rq;
     }
-    template<typename T>
-    void Wait(labstor::ipc::qtok_set &qtoks) {
+    template<typename T=labstor::ipc::request>
+    int Wait(labstor::ipc::qtok_set &qtoks) {
         AUTO_TRACE("")
-        for(int i = 0; i < qtoks.GetLength(); ++i) {
-            FreeRequest(qtoks[i], Wait<T>(qtoks[i]));
+        labstor::ipc::qtok_t qtok;
+        while(qtoks.Dequeue(qtok)) {
+            T *rq = Wait<T>(qtok);
+            //TODO: Check if request successful
+            FreeRequest(qtok, rq);
         }
+        return LABSTOR_REQUEST_SUCCESS;
     }
 
     void PauseQueues();
