@@ -48,7 +48,6 @@ struct labstor_bio_driver_request {
     void *user_buf_;
     size_t sector_;
     size_t buf_size_;
-    int hctx_;
     int pid_;
 
 #ifdef __cplusplus
@@ -56,7 +55,7 @@ struct labstor_bio_driver_request {
         Start(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector);
     }
     inline void Start(int ns_id, struct labstor_bio_driver_request *rq) {
-        Start(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
+        Start(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_);
     }
     inline void Start(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector) {
         header_.ns_id_ = ns_id;
@@ -66,7 +65,6 @@ struct labstor_bio_driver_request {
         user_buf_ = user_buf;
         buf_size_ = buf_size;
         sector_ = sector;
-        hctx_ = hctx;
     }
     void Copy(labstor_bio_driver_request *rq) {
         header_.Copy(&rq->header_);

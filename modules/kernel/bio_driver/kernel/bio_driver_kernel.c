@@ -20,7 +20,6 @@
 #include <linux/bio.h>
 #include <linux/blk_types.h>
 #include <linux/blkdev.h>
-#include <linux/blk-bio.h>
 #include <linux/list.h>
 #include <linux/cpumask.h>
 #include <linux/timer.h>
@@ -121,10 +120,8 @@ static inline struct bio *create_bio(struct labstor_bio_driver_request *rq, stru
 
 inline void submit_bio_driver_io(struct labstor_queue_pair *qp, struct labstor_bio_driver_request *rq) {
     struct page **pages;
-    struct request *dev_rq;
     int success, num_pages;
     struct block_device *bdev;
-    struct request_queue *q;
     struct bio *bio;
     rq->qp_ = qp;
     success = LABSTOR_BIO_OK;
@@ -194,7 +191,7 @@ void bio_process_request_fn(struct labstor_queue_pair *qp, struct labstor_reques
 
 struct labstor_module bio_driver_module = {
         .module_id = BIO_DRIVER_MODULE_ID,
-        .runtime_id = bio_driver_RUNTIME_ID,
+        .runtime_id = BIO_DRIVER_RUNTIME_ID,
         .process_request_fn = bio_process_request_fn,
         .process_request_fn_netlink = NULL
 };

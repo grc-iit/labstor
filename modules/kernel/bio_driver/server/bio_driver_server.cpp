@@ -40,7 +40,7 @@ void labstor::BIODriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_b
     //Create SERVER -> KERNEL message
     TRACEPOINT("Received_req", client_rq->header_.req_id_)
     kern_rq = ipc_manager_->AllocRequest<labstor_bio_driver_request>(kern_qp);
-    kern_rq->Start(bio_driver_RUNTIME_ID, client_rq);
+    kern_rq->Start(BIO_DRIVER_RUNTIME_ID, client_rq);
     kern_qp->Enqueue<labstor_bio_driver_request>(kern_rq, qtok);
 
     //Poll SERVER -> KERNEL interaction
