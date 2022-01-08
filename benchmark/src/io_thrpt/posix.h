@@ -5,7 +5,7 @@
 #ifndef LABSTOR_POSIX_H
 #define LABSTOR_POSIX_H
 
-#include "io_test.h"
+#include "unix_file_based.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <aio.h>
@@ -17,7 +17,6 @@
 #include <string.h>
 #include <cstdio>
 #include <errno.h>
-#include <aio.h>
 #include <labstor/types/thread_local.h>
 #include <vector>
 
@@ -41,25 +40,12 @@ struct PosixIOThread {
     }
 };
 
-class PosixIO : public IOTest {
+class PosixIO : public UnixFileBasedIOTest {
 private:
     std::vector<PosixIOThread> thread_bufs_;
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        //Open file & truncate
-        int fd = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
-        if(fd < 0) {
-            perror("Could not open/create file\n");
-            exit(1);
-        }
-        if(do_truncate) {
-            if(ftruncate(fd, GetTotalIO()) < 0) {
-                perror("Failed to trunacate file\n");
-                exit(1);
-            }
-        }
-        close(fd);
+        UnixFileBasedIOTest::Init(path, block_size, total_size, ops_per_batch, nthreads, do_truncate);
         //Store per-thread data
         for(int i = 0; i < nthreads_; ++i) {
             thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetIOPerBatch(), i*GetIOPerThread());

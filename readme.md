@@ -92,6 +92,12 @@ make -j8
 make install
 ```
 
+### LIBAIO
+
+```
+sudo apt install libaio-dev
+```
+
 ## 2. Building
 
 ```

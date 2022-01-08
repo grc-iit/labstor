@@ -6,6 +6,7 @@
 #include "posix_aio.h"
 #include "labstor_mq.h"
 #include "io_uring.h"
+#include "libaio.h"
 
 void write_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
@@ -61,7 +62,11 @@ int main(int argc, char **argv) {
         test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
         test = test_impl;
     }
-
+    else if(io_method == "libaio") {
+        labstor::LibAIO *test_impl = new labstor::LibAIO();
+        test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
+        test = test_impl;
+    }
     else if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
         labstor::LabStorMQ *test_impl = new labstor::LabStorMQ();

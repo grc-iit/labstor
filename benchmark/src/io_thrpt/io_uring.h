@@ -5,6 +5,7 @@
 #ifndef LABSTOR_IO_URING_H
 #define LABSTOR_IO_URING_H
 
+#include "unix_file_based.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
@@ -43,25 +44,12 @@ struct IOUringThread {
     }
 };
 
-class IOUringIO : public IOTest {
+class IOUringIO : public UnixFileBasedIOTest {
 private:
     std::vector<IOUringThread> thread_bufs_;
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        //Open file & truncate
-        int fd = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
-        if(fd < 0) {
-            perror("Could not open/create file\n");
-            exit(1);
-        }
-        if(do_truncate) {
-            if(ftruncate(fd, GetTotalIO()) < 0) {
-                perror("Failed to trunacate file\n");
-                exit(1);
-            }
-        }
-        close(fd);
+        UnixFileBasedIOTest::Init(path, block_size, total_size, ops_per_batch, nthreads, do_truncate);
         //Store per-thread data
         for(int i = 0; i < nthreads_; ++i) {
             thread_bufs_.emplace_back(path, GetOpsPerBatch(), block_size_, i*GetIOPerThread());
