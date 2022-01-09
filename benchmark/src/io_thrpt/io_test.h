@@ -38,6 +38,12 @@ public:
             exit(1);
         }
     }
+    size_t GetBlockSize() {
+        return block_size_;
+    }
+    int GetNumThreads() {
+        return nthreads_;
+    }
     size_t GetTotalIO() {
         return total_size_;
     }

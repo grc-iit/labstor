@@ -69,6 +69,9 @@ int main(int argc, char **argv) {
         test = test_impl;
     }
     else if(io_method == "spdk") {
+        labstor::SPDKIO *test_impl = new labstor::SPDKIO();
+        test_impl->Init(block_size, total_size, queue_depth, nthreads);
+        test = test_impl;
     }
     else if(io_method == "dax") {
     }
@@ -90,6 +93,10 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    if(test == NULL) {
+        printf("%s was not implemented\n", io_method.c_str());
+        exit(1);
+    }
     if(read_or_write == "write") {
         write_test(test);
     }

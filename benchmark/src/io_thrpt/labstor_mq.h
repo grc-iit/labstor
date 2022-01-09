@@ -38,8 +38,6 @@ public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
         //Inputs
-        block_size_ = block_size;
-        block_size_sectors_ = block_size / 512;
         if((block_size % 512) != 0) {
             printf("Error: block size is not a multiple of 512 bytes\n");
             exit(1);

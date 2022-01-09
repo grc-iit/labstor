@@ -103,22 +103,42 @@ make install
 sudo apt install libaio-dev
 ```
 
+### DPDK
+
+```
+scspkg create dpdk
+cd `scspkg pkg-src dpdk`
+git clone https://github.com/DPDK/dpdk.git
+cd dpdk
+cd build
+meson configure --prefix `scspkg pkg-root dpdk`
+cd ../
+meson -C build
+ninja -C build
+meson install -C build
+mv `scspkg pkg-root dpdk`/lib/*/* `scspkg pkg-root dpdk`/lib/
+```
+
 ### SPDK
 
 ```
 scspkg create spdk
+cd `scspkg pkg-src spdk`
 git clone https://github.com/spdk/spdk
 cd spdk
 git submodule update --init
 sudo scripts/pkgdep.sh
+./configure --with-dpdk=`scspkg pkg-root dpdk` --prefix=`scspkg pkg-root spdk`
+make -j8
+make install
+```
+
+```
+cd `scspkg pkg-src spdk`/spdk
 #Allocate huge pages & unbind NVMes
 sudo HUGEMEM=2048 scripts/setup.sh
 #Rebind NVMes
 sudo scripts/setup.sh reset
-#
-./configure --prefix=`scspkg pkg-src spdk`
-make -j8
-make install
 ```
 
 ## 2. Building
