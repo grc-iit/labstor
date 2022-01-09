@@ -17,8 +17,9 @@
 #include <string.h>
 #include <cstdio>
 #include <errno.h>
-#include <labstor/types/thread_local.h>
 #include <vector>
+
+#include <labstor/types/thread_local.h>
 
 namespace labstor {
 

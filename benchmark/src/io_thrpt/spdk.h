@@ -1,0 +1,232 @@
+//
+// Created by lukemartinlogan on 1/8/22.
+//
+
+#ifndef LABSTOR_SPDK_H
+#define LABSTOR_SPDK_H
+
+//https://github.com/spdk/spdk/blob/master/examples/nvme/hello_world/hello_world.c
+
+#include "io_test.h"
+#include <labstor/types/thread_local.h>
+
+#include <spdk/stdinc.h>
+#include <spdk/nvme.h>
+#include <spdk/vmd.h>
+#include <spdk/nvme_zns.h>
+#include <spdk/env.h>
+#include <spdk/string.h>
+#include <spdk/log.h>
+
+static void
+register_ns(struct spdk_nvme_ctrlr *ctrlr, struct spdk_nvme_ns *ns)
+{
+    struct ns_entry *entry;
+
+    entry = malloc(sizeof(struct ns_entry));
+    if (entry == NULL) {
+        perror("ns_entry malloc");
+        exit(1);
+    }
+
+    entry->ctrlr = ctrlr;
+    entry->ns = ns;
+    TAILQ_INSERT_TAIL(&g_namespaces, entry, link);
+
+    printf("  Namespace ID: %d size: %juGB\n", spdk_nvme_ns_get_id(ns),
+           spdk_nvme_ns_get_size(ns) / 1000000000);
+}
+
+static void
+cleanup(void)
+{
+    struct ns_entry *ns_entry, *tmp_ns_entry;
+    struct ctrlr_entry *ctrlr_entry, *tmp_ctrlr_entry;
+    struct spdk_nvme_detach_ctx *detach_ctx = NULL;
+
+    TAILQ_FOREACH_SAFE(ns_entry, &g_namespaces, link, tmp_ns_entry) {
+        TAILQ_REMOVE(&g_namespaces, ns_entry, link);
+        free(ns_entry);
+    }
+
+    TAILQ_FOREACH_SAFE(ctrlr_entry, &g_controllers, link, tmp_ctrlr_entry) {
+        TAILQ_REMOVE(&g_controllers, ctrlr_entry, link);
+        spdk_nvme_detach_async(ctrlr_entry->ctrlr, &detach_ctx);
+        free(ctrlr_entry);
+    }
+
+    if (detach_ctx) {
+        spdk_nvme_detach_poll(detach_ctx);
+    }
+}
+
+
+namespace labstor {
+
+class SPDKIOThread {
+public:
+    size_t io_offset_;
+    void *buf_;
+    struct spdk_nvme_ctrlr	*ctrlr_;
+    struct spdk_nvme_ns	*namespace_;
+    struct spdk_nvme_qpair	*qpair_;
+    bool zone_complete_;
+    bool *completions_;
+public:
+    SPDKIOThread(struct spdk_nvme_ctrlr	*ctrlr, int ops_per_batch, size_t block_size) : io_offset_(0) {
+        ctrlr_ = ctrlr;
+
+        //Create queue pair
+        qpair_ = spdk_nvme_ctrlr_alloc_io_qpair(ctrlr_, NULL, 0);
+        if (qpair_ == NULL) {
+            printf("ERROR: spdk_nvme_ctrlr_alloc_io_qpair() failed\n");
+            exit(1);
+        }
+
+        //Create buffer
+        buf_ = spdk_zmalloc(block_size, 4096, NULL, SPDK_ENV_SOCKET_ID_ANY, SPDK_MALLOC_DMA);
+        if (buf_ == NULL) {
+            printf("ERROR: write buffer allocation failed\n");
+            return;
+        }
+
+        //Initialize namespace
+        int nsid = spdk_nvme_ctrlr_get_first_active_ns(ctrlr_);
+        namespace_ = spdk_nvme_ctrlr_get_ns(ctrlr, nsid);
+        if (namespace_ == NULL) {
+            printf("Could not acquire namespace\n");
+            exit(1);
+        }
+        if (!spdk_nvme_ns_is_active(namespace_)) {
+            printf("NVMe namespace is not active\n");
+            return;
+        }
+
+        //Initialize zoned namespace for writing
+        if (spdk_nvme_ns_get_csi(namespace_) == SPDK_NVME_CSI_ZNS) {
+            zone_complete_ = false;
+            if (spdk_nvme_zns_reset_zone(namespace_, qpair_,
+                                         0, /* starting LBA of the zone to reset */
+                                         false, /* don't reset all zones */
+                                         reset_zone_complete,
+                                         this)) {
+                fprintf(stderr, "starting reset zone I/O failed\n");
+                exit(1);
+            }
+            while (!zone_complete_) {
+                spdk_nvme_qpair_process_completions(qpair_, 0);
+            }
+        }
+
+        //Completion vector
+        completions_ = reinterpret_cast<bool*>(calloc(ops_per_batch, sizeof(bool)));
+    }
+    ~SPDKIOThread() {
+        spdk_nvme_ctrlr_free_io_qpair(qpair_);
+        spdk_free(buf_);
+    }
+    bool IsComplete(int id) {
+        if(completions_[id]) {
+            completions_[id] = false;
+            return true;
+        }
+        return false;
+    }
+
+private:
+    static void reset_zone_complete(void *arg, const struct spdk_nvme_cpl *completion) {
+        SPDKIOThread *io_thread = reinterpret_cast<SPDKIOThread*>(arg);
+        io_thread->zone_complete_ = true;
+        if (spdk_nvme_cpl_is_error(completion)) {
+            spdk_nvme_qpair_print_completion(sequence->ns_entry->qpair, (struct spdk_nvme_cpl *)completion);
+            fprintf(stderr, "I/O error status: %s\n", spdk_nvme_cpl_get_status_string(&completion->status));
+            fprintf(stderr, "Reset zone I/O failed, aborting run\n");
+            exit(1);
+        }
+    }
+};
+
+class SPDKIO : public IOTest {
+public:
+    struct spdk_nvme_ctrlr	*ctrlr_;
+    struct spdk_nvme_transport_id transport_id_;
+    std::vector<SPDKIOThread> thread_bufs_;
+public:
+    void Init() {
+        int ret = 0;
+        struct spdk_env_opts opts;
+
+        //Initialize SPDK environment
+        spdk_env_opts_init(&opts);
+        opts.name = "hello_world";
+        if (spdk_env_init(&opts) < 0) {
+            fprintf(stderr, "Unable to initialize SPDK env\n");
+            exit(1);
+        }
+
+        //Probe NVMe devices to get controller and transport id
+        memset(transport_id_, 0, sizeof(struct spdk_nvme_transport_id));
+        spdk_nvme_trid_populate_transport(&transport_id_, SPDK_NVME_TRANSPORT_PCIE);
+        ret = spdk_nvme_probe(&transport_id_, this, probe_cb, attach_cb, NULL);
+        if (ret != 0) {
+            fprintf(stderr, "spdk_nvme_probe() failed\n");
+            cleanup();
+            exit(1);
+        }
+    }
+
+    void Write() {
+        int tid = labstor::ThreadLocal::GetTid(), ret;
+        struct SPDKIOThread &thread = thread_bufs_[tid];
+        //Submit the I/O request
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            ret = spdk_nvme_ns_cmd_write(
+                    thread.namespace_,
+                    thread.qpair_,
+                    thread.buf_,
+                    0, /* LBA start */
+                    1, /* number of LBAs */
+                    io_complete, &thread.completions_[i], 0);
+            if (ret != 0) {
+                fprintf(stderr, "starting write I/O failed\n");
+                exit(1);
+            }
+        }
+        //Wait for completion
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            while(!thread.IsComplete(i)) {
+                spdk_nvme_qpair_process_completions(thread.qpair_, 0);
+            }
+        }
+    }
+
+    void Read() {
+    }
+
+private:
+    static bool probe_cb(void *cb_ctx, const struct spdk_nvme_transport_id *trid,
+             struct spdk_nvme_ctrlr_opts *opts) {
+        return true;
+    }
+
+    static void attach_cb(void *cb_ctx, const struct spdk_nvme_transport_id *trid,
+              struct spdk_nvme_ctrlr *ctrlr, const struct spdk_nvme_ctrlr_opts *opts) {
+        SPDKIO *test = reinterpret_cast<SPDKIO*>(cb_ctx);
+        test->transport_id_ = trid;
+        test->ctrlr_ = ctrlr;
+    }
+
+    static void io_complete(void *arg, const struct spdk_nvme_cpl *completion) {
+        bool *event = reinterpret_cast<bool*>(arg);
+        if (spdk_nvme_cpl_is_error(completion)) {
+            spdk_nvme_qpair_print_completion(sequence->ns_entry->qpair, (struct spdk_nvme_cpl *)completion);
+            fprintf(stderr, "I/O error status: %s\n", spdk_nvme_cpl_get_status_string(&completion->status));
+            fprintf(stderr, "Write I/O failed, aborting run\n");
+            exit(1);
+        }
+    }
+};
+
+}
+
+#endif //LABSTOR_SPDK_H

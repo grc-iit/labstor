@@ -17,6 +17,8 @@
 #include <sys/ioctl.h>
 #include <liburing.h>
 
+#include <labstor/types/thread_local.h>
+
 namespace labstor {
 
 struct IOUringThread {
@@ -69,8 +71,14 @@ public:
                 exit(1);
             }
             //Submit I/O request
-            io_uring_prep_rw(op, sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
-            io_uring_sqe_set_data(sqe, thread.buf_+off);
+            switch(op) {
+                case 0:
+                    io_uring_prep_read(sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
+                    break;
+                case 1:
+                    io_uring_prep_write(sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
+                    break;
+            }
             ret = io_uring_submit(&thread.ring_);
             if(ret != 1) {
                 printf("Failed to submit request\n");
@@ -88,7 +96,7 @@ public:
                 exit(1);
             }
             if(cqe->res < 0) {
-                printf("io_uring_wait_cqe: %s\n", strerror(-cqe->res));
+                printf("completion: %s\n", strerror(-cqe->res));
                 exit(1);
             }
             io_uring_cqe_seen(&thread.ring_, cqe);
@@ -96,11 +104,11 @@ public:
     }
 
     void Read() {
-        AIO(IORING_OP_READ);
+        AIO(0);
     }
 
     void Write() {
-        AIO(IORING_OP_WRITE);
+        AIO(1);
     }
 };
 

@@ -14,7 +14,10 @@ yaml-cpp
 
 ### Linux Headers
 ```
+#Ubuntu/Debian
 sudo apt install linux-headers-`uname -r`
+#Red Hat
+sudo yum install linux-headers-`uname -r`
 ```
 
 ### SCSPKG
@@ -27,7 +30,9 @@ source ~/.bashrc
 ### TCL
 
 ```
+#Ubuntu/Debian
 sudo apt install tcl-dev
+#Red Hat
 sudo yum install tcl-devel
 ```
 
@@ -96,6 +101,24 @@ make install
 
 ```
 sudo apt install libaio-dev
+```
+
+### SPDK
+
+```
+scspkg create spdk
+git clone https://github.com/spdk/spdk
+cd spdk
+git submodule update --init
+sudo scripts/pkgdep.sh
+#Allocate huge pages & unbind NVMes
+sudo HUGEMEM=2048 scripts/setup.sh
+#Rebind NVMes
+sudo scripts/setup.sh reset
+#
+./configure --prefix=`scspkg pkg-src spdk`
+make -j8
+make install
 ```
 
 ## 2. Building

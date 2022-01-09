@@ -59,7 +59,7 @@ public:
             }
             io_submit(thread.ctx_, 1, &cb);
         }
-        io_queue_run(thread.ctx_);
+        io_getevents(thread.ctx_, GetOpsPerBatch(), GetOpsPerBatch(), thread.events_, NULL);
     }
 
     void Read() {

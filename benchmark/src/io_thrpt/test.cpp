@@ -7,6 +7,7 @@
 #include "labstor_mq.h"
 #include "io_uring.h"
 #include "libaio.h"
+#include "spdk.h"
 
 void write_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
         test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
         test = test_impl;
     }
-    else if(io_method == "iouring") {
+    else if(io_method == "io_uring") {
         labstor::IOUringIO *test_impl = new labstor::IOUringIO();
         test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
         test = test_impl;
@@ -67,6 +68,10 @@ int main(int argc, char **argv) {
         test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
         test = test_impl;
     }
+    else if(io_method == "spdk") {
+    }
+    else if(io_method == "dax") {
+    }
     else if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
         labstor::LabStorMQ *test_impl = new labstor::LabStorMQ();
@@ -75,6 +80,10 @@ int main(int argc, char **argv) {
         LABSTOR_ERROR_HANDLE_END();
     }
     else if(io_method == "bio") {
+    }
+    else if(io_method == "labfs") {
+    }
+    else if(io_method == "labkvs") {
     }
     else {
         printf("%s did not match any io_methods\n", io_method.c_str());
