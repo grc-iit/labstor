@@ -116,6 +116,7 @@ public:
         //Probe NVMe devices to get controller and transport id
         memset(reinterpret_cast<void*>(&transport_id_), 0, sizeof(struct spdk_nvme_transport_id));
         spdk_nvme_trid_populate_transport(&transport_id_, SPDK_NVME_TRANSPORT_PCIE);
+        snprintf(transport_id_.subnqn, sizeof(transport_id_.subnqn), "%s", SPDK_NVMF_DISCOVERY_NQN);
         ret = spdk_nvme_probe(&transport_id_, this, probe_cb, attach_cb, NULL);
         if (ret != 0) {
             fprintf(stderr, "spdk_nvme_probe() failed\n");

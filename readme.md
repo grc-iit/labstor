@@ -125,10 +125,11 @@ mv `scspkg pkg-root dpdk`/lib/*/* `scspkg pkg-root dpdk`/lib/
 scspkg create spdk
 cd `scspkg pkg-src spdk`
 git clone https://github.com/spdk/spdk
+git checkout v21.10
 cd spdk
 git submodule update --init
-sudo scripts/pkgdep.sh
-./configure --with-dpdk=`scspkg pkg-root dpdk` --prefix=`scspkg pkg-root spdk`
+sudo scripts/pkgdep.sh --all
+./configure --prefix=`scspkg pkg-root spdk`
 make -j8
 make install
 ```

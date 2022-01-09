@@ -9,23 +9,73 @@ target_compile_options(test_usr_usr_ipc_thrpt PUBLIC "${OpenMP_CXX_FLAGS}")
 add_dependencies(test_usr_usr_ipc_thrpt labstor_client_library ipc_test_client)
 target_link_libraries(test_usr_usr_ipc_thrpt labstor_client_library ipc_test_client "${OpenMP_CXX_FLAGS}")
 
+#SPDK dummy lib
+add_library(spdk_nvme_lib STATIC src/dummy.c)
+set(SPDK_BUILD_DIR /home/cc/scspkg/packages/spdk/src/spdk/)
+set(SPDK_COMPILE_OPTS
+        -MMD -MP -MF -g -Wall -Wextra -Wno-unused-parameter
+        -Wno-missing-field-initializers -Wmissing-declarations -fno-strict-aliasing
+        -march=native -Wformat
+        -Wformat-security -D_GNU_SOURCE -fPIC -fstack-protector -fno-common
+        -DNDEBUG -O2 -U_FORTIFY_SOURCE
+        -D_FORTIFY_SOURCE=2 -DSPDK_GIT_COMMIT=4e4f11ff7 -pthread -Wno-pointer-sign
+        -Wstrict-prototypes -std=gnu99)
+set(SPDK_LINK_OPTS
+        -Wl,-z,relro,-z,now -Wl,-z,noexecstack -fuse-ld=bfd
+        -Wl,--whole-archive
+        -Wl,--no-as-needed
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_sock_posix.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_nvme.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_sock.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_trace.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_rpc.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_jsonrpc.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_json.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_util.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_vmd.a
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_log.a
+        -Wl,--no-whole-archive
+        ${SPDK_BUILD_DIR}/build/lib/libspdk_env_dpdk.a
+        -Wl,--whole-archive
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_eal.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_mempool.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_ring.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_mbuf.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_bus_pci.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_pci.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_mempool_ring.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_power.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_ethdev.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_net.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_telemetry.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_kvargs.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_vhost.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_cryptodev.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_hash.a
+        ${SPDK_BUILD_DIR}/dpdk/build/lib/librte_rcu.a
+        -Wl,--no-whole-archive  -lnuma -ldl
+        -L${SPDK_BUILD_DIR}/isa-l/.libs -lisal -pthread -lrt -luuid
+        -lcrypto -lm -laio)
+target_compile_options(spdk_nvme_lib PUBLIC ${SPDK_COMPILE_OPTS})
+target_link_options(spdk_nvme_lib PUBLIC ${SPDK_LINK_OPTS})
+set(SPDK_DYN_LIBS -lnuma -ldl -pthread -lrt -luuid -lcrypto -lm -laio)
+
+#SPDK test
+add_executable(test_spdk src/spdk/hello.c)
+add_dependencies(test_spdk spdk_nvme_lib)
+target_link_libraries(test_spdk spdk_nvme_lib ${SPDK_DYN_LIBS})
+
 #IO throughput
 add_executable(test_io_thrpt src/io_thrpt/test.cpp)
 target_compile_options(test_io_thrpt PUBLIC "${OpenMP_CXX_FLAGS}")
-add_dependencies(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client)
+add_dependencies(test_io_thrpt labstor_client_library mq_driver_client blkdev_table_client spdk_nvme_lib)
 target_link_libraries(test_io_thrpt
         labstor_client_library
         mq_driver_client
         blkdev_table_client
         "${OpenMP_CXX_FLAGS}"
-        rt uring aio
-        pthread m dl numa
-
-        spdk_nvme spdk_sock spdk_sock_posix spdk_trace spdk_rpc spdk_jsonrpc spdk_json spdk_util spdk_log
-        spdk_env_dpdk spdk_util spdk_log rte_eal rte_mempool rte_ring rte_mbuf rte_bus_pci rte_pci
-        rte_mempool_ring rte_telemetry rte_kvargs rte_power rte_ethdev rte_net rte_vhost rte_cryptodev
-        rte_hash rte_rcu uuid)
-
+        uring aio
+        spdk_nvme_lib ${SPDK_DYN_LIBS})
 #https://spdk.io/doc/pkgconfig.html
 
 #IO Uring probe
