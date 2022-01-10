@@ -1,0 +1,30 @@
+//
+// Created by lukemartinlogan on 11/26/21.
+//
+
+#ifndef LABSTOR_DUMMY_H
+#define LABSTOR_DUMMY_H
+
+#include <labstor/types/data_structures/shmem_request.h>
+
+namespace labstor::test::Dummy {
+
+enum class Ops {
+    kGetValue=4
+};
+
+struct dummy_request : public labstor::ipc::request {
+    int value_;
+    dummy_request() {}
+    void Start(uint32_t ns_id) {
+        ns_id_ = ns_id;
+        op_ = static_cast<int>(Ops::kGetValue);
+    }
+    void Complete(uint32_t value) {
+        value_ = value;
+    }
+};
+
+}
+
+#endif //LABSTOR_DUMMY_H
