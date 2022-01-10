@@ -58,7 +58,7 @@ public:
         struct PosixIOThread &thread = thread_bufs_[tid];
         lseek(thread.fd_, thread.io_offset_, SEEK_SET);
         int ret = write(thread.fd_, thread.buf_, block_size_);
-        if (ret != block_size_) {
+        if (ret != (int)block_size_) {
             printf("Error, could not write POSIX: %s\n", strerror(errno));
             exit(1);
         }
@@ -68,7 +68,7 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct PosixIOThread &thread = thread_bufs_[tid];
         int ret = read(thread.fd_, thread.buf_, block_size_);
-        if(ret != block_size_) {
+        if(ret != (int)block_size_) {
             printf("Error, could not read POSIX: %s\n", strerror(errno));
             exit(1);
         }

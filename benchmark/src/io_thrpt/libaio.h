@@ -47,7 +47,7 @@ public:
     void AIO(int op) {
         int tid = labstor::ThreadLocal::GetTid();
         struct LibAIOThread &thread = thread_bufs_[tid];
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             struct iocb *cb = thread.cbs_+i;
             switch(op) {
                 case 0:

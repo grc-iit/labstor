@@ -32,7 +32,11 @@ void direct_read(int value, size_t sector, size_t buf_size, const char *path) {
         printf("Could not open file (direct_read) (%s)\n", path);
         exit(1);
     }
-    pread(fd, buffer, buf_size, sector*512);
+    int ret = pread(fd, buffer, buf_size, sector*512);
+    if(ret < 0) {
+        perror("Failed to pread\n");
+        exit(1);
+    }
     verify_buf(value, buffer, buf_size, path);
 
     close(fd);

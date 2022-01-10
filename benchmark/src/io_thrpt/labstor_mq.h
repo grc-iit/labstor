@@ -10,6 +10,7 @@
 #include <modules/kernel/blkdev_table/client/blkdev_table_client.h>
 #include <modules/kernel/mq_driver/client/mq_driver_client.h>
 #include "io_test.h"
+#include "sectored_io.h"
 
 namespace labstor {
 
@@ -26,7 +27,7 @@ struct LabStorMQThread {
     }
 };
 
-class LabStorMQ : public IOTest {
+class LabStorMQ : public IOTest, public SectoredIO {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     int dev_id_;
@@ -37,11 +38,7 @@ private:
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        //Inputs
-        if((block_size % 512) != 0) {
-            printf("Error: block size is not a multiple of 512 bytes\n");
-            exit(1);
-        }
+        SectoredIO::Init(GetBlockSize());
 
         //Connect to trusted server
         ipc_manager_ = LABSTOR_IPC_MANAGER;
@@ -64,7 +61,7 @@ public:
         int hctx = 0;
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             thread.qtoks_.Enqueue(mq_driver_.AWrite(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
             thread.sector_ += block_size_sectors_;
         }
@@ -76,7 +73,7 @@ public:
         int hctx = 0;
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             thread.qtoks_.Enqueue(mq_driver_.ARead(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
             thread.sector_ += block_size_sectors_;
         }

@@ -9,6 +9,9 @@
 #include "libaio.h"
 #include "spdk.h"
 
+void write_test(labstor::IOTest *test);
+void read_test(labstor::IOTest *test);
+
 void write_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
     for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {

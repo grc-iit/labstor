@@ -63,7 +63,7 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct IOUringThread &thread = thread_bufs_[tid];
         size_t off = 0;
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             //Get IOUring submission queue entry
             struct io_uring_sqe *sqe = io_uring_get_sqe(&thread.ring_);
             if (!sqe) {
@@ -89,7 +89,7 @@ public:
 
         //Wait for completion
         struct io_uring_cqe *cqe;
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             ret = io_uring_wait_cqe(&thread.ring_, &cqe);
             if(ret < 0) {
                 printf("io_uring_wait_cqe: %s\n", strerror(-ret));

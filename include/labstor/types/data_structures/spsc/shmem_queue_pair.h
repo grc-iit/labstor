@@ -367,7 +367,7 @@ uint64_t labstor::ipc::queue_pair::GetStreamQueuePairID(labstor::ipc::qid_t flag
 }
 uint64_t labstor::ipc::queue_pair::GetStreamQueuePairID(labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
     uint32_t hash = 0;
-    for(int i = 0; i < str.size(); ++i) {
+    for(size_t i = 0; i < str.size(); ++i) {
         hash += str[i] << 4*(i%4);
     }
     hash *= ns_id;

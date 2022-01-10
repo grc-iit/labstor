@@ -62,7 +62,7 @@ public:
         struct aiocb64 *cb;
         int tid = labstor::ThreadLocal::GetTid();
         struct PosixAIOThread &thread = thread_bufs_[tid];
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             cb = thread.cbs_ + i;
             cb->aio_buf = thread.buf_ + i*block_size_;
             cb->aio_offset = thread.io_offset_ + i*block_size_;

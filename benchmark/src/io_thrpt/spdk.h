@@ -8,6 +8,7 @@
 //https://github.com/spdk/spdk/blob/master/examples/nvme/hello_world/hello_world.c
 
 #include "io_test.h"
+#include "sectored_io.h"
 #include <labstor/types/thread_local.h>
 
 #include <spdk/stdinc.h>
@@ -30,9 +31,11 @@ public:
     bool zone_complete_;
     bool *completions_;
 public:
-    SPDKIOThread(struct spdk_nvme_ctrlr	*ctrlr, spdk_nvme_ns *nvme_ns, int ops_per_batch, size_t block_size) : io_offset_(0) {
+    SPDKIOThread(struct spdk_nvme_ctrlr	*ctrlr, spdk_nvme_ns *nvme_ns, int ops_per_batch, size_t block_size, size_t io_offset) {
         ctrlr_ = ctrlr;
         nvme_ns_ = nvme_ns;
+        io_offset_ = io_offset;
+        int nonce = 0xF;
 
         //Create queue pair
         qpair_ = spdk_nvme_ctrlr_alloc_io_qpair(ctrlr_, NULL, 0);
@@ -47,6 +50,7 @@ public:
             printf("ERROR: write buffer allocation failed\n");
             return;
         }
+        memset(buf_, nonce, block_size);
 
         //Initialize zoned namespace for writing
         if (spdk_nvme_ns_get_csi(nvme_ns_) == SPDK_NVME_CSI_ZNS) {
@@ -92,7 +96,7 @@ private:
     }
 };
 
-class SPDKIO : public IOTest {
+class SPDKIO : public IOTest, public SectoredIO {
 public:
     struct spdk_nvme_ctrlr	*ctrlr_;
     struct spdk_nvme_ns	*nvme_ns_;
@@ -103,6 +107,7 @@ public:
         int ret = 0;
         struct spdk_env_opts opts;
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
+        SectoredIO::Init(GetBlockSize());
 
         //Initialize SPDK environment
         spdk_env_opts_init(&opts);
@@ -138,20 +143,22 @@ public:
         printf("Namespace ID: %d size: %juGB\n", spdk_nvme_ns_get_id(nvme_ns_), spdk_nvme_ns_get_size(nvme_ns_) / 1000000000);
 
         //Initialize per-thread data
-        exit(1);
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(ctrlr_, nvme_ns_, GetOpsPerBatch(), GetBlockSize(), GetIOPerThread());
+        }
     }
 
     void Write() {
         int tid = labstor::ThreadLocal::GetTid(), ret;
         struct SPDKIOThread &thread = thread_bufs_[tid];
         //Submit the I/O request
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             ret = spdk_nvme_ns_cmd_write(
                     thread.nvme_ns_,
                     thread.qpair_,
                     thread.buf_,
-                    0, /* LBA start */
-                    1, /* number of LBAs */
+                    thread.io_offset_ + i*GetBlockSize(), /* LBA start */
+                    GetBlockSizeSectors(), /* number of LBAs */
                     io_complete, &thread.completions_[i], 0);
             if (ret != 0) {
                 fprintf(stderr, "starting write I/O failed\n");
@@ -159,7 +166,7 @@ public:
             }
         }
         //Wait for completion
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             while(!thread.IsComplete(i)) {
                 spdk_nvme_qpair_process_completions(thread.qpair_, 0);
             }
@@ -167,6 +174,28 @@ public:
     }
 
     void Read() {
+        int tid = labstor::ThreadLocal::GetTid(), ret;
+        struct SPDKIOThread &thread = thread_bufs_[tid];
+        //Submit the I/O request
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
+            ret = spdk_nvme_ns_cmd_read(
+                    thread.nvme_ns_,
+                    thread.qpair_,
+                    thread.buf_,
+                    thread.io_offset_ + i*GetBlockSize(), /* LBA start */
+                    GetBlockSizeSectors(), /* number of LBAs */
+                    io_complete, &thread.completions_[i], 0);
+            if (ret != 0) {
+                fprintf(stderr, "starting write I/O failed\n");
+                exit(1);
+            }
+        }
+        //Wait for completion
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
+            while(!thread.IsComplete(i)) {
+                spdk_nvme_qpair_process_completions(thread.qpair_, 0);
+            }
+        }
     }
 
 private:
@@ -191,6 +220,7 @@ private:
             fprintf(stderr, "Write I/O failed, aborting run\n");
             exit(1);
         }
+        *event = true;
     }
 };
 

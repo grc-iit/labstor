@@ -10,6 +10,8 @@
 #include <modules/kernel/blkdev_table/client/blkdev_table_client.h>
 #include <modules/kernel/bio_driver/client/bio_driver_client.h>
 #include "io_test.h"
+#include "sectored_io.h"
+
 
 namespace labstor {
 
@@ -26,7 +28,7 @@ struct LabStorBIOThread {
     }
 };
 
-class LabStorBIO : public IOTest {
+class LabStorBIO : public IOTest, public SectoredIO {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     int dev_id_;
@@ -37,13 +39,7 @@ private:
 public:
     void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
         IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        //Inputs
-        block_size_ = block_size;
-        block_size_sectors_ = block_size / 512;
-        if((block_size % 512) != 0) {
-            printf("Error: block size is not a multiple of 512 bytes\n");
-            exit(1);
-        }
+        SectoredIO::Init(GetBlockSize());
 
         //Connect to trusted server
         ipc_manager_ = LABSTOR_IPC_MANAGER;
