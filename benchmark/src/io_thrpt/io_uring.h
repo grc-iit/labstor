@@ -21,22 +21,10 @@
 
 namespace labstor {
 
-struct IOUringThread {
-    char *buf_;
-    int fd_;
-    size_t io_offset_;
+struct IOUringThread : public UnixFileBasedIOThread {
     struct io_uring ring_;
-    IOUringThread(char *path, int ops_per_batch, size_t block_size, size_t io_offset) {
+    IOUringThread(char *path, int ops_per_batch, size_t block_size) : UnixFileBasedIOThread(path, block_size) {
         int ret;
-        //Open file
-        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
-        if(fd_ < 0) {
-            printf("Could not open/create file\n");
-            exit(1);
-        }
-        buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
-        memset(buf_, 0, block_size);
-        io_offset_ = io_offset;
         //Create IOUring queue
         ret = io_uring_queue_init(ops_per_batch, &ring_, 0);
         if(ret < 0) {
@@ -50,11 +38,11 @@ class IOUringIO : public UnixFileBasedIOTest {
 private:
     std::vector<IOUringThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        UnixFileBasedIOTest::Init(path, block_size, total_size, ops_per_batch, nthreads, do_truncate);
+    void Init(char *path, bool do_truncate, labstor::Generator *generator) {
+        UnixFileBasedIOTest::Init(path, do_truncate, generator);
         //Store per-thread data
-        for(int i = 0; i < nthreads_; ++i) {
-            thread_bufs_.emplace_back(path, GetOpsPerBatch(), block_size_, i*GetIOPerThread());
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetBlockSizeBytes());
         }
     }
     void AIO(int op) {
@@ -73,10 +61,10 @@ public:
             //Submit I/O request
             switch(op) {
                 case 0:
-                    io_uring_prep_read(sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
+                    io_uring_prep_read(sqe, thread.fd_, thread.buf_+off, GetBlockSizeBytes(), GetOffsetBytes(tid));
                     break;
                 case 1:
-                    io_uring_prep_write(sqe, thread.fd_, thread.buf_+off, block_size_, thread.io_offset_ + off);
+                    io_uring_prep_write(sqe, thread.fd_, thread.buf_+off, GetBlockSizeBytes(), GetOffsetBytes(tid));
                     break;
             }
             ret = io_uring_submit(&thread.ring_);
@@ -84,7 +72,7 @@ public:
                 printf("Failed to submit request\n");
                 exit(1);
             }
-            off += block_size_;
+            off += GetBlockSizeBytes();
         }
 
         //Wait for completion

@@ -201,7 +201,7 @@ namespace labstor {
             char *buffer = (char*)calloc(8192, 1);
             size_t off = 0;
             int arg = 0;
-            for (int i = 0; i < fmt.size(); ++i) {
+            for (size_t i = 0; i < fmt.size(); ++i) {
                 if (fmt[i] == '{' && fmt[i + 1] == '}') {
                     off += params[arg++].serialize(buffer + off);
                     ++i;

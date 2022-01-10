@@ -103,7 +103,7 @@ struct string {
 
     static inline uint32_t hash(const char *key, const uint32_t length) {
         uint32_t sum = 0;
-        for(int i = 0; i < length; ++i) {
+        for(size_t i = 0; i < length; ++i) {
             sum += key[i] << 4*(i%4);
         }
         return sum;

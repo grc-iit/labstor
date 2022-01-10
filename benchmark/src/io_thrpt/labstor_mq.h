@@ -15,10 +15,9 @@
 namespace labstor {
 
 struct LabStorMQThread {
-    size_t sector_;
     void *buf_;
     labstor::ipc::qtok_set qtoks_;
-    LabStorMQThread(int ops_per_batch, size_t block_size) : sector_(0) {
+    LabStorMQThread(int ops_per_batch, size_t block_size) {
         int nonce = 12;
         buf_ = aligned_alloc(4096, block_size);
         memset(buf_, nonce, block_size);
@@ -27,18 +26,16 @@ struct LabStorMQThread {
     }
 };
 
-class LabStorMQ : public IOTest, public SectoredIO {
+class LabStorMQ : public IOTest {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     int dev_id_;
     labstor::BlkdevTable::Client blkdev_table_;
     labstor::MQDriver::Client mq_driver_;
-    size_t block_size_, block_size_sectors_;
     std::vector<LabStorMQThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        SectoredIO::Init(GetBlockSize());
+    void Init(char *path, labstor::Generator *generator) {
+        IOTest::Init(generator);
 
         //Connect to trusted server
         ipc_manager_ = LABSTOR_IPC_MANAGER;
@@ -52,8 +49,8 @@ public:
         mq_driver_.Register();
 
         //Store per-thread data
-        for(int i = 0; i < nthreads_; ++i) {
-            thread_bufs_.emplace_back(ops_per_batch, block_size_);
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(GetOpsPerBatch(), GetBlockSizeBytes());
         }
     }
 
@@ -62,11 +59,14 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(mq_driver_.AWrite(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
-            thread.sector_ += block_size_sectors_;
+            thread.qtoks_.Enqueue(mq_driver_.AWrite(
+                    dev_id_,
+                    thread.buf_,
+                    GetBlockSizeBytes(),
+                    GetOffsetUnits(tid),
+                    hctx));
         }
         ipc_manager_->Wait(thread.qtoks_);
-        thread.sector_ += block_size_sectors_;
     }
 
     void Read() {
@@ -74,11 +74,14 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(mq_driver_.ARead(dev_id_, thread.buf_, block_size_, thread.sector_, hctx));
-            thread.sector_ += block_size_sectors_;
+            thread.qtoks_.Enqueue(mq_driver_.ARead(
+                    dev_id_,
+                    thread.buf_,
+                    GetBlockSizeBytes(),
+                    GetOffsetBytes(tid),
+                    hctx));
         }
         ipc_manager_->Wait(thread.qtoks_);
-        thread.sector_ += block_size_sectors_;
     }
 };
 

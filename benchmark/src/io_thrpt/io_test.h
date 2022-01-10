@@ -5,62 +5,51 @@
 #ifndef LABSTOR_IO_TEST_H
 #define LABSTOR_IO_TEST_H
 
+#include "generator/generator.h"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 
 namespace labstor {
-
 class IOTest {
-protected:
-    size_t block_size_;
-    size_t total_size_;
-    size_t total_ops_;
-    size_t batches_per_thread_;
-    size_t io_per_batch_;
-    int ops_per_batch_;
-    int nthreads_;
-
+private:
+    labstor::Generator *generator_;
 public:
+    void Init(labstor::Generator *generator) {
+        generator_ = generator;
+    }
+    labstor::Generator* GetGenerator() {
+        return generator_;
+    }
     virtual void Read() = 0;
     virtual void Write() = 0;
 
-    void Init(size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
-        block_size_ = block_size;
-        total_size_ = total_size;
-        nthreads_ = nthreads;
-        batches_per_thread_ = (total_size / (block_size*ops_per_batch)) / nthreads;
-        ops_per_batch_ = ops_per_batch;
-        io_per_batch_ = ops_per_batch * block_size;
-        total_ops_ = batches_per_thread_ * nthreads * ops_per_batch * block_size;
-        if(batches_per_thread_ == 0) {
-            printf("More threads than I/O operations\n");
-            exit(1);
-        }
+    size_t GetTotalIOBytes() {
+        return generator_->GetTotalIOBytes();
     }
-    size_t GetBlockSize() {
-        return block_size_;
+    int GetTotalNumOps() {
+        return generator_->GetTotalNumOps();
     }
     int GetNumThreads() {
-        return nthreads_;
-    }
-    size_t GetTotalIO() {
-        return total_size_;
-    }
-    size_t GetTotalNumOps() {
-        return total_ops_;
-    }
-    size_t GetBatchesPerThread() {
-        return batches_per_thread_;
+        return generator_->GetNumThreads();
     }
     size_t GetOpsPerBatch() {
-        return ops_per_batch_;
+        return generator_->GetOpsPerBatch();
     }
-    size_t GetIOPerBatch() {
-        return io_per_batch_;
+    int GetBatchesPerThread() {
+        return generator_->GetBatchesPerThread();
     }
-    size_t GetIOPerThread() {
-        return GetBatchesPerThread()*GetIOPerBatch();
+    size_t GetBlockSizeBytes() {
+        return generator_->GetBlockSizeBytes();
+    }
+    size_t GetBlockSizeUnits() {
+        return generator_->GetBlockSizeUnits();
+    }
+    size_t GetOffsetBytes(int tid) {
+        return generator_->GetOffsetBytes(tid);
+    }
+    size_t GetOffsetUnits(int tid) {
+        return generator_->GetOffsetUnits(tid);
     }
 };
 

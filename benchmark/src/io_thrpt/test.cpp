@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 12/31/21.
 //
 
+#include "generator/sequential.h"
 #include "posix.h"
 #include "posix_aio.h"
 #include "labstor_mq.h"
@@ -14,25 +15,28 @@ void read_test(labstor::IOTest *test);
 
 void write_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
-    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
+    printf("BATCHES PER THREAD: %d\n", test->GetBatchesPerThread());
+    printf("OPS PER BATCH: %d\n", test->GetOpsPerBatch());
+    printf("Block Size Bytes: %d\n", test->GetBlockSizeBytes());
+    for(int i = 0; i < test->GetBatchesPerThread(); ++i) {
         t.Resume();
         test->Write();
         t.Pause();
     }
-    printf("Total IO (MB): %lu MB\n", test->GetTotalIO() / (1<<20));
-    printf("Write Bandwidth: %lf MBps\n", test->GetTotalIO()/t.GetUsec());
+    printf("Total IO (MB): %lu MB\n", test->GetTotalIOBytes() / (1<<20));
+    printf("Write Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
     printf("Write Throughput: %lf KOps\n", test->GetTotalNumOps()/t.GetMsec());
 }
 
 void read_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
-    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
+    for(int i = 0; i < test->GetBatchesPerThread(); ++i) {
         t.Resume();
         test->Read();
         t.Pause();
     }
-    printf("Total IO (MB): %lu\n", test->GetTotalIO() / (1<<20));
-    printf("Read Bandwidth: %lf MBps\n", test->GetTotalIO()/t.GetUsec());
+    printf("Total IO (MB): %lu\n", test->GetTotalIOBytes() / (1<<20));
+    printf("Read Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
     printf("Read Throughput: %lf KOps\n", test->GetTotalNumOps()/t.GetMsec());
 }
 
@@ -46,34 +50,44 @@ int main(int argc, char **argv) {
     bool truncate = std::string(argv[3]) == "yes";
     uint64_t block_size = atoi(argv[4])*(1<<10);
     uint64_t total_size = atoi(argv[5])*(1<<20);
-    int queue_depth = atoi(argv[6]);
+    int ops_per_batch = atoi(argv[6]);
     int nthreads = atoi(argv[7]);
     char *path = argv[8];
 
+    //Workload generator
+    labstor::SequentialGenerator *generator = new labstor::SequentialGenerator();
+    generator->Init(block_size, total_size, ops_per_batch, nthreads);
+
+    //I/O Mechanisms
     labstor::IOTest *test = nullptr;
     if(io_method == "posix") {
         labstor::PosixIO *test_impl = new labstor::PosixIO();
-        test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
+        generator->SetOffsetUnit(1);
+        test_impl->Init(path, truncate, generator);
         test = test_impl;
     }
     else if(io_method == "posix_aio") {
         labstor::PosixAIO *test_impl = new labstor::PosixAIO();
-        test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
+        generator->SetOffsetUnit(1);
+        test_impl->Init(path, truncate, generator);
         test = test_impl;
     }
     else if(io_method == "io_uring") {
         labstor::IOUringIO *test_impl = new labstor::IOUringIO();
-        test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
+        generator->SetOffsetUnit(1);
+        test_impl->Init(path, truncate, generator);
         test = test_impl;
     }
     else if(io_method == "libaio") {
         labstor::LibAIO *test_impl = new labstor::LibAIO();
-        test_impl->Init(path, block_size, total_size, queue_depth, nthreads, truncate);
+        generator->SetOffsetUnit(1);
+        test_impl->Init(path, truncate, generator);
         test = test_impl;
     }
     else if(io_method == "spdk") {
         labstor::SPDKIO *test_impl = new labstor::SPDKIO();
-        test_impl->Init(block_size, total_size, queue_depth, nthreads);
+        generator->SetOffsetUnit(512);
+        test_impl->Init(generator);
         test = test_impl;
     }
     else if(io_method == "dax") {
@@ -81,7 +95,8 @@ int main(int argc, char **argv) {
     else if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
         labstor::LabStorMQ *test_impl = new labstor::LabStorMQ();
-        test_impl->Init(path, block_size, total_size, queue_depth, nthreads);
+        generator->SetOffsetUnit(512);
+        test_impl->Init(path, generator);
         test = test_impl;
         LABSTOR_ERROR_HANDLE_END();
     }
@@ -96,6 +111,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    //IO Tests
     if(test == NULL) {
         printf("%s was not implemented\n", io_method.c_str());
         exit(1);

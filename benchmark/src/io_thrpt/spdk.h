@@ -8,7 +8,6 @@
 //https://github.com/spdk/spdk/blob/master/examples/nvme/hello_world/hello_world.c
 
 #include "io_test.h"
-#include "sectored_io.h"
 #include <labstor/types/thread_local.h>
 
 #include <spdk/stdinc.h>
@@ -23,7 +22,6 @@ namespace labstor {
 
 class SPDKIOThread {
 public:
-    size_t io_offset_;
     void *buf_;
     struct spdk_nvme_ctrlr	*ctrlr_;
     struct spdk_nvme_ns	*nvme_ns_;
@@ -31,10 +29,9 @@ public:
     bool zone_complete_;
     bool *completions_;
 public:
-    SPDKIOThread(struct spdk_nvme_ctrlr	*ctrlr, spdk_nvme_ns *nvme_ns, int ops_per_batch, size_t block_size, size_t io_offset) {
+    SPDKIOThread(struct spdk_nvme_ctrlr	*ctrlr, spdk_nvme_ns *nvme_ns, int ops_per_batch, size_t block_size) {
         ctrlr_ = ctrlr;
         nvme_ns_ = nvme_ns;
-        io_offset_ = io_offset;
         int nonce = 0xF;
 
         //Create queue pair
@@ -96,18 +93,17 @@ private:
     }
 };
 
-class SPDKIO : public IOTest, public SectoredIO {
+class SPDKIO : public IOTest {
 public:
     struct spdk_nvme_ctrlr	*ctrlr_;
     struct spdk_nvme_ns	*nvme_ns_;
     struct spdk_nvme_transport_id transport_id_;
     std::vector<SPDKIOThread> thread_bufs_;
 public:
-    void Init(size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
+    void Init(labstor::Generator *generator) {
         int ret = 0;
         struct spdk_env_opts opts;
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        SectoredIO::Init(GetBlockSize());
+        IOTest::Init(generator);
 
         //Initialize SPDK environment
         spdk_env_opts_init(&opts);
@@ -144,7 +140,7 @@ public:
 
         //Initialize per-thread data
         for(int i = 0; i < GetNumThreads(); ++i) {
-            thread_bufs_.emplace_back(ctrlr_, nvme_ns_, GetOpsPerBatch(), GetBlockSize(), GetIOPerThread());
+            thread_bufs_.emplace_back(ctrlr_, nvme_ns_, GetOpsPerBatch(), GetBlockSizeUnits());
         }
     }
 
@@ -157,8 +153,8 @@ public:
                     thread.nvme_ns_,
                     thread.qpair_,
                     thread.buf_,
-                    thread.io_offset_ + i*GetBlockSize(), /* LBA start */
-                    GetBlockSizeSectors(), /* number of LBAs */
+                    GetOffsetUnits(tid), /* LBA start */
+                    GetBlockSizeUnits(), /* number of LBAs */
                     io_complete, &thread.completions_[i], 0);
             if (ret != 0) {
                 fprintf(stderr, "starting write I/O failed\n");
@@ -182,8 +178,8 @@ public:
                     thread.nvme_ns_,
                     thread.qpair_,
                     thread.buf_,
-                    thread.io_offset_ + i*GetBlockSize(), /* LBA start */
-                    GetBlockSizeSectors(), /* number of LBAs */
+                    GetOffsetUnits(tid), /* LBA start */
+                    GetBlockSizeUnits(), /* number of LBAs */
                     io_complete, &thread.completions_[i], 0);
             if (ret != 0) {
                 fprintf(stderr, "starting write I/O failed\n");

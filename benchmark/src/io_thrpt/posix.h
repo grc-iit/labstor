@@ -23,54 +23,47 @@
 
 namespace labstor {
 
-struct PosixIOThread {
-    char *buf_;
-    int fd_;
-    size_t io_offset_;
-    PosixIOThread(char *path, int ops_per_thread, size_t block_size, size_t io_offset) {
-        //Open file
-        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
-        if(fd_ < 0) {
-            printf("Could not open/create file\n");
-            exit(1);
-        }
-        buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
-        memset(buf_, 0, block_size);
-        lseek(fd_, io_offset, SEEK_SET);
-        io_offset_ = io_offset;
-    }
+struct PosixIOThread : public UnixFileBasedIOThread {
+    PosixIOThread(char *path, size_t block_size) : UnixFileBasedIOThread(path, block_size) {}
 };
 
 class PosixIO : public UnixFileBasedIOTest {
 private:
     std::vector<PosixIOThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        UnixFileBasedIOTest::Init(path, block_size, total_size, ops_per_batch, nthreads, do_truncate);
+    void Init(char *path, bool do_truncate, labstor::Generator *generator) {
+        UnixFileBasedIOTest::Init(path, do_truncate, generator);
         //Store per-thread data
-        for(int i = 0; i < nthreads_; ++i) {
-            thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetIOPerBatch(), i*GetIOPerThread());
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(path,GetBlockSizeBytes());
         }
     }
 
     void Write() {
         int tid = labstor::ThreadLocal::GetTid();
         struct PosixIOThread &thread = thread_bufs_[tid];
-        lseek(thread.fd_, thread.io_offset_, SEEK_SET);
-        int ret = write(thread.fd_, thread.buf_, block_size_);
-        if (ret != (int)block_size_) {
-            printf("Error, could not write POSIX: %s\n", strerror(errno));
-            exit(1);
+        size_t off = 0;
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
+            int ret = pwrite(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
+            if (ret != (int) GetBlockSizeBytes()) {
+                printf("Error, could not write POSIX: %s\n", strerror(errno));
+                exit(1);
+            }
+            off += GetBlockSizeBytes();
         }
     }
 
     void Read() {
         int tid = labstor::ThreadLocal::GetTid();
         struct PosixIOThread &thread = thread_bufs_[tid];
-        int ret = read(thread.fd_, thread.buf_, block_size_);
-        if(ret != (int)block_size_) {
-            printf("Error, could not read POSIX: %s\n", strerror(errno));
-            exit(1);
+        size_t off = 0;
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
+            int ret = pread(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
+            if (ret != (int) GetBlockSizeBytes()) {
+                printf("Error, could not read POSIX: %s\n", strerror(errno));
+                exit(1);
+            }
+            off += GetBlockSizeBytes();
         }
     }
 };

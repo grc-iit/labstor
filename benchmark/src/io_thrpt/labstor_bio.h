@@ -28,19 +28,16 @@ struct LabStorBIOThread {
     }
 };
 
-class LabStorBIO : public IOTest, public SectoredIO {
+class LabStorBIO : public IOTest {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     int dev_id_;
     labstor::BlkdevTable::Client blkdev_table_;
     labstor::BIODriver::Client bio_driver_;
-    size_t block_size_, block_size_sectors_;
     std::vector<LabStorBIOThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads) {
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
-        SectoredIO::Init(GetBlockSize());
-
+    void Init(char *path, labstor::Generator *generator) {
+        IOTest::Init(generator);
         //Connect to trusted server
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         ipc_manager_->Connect();
@@ -53,8 +50,8 @@ public:
         bio_driver_.Register();
 
         //Store per-thread data
-        for(int i = 0; i < nthreads_; ++i) {
-            thread_bufs_.emplace_back(ops_per_batch, block_size_);
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(GetOpsPerBatch(), GetBlockSizeBytes());
         }
     }
 
@@ -62,22 +59,18 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorBIOThread &thread = thread_bufs_[tid];
         for(int i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(bio_driver_.AWrite(dev_id_, thread.buf_, block_size_, thread.sector_));
-            thread.sector_ += block_size_sectors_;
+            thread.qtoks_.Enqueue(bio_driver_.AWrite(dev_id_, thread.buf_, GetBlockSizeBytes(), GetOffsetUnits(tid)));
         }
         ipc_manager_->Wait(thread.qtoks_);
-        thread.sector_ += block_size_sectors_;
     }
 
     void Read() {
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorBIOThread &thread = thread_bufs_[tid];
         for(int i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(bio_driver_.ARead(dev_id_, thread.buf_, block_size_, thread.sector_));
-            thread.sector_ += block_size_sectors_;
+            thread.qtoks_.Enqueue(bio_driver_.ARead(dev_id_, thread.buf_, GetBlockSizeBytes(), GetOffsetUnits(tid)));
         }
         ipc_manager_->Wait(thread.qtoks_);
-        thread.sector_ += block_size_sectors_;
     }
 };
 

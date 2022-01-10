@@ -20,10 +20,25 @@
 #include <labstor/types/thread_local.h>
 
 namespace labstor {
+struct UnixFileBasedIOThread {
+    int fd_;
+    char *buf_;
+    UnixFileBasedIOThread(char *path, size_t block_size) {
+        int ret;
+        //Open file
+        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
+        if(fd_ < 0) {
+            printf("Could not open/create file\n");
+            exit(1);
+        }
+        buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
+        memset(buf_, 0, block_size);
+    }
+};
 class UnixFileBasedIOTest : public IOTest {
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        IOTest::Init(block_size, total_size, ops_per_batch, nthreads);
+    void Init(char *path, bool do_truncate, labstor::Generator *generator) {
+        IOTest::Init(generator);
         //Open file & truncate
         int fd = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
         if(fd < 0) {
@@ -31,7 +46,7 @@ public:
             exit(1);
         }
         if(do_truncate) {
-            if(ftruncate(fd, GetTotalIO()) < 0) {
+            if(ftruncate(fd, GetTotalIOBytes()) < 0) {
                 perror("Failed to trunacate file\n");
                 exit(1);
             }

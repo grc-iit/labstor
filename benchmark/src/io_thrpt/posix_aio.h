@@ -23,27 +23,16 @@
 
 namespace labstor {
 
-struct PosixAIOThread {
+struct PosixAIOThread : public UnixFileBasedIOThread {
     aiocb64 *cbs_;
     struct aiocb64 **cb_list_;
-    char *buf_;
-    int fd_;
-    size_t io_offset_;
-    PosixAIOThread(char *path, int ops_per_thread, size_t block_size, size_t io_offset) {
+    PosixAIOThread(char *path, int ops_per_batch, size_t block_size) : UnixFileBasedIOThread(path, block_size) {
         //Open file
-        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
-        if(fd_ < 0) {
-            printf("Could not open/create file\n");
-            exit(1);
-        }
-        buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
-        cbs_ = reinterpret_cast<aiocb64*>(calloc(sizeof(aiocb), ops_per_thread));
-        cb_list_ = reinterpret_cast<aiocb64**>(calloc(sizeof(aiocb*), ops_per_thread));
-        for(int i = 0; i < ops_per_thread; ++i) {
+        cbs_ = reinterpret_cast<aiocb64*>(calloc(sizeof(aiocb), ops_per_batch));
+        cb_list_ = reinterpret_cast<aiocb64**>(calloc(sizeof(aiocb*), ops_per_batch));
+        for(int i = 0; i < ops_per_batch; ++i) {
             cb_list_[i] = cbs_ + i;
         }
-        memset(buf_, 0, block_size);
-        io_offset_ = io_offset;
     }
 };
 
@@ -51,11 +40,11 @@ class PosixAIO : public UnixFileBasedIOTest {
 private:
     std::vector<PosixAIOThread> thread_bufs_;
 public:
-    void Init(char *path, size_t block_size, size_t total_size, int ops_per_batch, int nthreads, bool do_truncate) {
-        UnixFileBasedIOTest::Init(path, block_size, total_size, ops_per_batch, nthreads, do_truncate);
+    void Init(char *path, bool do_truncate, labstor::Generator *generator) {
+        UnixFileBasedIOTest::Init(path,  do_truncate, generator);
         //Store per-thread data
-        for(int i = 0; i < nthreads_; ++i) {
-            thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetIOPerBatch(), i*GetIOPerThread());
+        for(int i = 0; i < GetNumThreads(); ++i) {
+            thread_bufs_.emplace_back(path, GetOpsPerBatch(), GetBlockSizeBytes());
         }
     }
     void AIO(int op) {
@@ -64,9 +53,9 @@ public:
         struct PosixAIOThread &thread = thread_bufs_[tid];
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             cb = thread.cbs_ + i;
-            cb->aio_buf = thread.buf_ + i*block_size_;
-            cb->aio_offset = thread.io_offset_ + i*block_size_;
-            cb->aio_nbytes = block_size_;
+            cb->aio_buf = thread.buf_ + i*GetBlockSizeBytes();
+            cb->aio_offset = GetOffsetBytes(tid);
+            cb->aio_nbytes = GetBlockSizeBytes();
             cb->aio_fildes = thread.fd_;
             cb->aio_lio_opcode = op;
         }

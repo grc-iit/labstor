@@ -135,7 +135,7 @@ static inline void labstor_shmem_allocator_Attach(struct labstor_shmem_allocator
 static inline void *labstor_shmem_allocator_Alloc(struct labstor_shmem_allocator *alloc, uint32_t size, uint32_t core) {
     AUTO_TRACE("labstor_shmem_allocator_Alloc")
     struct labstor_shmem_allocator_entry *page;
-    int save;
+    uint32_t save;
     core = core % alloc->concurrency_;
     save = core;
     do {
