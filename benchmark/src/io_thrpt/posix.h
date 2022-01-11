@@ -44,7 +44,7 @@ public:
         struct PosixIOThread &thread = thread_bufs_[tid];
         size_t off = 0;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            int ret = pwrite(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
+            ssize_t ret = pwrite64(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
             if (ret != (int) GetBlockSizeBytes()) {
                 printf("Error, could not write POSIX: %s\n", strerror(errno));
                 exit(1);
@@ -58,7 +58,7 @@ public:
         struct PosixIOThread &thread = thread_bufs_[tid];
         size_t off = 0;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            int ret = pread(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
+            ssize_t ret = pread64(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
             if (ret != (int) GetBlockSizeBytes()) {
                 printf("Error, could not read POSIX: %s\n", strerror(errno));
                 exit(1);

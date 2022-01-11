@@ -73,7 +73,7 @@ public:
         spdk_free(buf_);
     }
     bool IsComplete(int id) {
-        if(completions_[id]) {
+        if(__atomic_load_n(&completions_[id], __ATOMIC_RELAXED)) {
             completions_[id] = false;
             return true;
         }
@@ -164,7 +164,11 @@ public:
         //Wait for completion
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             while(!thread.IsComplete(i)) {
-                spdk_nvme_qpair_process_completions(thread.qpair_, 0);
+                ret = spdk_nvme_qpair_process_completions(thread.qpair_, 0);
+                if(ret < 0) {
+                    printf("Failed at transport layer\n");
+                    exit(1);
+                }
             }
         }
     }
@@ -182,7 +186,7 @@ public:
                     GetBlockSizeUnits(), /* number of LBAs */
                     io_complete, &thread.completions_[i], 0);
             if (ret != 0) {
-                fprintf(stderr, "starting write I/O failed\n");
+                fprintf(stderr, "starting write I/O failed: %d\n", ret);
                 exit(1);
             }
         }

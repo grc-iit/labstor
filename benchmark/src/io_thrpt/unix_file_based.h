@@ -24,7 +24,6 @@ struct UnixFileBasedIOThread {
     int fd_;
     char *buf_;
     UnixFileBasedIOThread(char *path, size_t block_size) {
-        int ret;
         //Open file
         fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
         if(fd_ < 0) {

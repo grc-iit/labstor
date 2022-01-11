@@ -27,7 +27,7 @@ public:
     size_t GetTotalIOBytes() {
         return generator_->GetTotalIOBytes();
     }
-    int GetTotalNumOps() {
+    size_t GetTotalNumOps() {
         return generator_->GetTotalNumOps();
     }
     int GetNumThreads() {
@@ -36,7 +36,7 @@ public:
     size_t GetOpsPerBatch() {
         return generator_->GetOpsPerBatch();
     }
-    int GetBatchesPerThread() {
+    size_t GetBatchesPerThread() {
         return generator_->GetBatchesPerThread();
     }
     size_t GetBlockSizeBytes() {

@@ -15,8 +15,8 @@ struct LibAIOThread : public UnixFileBasedIOThread {
     struct iocb *cbs_;
     struct io_event *events_;
     LibAIOThread(char *path, int ops_per_batch, size_t block_size) : UnixFileBasedIOThread(path, block_size) {
-        cbs_ = reinterpret_cast<struct iocb*>(malloc(ops_per_batch*sizeof(struct iocb)));
-        events_ = reinterpret_cast<struct io_event*>(malloc(ops_per_batch*sizeof(struct io_event)));
+        cbs_ = reinterpret_cast<struct iocb*>(calloc(ops_per_batch, sizeof(struct iocb)));
+        events_ = reinterpret_cast<struct io_event*>(calloc(ops_per_batch, sizeof(struct io_event)));
         io_queue_init(ops_per_batch, &ctx_);
     }
 };
@@ -49,7 +49,19 @@ public:
             io_submit(thread.ctx_, 1, &cb);
             off += GetBlockSizeBytes();
         }
-        io_getevents(thread.ctx_, GetOpsPerBatch(), GetOpsPerBatch(), thread.events_, NULL);
+        int ret = io_getevents(thread.ctx_, GetOpsPerBatch(), GetOpsPerBatch(), thread.events_, NULL);
+        if(ret != GetOpsPerBatch()) {
+            printf("Error occurred reading events: %d\n", ret);
+            exit(1);
+        }
+        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+            if(thread.events_[i].res != GetBlockSizeBytes()) {
+                struct iocb *cb = thread.cbs_+i;
+                printf("LibAIO[%d]: I/O failed: %s\n", i, strerror(-thread.events_[i].res));
+                printf("CB: fd=%d disk_off=%lu nbytes=%lu prio=%d\n", cb->aio_fildes, cb->u.c.offset, cb->u.c.nbytes, cb->aio_reqprio);
+                exit(1);
+            }
+        }
     }
 
     void Read() {

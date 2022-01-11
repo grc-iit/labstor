@@ -15,29 +15,32 @@ void read_test(labstor::IOTest *test);
 
 void write_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
-    printf("BATCHES PER THREAD: %d\n", test->GetBatchesPerThread());
-    printf("OPS PER BATCH: %d\n", test->GetOpsPerBatch());
-    printf("Block Size Bytes: %d\n", test->GetBlockSizeBytes());
-    for(int i = 0; i < test->GetBatchesPerThread(); ++i) {
+    printf("BATCHES PER THREAD: %lu\n", test->GetBatchesPerThread());
+    printf("OPS PER BATCH: %lu\n", test->GetOpsPerBatch());
+    printf("Block Size Bytes: %lu\n", test->GetBlockSizeBytes());
+    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
         t.Resume();
         test->Write();
         t.Pause();
     }
     printf("Total IO (MB): %lu MB\n", test->GetTotalIOBytes() / (1<<20));
     printf("Write Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
-    printf("Write Throughput: %lf KOps\n", test->GetTotalNumOps()/t.GetMsec());
+    printf("Write Throughput: %lf MOps\n", test->GetTotalNumOps()/t.GetUsec());
 }
 
 void read_test(labstor::IOTest *test) {
     labstor::HighResMonotonicTimer t;
-    for(int i = 0; i < test->GetBatchesPerThread(); ++i) {
+    printf("BATCHES PER THREAD: %lu\n", test->GetBatchesPerThread());
+    printf("OPS PER BATCH: %lu\n", test->GetOpsPerBatch());
+    printf("Block Size Bytes: %lu\n", test->GetBlockSizeBytes());
+    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
         t.Resume();
         test->Read();
         t.Pause();
     }
     printf("Total IO (MB): %lu\n", test->GetTotalIOBytes() / (1<<20));
     printf("Read Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
-    printf("Read Throughput: %lf KOps\n", test->GetTotalNumOps()/t.GetMsec());
+    printf("Read Throughput: %lf MOps\n", test->GetTotalNumOps()/t.GetUsec());
 }
 
 int main(int argc, char **argv) {
@@ -48,8 +51,8 @@ int main(int argc, char **argv) {
     std::string io_method = std::string(argv[1]);
     std::string read_or_write = std::string(argv[2]);
     bool truncate = std::string(argv[3]) == "yes";
-    uint64_t block_size = atoi(argv[4])*(1<<10);
-    uint64_t total_size = atoi(argv[5])*(1<<20);
+    uint64_t block_size = ((uint64_t)atoi(argv[4]))*(1<<10);
+    uint64_t total_size = ((uint64_t)atoi(argv[5]))*(1<<20);
     int ops_per_batch = atoi(argv[6]);
     int nthreads = atoi(argv[7]);
     char *path = argv[8];

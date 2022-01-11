@@ -31,9 +31,13 @@ public:
         total_size_bytes_ = total_size;
         nthreads_ = nthreads;
         batches_per_thread_ = (total_size / (block_size*ops_per_batch)) / nthreads;
+        printf("TOTAL SIZE: %lu\n", total_size);
+        printf("BLOCK SIZE: %lu\n", block_size);
+        printf("BLOCK SIZE: %d\n", ops_per_batch);
+        printf("NTHREADS: %d\n", nthreads);
         ops_per_batch_ = ops_per_batch;
         bytes_per_batch_ = ops_per_batch * block_size;
-        total_ops_ = batches_per_thread_ * nthreads * ops_per_batch * block_size;
+        total_ops_ = batches_per_thread_ * nthreads * ops_per_batch;
         for(int i = 0; i < GetNumThreads(); ++i) {
             ticks_.emplace_back(0);
         }

@@ -25,6 +25,11 @@ add_executable(test_mq_driver_exec mq_driver/test.cpp)
 add_dependencies(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)
 target_link_libraries(test_mq_driver_exec labstor_client_library mq_driver_client blkdev_table_client)
 
+#BIO driver client
+add_executable(test_bio_driver_exec mq_driver/test.cpp)
+add_dependencies(test_bio_driver_exec labstor_client_library bio_driver_client blkdev_table_client)
+target_link_libraries(test_bio_driver_exec labstor_client_library bio_driver_client blkdev_table_client)
+
 #Trusted server throughput
 add_executable(test_trusted_server_conn_exec trusted_server_conn/test.cpp)
 add_dependencies(test_trusted_server_conn_exec labstor_client_library dummy_client)

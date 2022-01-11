@@ -1,0 +1,17 @@
+[precondition1]
+rw=write
+bs=64m
+direct=1
+ioengine=libaio
+iodepth=16
+filename=/dev/nvme0n1
+size=2000g
+
+[precondition2]
+rw=write
+bs=64m
+direct=1
+ioengine=libaio
+iodepth=16
+filename=/dev/nvme0n1
+size=2000g

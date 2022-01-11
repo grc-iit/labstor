@@ -10,7 +10,6 @@
 #include <modules/kernel/blkdev_table/client/blkdev_table_client.h>
 #include <modules/kernel/mq_driver/client/mq_driver_client.h>
 #include "io_test.h"
-#include "sectored_io.h"
 
 namespace labstor {
 
@@ -65,6 +64,7 @@ public:
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
+            hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }
@@ -80,6 +80,7 @@ public:
                     GetBlockSizeBytes(),
                     GetOffsetBytes(tid),
                     hctx));
+            hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }

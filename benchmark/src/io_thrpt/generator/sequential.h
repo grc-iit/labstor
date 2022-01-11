@@ -23,7 +23,7 @@ public:
         return off;
     }
     size_t GetOffsetUnits(int tid) {
-        size_t off = GetBytesPerThread()*tid + GetTick(tid)*GetBlockSizeBytes();
+        size_t off = GetUnitsPerThread()*tid + GetTick(tid)*GetBlockSizeUnits();
         IncrementTick(tid);
         return off;
     }
