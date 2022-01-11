@@ -169,12 +169,6 @@ inline void submit_bio_driver_io(struct labstor_queue_pair *qp, struct labstor_b
     labstor_complete_io(rq, success);
 }
 
-inline int get_stats(struct labstor_queue_pair *qp, struct labstor_bio_driver_request *rq) {
-    //int nr_hw_queues;
-    //nr_hw_queues = q->nr_hw_queues;
-    return 0;
-}
-
 void bio_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
     switch(rq->op_) {
         case LABSTOR_BIO_DRIVER_WRITE:

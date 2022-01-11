@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo dmesg --clear
+sudo rmmod bio_driver
 sudo rmmod mq_driver
 sudo rmmod blkdev_table
 sudo rmmod ipc_test
