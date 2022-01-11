@@ -6,6 +6,7 @@
 #include "posix.h"
 #include "posix_aio.h"
 #include "labstor_mq.h"
+#include "labstor_bio.h"
 #include "io_uring.h"
 #include "libaio.h"
 #include "spdk.h"
@@ -104,6 +105,12 @@ int main(int argc, char **argv) {
         LABSTOR_ERROR_HANDLE_END();
     }
     else if(io_method == "bio") {
+        LABSTOR_ERROR_HANDLE_START()
+        labstor::LabStorBIO *test_impl = new labstor::LabStorBIO();
+        generator->SetOffsetUnit(512);
+        test_impl->Init(path, generator);
+        test = test_impl;
+        LABSTOR_ERROR_HANDLE_END();
     }
     else if(io_method == "labfs") {
     }
