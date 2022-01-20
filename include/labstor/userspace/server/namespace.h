@@ -65,6 +65,7 @@ public:
         }
         TRACEPOINT(key.data_, ns_id);
         key_to_ns_id_.Set(key, ns_id);
+        module_id_to_instance_.emplace(module->GetModuleID(), std::move(std::queue<labstor::Module*>()));
         module_id_to_instance_[module->GetModuleID()].push(module);
         return ns_id;
     }
@@ -92,19 +93,21 @@ public:
         region_size = region_size_;
     }
     inline uint32_t Get(labstor::ipc::string key) {
-        return key_to_ns_id_[key];
+        uint32_t ns_id;
+        if(key_to_ns_id_.Find(key, ns_id)) {
+            return ns_id;
+        }
+        return -1;
     }
     inline bool GetIfExists(labstor::ipc::string key, uint32_t &ns_id) {
-        if(key_to_ns_id_.Find(key, ns_id)) {
-            return true;
-        }
-        return false;
+        return key_to_ns_id_.Find(key, ns_id);
     }
     inline labstor::Module *Get(uint32_t ns_id) {
         if(0 <= ns_id && ns_id < private_state_.size()) {
             return private_state_[ns_id];
         }
-        throw INVALID_NAMESPACE_ENTRY.format(ns_id);
+        return nullptr;
+        //throw INVALID_NAMESPACE_ENTRY.format(ns_id);
     }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {

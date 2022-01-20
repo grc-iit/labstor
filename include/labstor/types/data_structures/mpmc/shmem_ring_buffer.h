@@ -27,6 +27,14 @@ struct ring_buffer : public labstor::shmem_type {
     labstor_bitmap_t *bitmap_;
     T *queue_;
 
+    ring_buffer() = default;
+    ring_buffer(void *region, uint32_t region_size, uint32_t max_depth=0) {
+        Init(region, region_size, max_depth);
+    }
+    ring_buffer(void *region) {
+        Attach(region);
+    }
+
     static inline uint32_t GetSize(uint32_t max_depth) {
         return sizeof(struct ring_buffer) +
                sizeof(T)*max_depth

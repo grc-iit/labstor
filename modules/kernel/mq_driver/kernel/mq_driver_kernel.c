@@ -490,7 +490,7 @@ static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struc
     }
     bio_set_dev(bio, bdev);
     //bio_set_op_attrs(bio, op, 0);
-    bio->bi_opf = op;
+    bio->bi_opf = op | REQ_NOWAIT;
     bio_set_flag(bio, BIO_USER_MAPPED);
     //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;

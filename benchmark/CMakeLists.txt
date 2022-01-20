@@ -72,6 +72,7 @@ add_dependencies(test_io_thrpt labstor_client_library mq_driver_client blkdev_ta
 target_link_libraries(test_io_thrpt
         labstor_client_library
         mq_driver_client
+        bio_driver_client
         blkdev_table_client
         "${OpenMP_CXX_FLAGS}"
         uring aio

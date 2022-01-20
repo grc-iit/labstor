@@ -98,6 +98,9 @@ add_executable(test_charvec charvec/test.cpp)
 #######PROC PARTITION
 add_executable(test_proc_partition proc_partition/test.cpp)
 
+#######FILESYSTEM
+add_executable(test_fs_preload filesystem/test.cpp)
+
 ######CLEAN ALL TESTS
 add_custom_target(clean_tests COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean_build_request_queue_client_kernel)

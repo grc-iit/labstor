@@ -27,5 +27,5 @@ add_custom_target(clean_modules COMMAND
 ######MODULES
 add_subdirectory(registrar)
 add_subdirectory(dummy)
-#add_subdirectory(filesystems/generic_posix)
+add_subdirectory(filesystems/generic_posix)
 #add_subdirectory(filesystems/labstor_fs)

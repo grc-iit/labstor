@@ -24,6 +24,10 @@ void labstor::Client::IPCManager::Connect() {
     struct sockaddr_un server_addr;
     void *region;
 
+    if(IsConnected()) {
+        return;
+    }
+
     //Get our pid
     pid_ = getpid();
     n_cpu_ = get_nprocs_conf();
@@ -84,6 +88,9 @@ void labstor::Client::IPCManager::Connect() {
     TRACEPOINT("Create SHMEM queues")
     CreateQueuesSHMEM(reply.num_queues, reply.queue_depth);
     CreatePrivateQueues(n_cpu_, reply.queue_depth);
+
+    //Mark as connected
+    is_connected_ = true;
 }
 
 void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {

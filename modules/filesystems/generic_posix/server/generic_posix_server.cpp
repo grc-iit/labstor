@@ -50,6 +50,8 @@ void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_p
             module = namespace_->Get(ns_id);
             module->ProcessRequest(qp, reinterpret_cast<labstor::ipc::request*>(client_rq), creds);
             fd_to_ns_id_.Set(pid_fd, ns_id);
+            client_rq->Complete(LABSTOR_REQUEST_SUCCESS);
+            qp->Complete(client_rq);
             return;
         }
         len = PriorSlash(path, len);

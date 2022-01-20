@@ -1,0 +1,9 @@
+[libaio]
+rw=write
+bs=4k
+direct=1
+ioengine=posixaio
+iodepth=1
+filename=/dev/nvme0n1
+size=4g
+numjobs=40

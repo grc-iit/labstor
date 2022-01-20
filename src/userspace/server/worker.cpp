@@ -18,7 +18,13 @@ void labstor::Server::Worker::DoWork() {
         qp_depth = qp->GetDepth();
         for(uint32_t j = 0; j < qp_depth; ++j) {
             if (!qp->Dequeue(rq)) { break; }
-            module = namespace_->Get(rq->ns_id_);
+            module = namespace_->Get(rq->GetNamespaceID());
+            if(!module) {
+                rq->SetCode(-1);
+                qp->Complete(rq);
+                TRACEPOINT("Could not find module in namespace", rq->GetNamespaceID())
+                continue;
+            }
             module->ProcessRequest(qp, rq, creds);
         }
     }

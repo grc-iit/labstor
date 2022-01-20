@@ -31,11 +31,18 @@ private:
     labstor::GenericAllocator *private_alloc_;
     std::vector<labstor::ipc::queue_pair*> shmem_qps_;
     std::vector<labstor::ipc::queue_pair*> private_qps_;
+    bool is_connected_;
 public:
-    IPCManager() = default;
+    IPCManager() : is_connected_(false) {}
     void Connect();
+    bool IsConnected() {
+        return is_connected_;
+    }
     inline int GetPid() {
         return pid_;
+    }
+    inline int GetNumCPU() {
+        return n_cpu_;
     }
     inline void* GetBaseRegion() {
         return shmem_alloc_->GetRegion();
@@ -44,11 +51,10 @@ public:
         AUTO_TRACE("")
         if(LABSTOR_QP_IS_STREAM(flags)) {
             if(LABSTOR_QP_IS_SHMEM(flags)) {
+                TRACEPOINT("shmem_qps", shmem_qps_.size())
                 qp = shmem_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0)];
-                /*TRACEPOINT("AcqireSHMEMQueue",
-                           labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), shmem_qps_.size(), 0),
-                           qp->GetQid())*/
             } else {
+                TRACEPOINT("private_qps", private_qps_.size())
                 qp = private_qps_[labstor::ipc::queue_pair::GetStreamQueuePairOff(flags, labstor::ThreadLocal::GetTid(), private_qps_.size(), 1)];
             }
             return;

@@ -10,7 +10,7 @@
 #include <modules/registrar/server/registrar_server.h>
 
 labstor::Server::Namespace::Namespace() {
-    AUTO_TRACE("labstor::Server::Namespace::Namespace")
+    AUTO_TRACE("")
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
     uint32_t max_entries = labstor_config_->config_["namespace"]["max_entries"].as<uint32_t>();
     uint32_t max_collisions = labstor_config_->config_["namespace"]["max_collisions"].as<uint32_t>();
