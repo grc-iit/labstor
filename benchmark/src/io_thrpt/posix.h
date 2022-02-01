@@ -31,6 +31,8 @@ class PosixIO : public UnixFileBasedIOTest {
 private:
     std::vector<PosixIOThread> thread_bufs_;
 public:
+    PosixIO() = default;
+
     void Init(char *path, bool do_truncate, labstor::Generator *generator) {
         UnixFileBasedIOTest::Init(path, do_truncate, generator);
         //Store per-thread data
@@ -57,12 +59,14 @@ public:
         int tid = labstor::ThreadLocal::GetTid();
         struct PosixIOThread &thread = thread_bufs_[tid];
         size_t off = 0;
+        int count = 0;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             ssize_t ret = pread64(thread.fd_, thread.buf_ + off, GetBlockSizeBytes(), GetOffsetBytes(tid));
             if (ret != (int) GetBlockSizeBytes()) {
                 printf("Error, could not read POSIX: %s\n", strerror(errno));
                 exit(1);
             }
+            count += thread.buf_[off];
             off += GetBlockSizeBytes();
         }
     }

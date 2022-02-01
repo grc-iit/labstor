@@ -17,6 +17,7 @@
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_qtok_set.h>
 #include <labstor/types/thread_local.h>
+#include <mutex>
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
 
@@ -33,7 +34,9 @@ private:
     std::vector<labstor::ipc::queue_pair*> private_qps_;
     bool is_connected_;
 public:
-    IPCManager() : is_connected_(false) {}
+    IPCManager() : is_connected_(false) {
+        n_cpu_ = get_nprocs_conf();
+    }
     void Connect();
     bool IsConnected() {
         return is_connected_;

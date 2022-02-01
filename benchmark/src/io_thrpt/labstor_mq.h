@@ -33,6 +33,7 @@ private:
     labstor::MQDriver::Client mq_driver_;
     std::vector<LabStorMQThread> thread_bufs_;
 public:
+    LabStorMQ() = default;
     void Init(char *path, labstor::Generator *generator) {
         IOTest::Init(generator);
 
@@ -46,6 +47,9 @@ public:
 
         //Register MQ driver
         mq_driver_.Register();
+
+        //View the number of HW queues
+        printf("HW queues: %d\n", mq_driver_.GetNumHWQueues(dev_id_));
 
         //Store per-thread data
         for(int i = 0; i < GetNumThreads(); ++i) {
@@ -64,7 +68,7 @@ public:
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
-            hctx = (hctx + 1) % 4;
+            //hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }
@@ -78,9 +82,9 @@ public:
                     dev_id_,
                     thread.buf_,
                     GetBlockSizeBytes(),
-                    GetOffsetBytes(tid),
+                    GetOffsetUnits(tid),
                     hctx));
-            hctx = (hctx + 1) % 4;
+            //hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }

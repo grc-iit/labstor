@@ -34,6 +34,7 @@ struct FDAllocator {
     }
     int Allocate() {
         int fd;
+        TRACEPOINT((size_t)free_fds_.GetRegion())
         if(free_fds_.Dequeue(fd)) {
             return fd;
         }
@@ -69,7 +70,6 @@ public:
             fds_.emplace_back(LABSTOR_FD_MIN + i*LABSTOR_MAX_FDS_PER_THREAD, region, fd_alloc_size, LABSTOR_MAX_FDS_PER_THREAD);
         }
         LABSTOR_ERROR_HANDLE_START()
-        ipc_manager_->Connect();
         Initialize();
         LABSTOR_ERROR_HANDLE_END()
     }
@@ -80,6 +80,7 @@ public:
     int Open(const char *path, int oflag);
     int Close(int fd);
     int AllocateFD() {
+        TRACEPOINT(fds_.size(), ipc_manager_->GetNumCPU())
         return fds_[labstor::ThreadLocal::GetTid()].Allocate();
     }
     void FreeFD(int fd) {

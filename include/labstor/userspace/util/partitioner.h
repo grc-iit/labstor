@@ -42,8 +42,20 @@ public:
         CPU_SET(cpu, cpus_);
     }
 
+    inline void SetCpus(int off, int len) {
+        for(int i = 0; i < len; ++i) {
+            SetCpu(off + i);
+        }
+    }
+
     inline void ClearCpu(int cpu) {
         CPU_CLR(cpu, cpus_);
+    }
+
+    inline void ClearCpus(int off, int len) {
+        for(int i = 0; i < len; ++i) {
+            ClearCpu(off + i);
+        }
     }
 
     inline void Clear() {
@@ -52,9 +64,8 @@ public:
 
     int AffineAll(void) {
         DIR *procdir;
-        FILE *fp;
         struct dirent *entry;
-        int proc_pid, count = 0;
+        int count = 0;
 
         // Open /proc directory.
         procdir = opendir("/proc");

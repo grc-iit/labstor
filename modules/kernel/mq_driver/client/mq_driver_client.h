@@ -40,6 +40,8 @@ public:
     inline labstor::ipc::qtok_t AWrite(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         return AIO(Ops::kWrite, dev_id, user_buf, buf_size, sector, hctx);
     }
+
+    int GetNumHWQueues(int dev_id);
 };
 
 }

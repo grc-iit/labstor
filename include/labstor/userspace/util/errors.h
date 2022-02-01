@@ -16,6 +16,7 @@ namespace labstor {
     const Error INVALID_TRANSPORT_TYPE(3, "{} is not a valid transport type");
     const Error INVALID_AFFINITY(3, "Could not set CPU affinity of thread: {}");
     const Error MMAP_FAILED(4, "Could not mmap file: {}");
+    const Error LAZY_ERROR(5, "Error in function {}");
 
     const Error DLSYM_MODULE_NOT_FOUND(100, "Module {} was not found");
     const Error DLSYM_MODULE_NO_CONSTRUCTOR(101, "Module {} has no constructor");

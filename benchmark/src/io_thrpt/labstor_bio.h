@@ -33,6 +33,7 @@ private:
     labstor::BIODriver::Client bio_driver_;
     std::vector<LabStorBIOThread> thread_bufs_;
 public:
+    LabStorBIO() = default;
     void Init(char *path, labstor::Generator *generator) {
         IOTest::Init(generator);
 
@@ -74,7 +75,7 @@ public:
                     dev_id_,
                     thread.buf_,
                     GetBlockSizeBytes(),
-                    GetOffsetBytes(tid)));
+                    GetOffsetUnits(tid)));
         }
         ipc_manager_->Wait(thread.qtoks_);
     }

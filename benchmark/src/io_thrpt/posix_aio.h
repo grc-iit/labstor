@@ -40,6 +40,8 @@ class PosixAIO : public UnixFileBasedIOTest {
 private:
     std::vector<PosixAIOThread> thread_bufs_;
 public:
+    PosixAIO() = default;
+
     void Init(char *path, bool do_truncate, labstor::Generator *generator) {
         UnixFileBasedIOTest::Init(path,  do_truncate, generator);
         //Store per-thread data

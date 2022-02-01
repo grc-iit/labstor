@@ -12,6 +12,7 @@ void labstor::GenericPosix::Client::Initialize() {
     //Retreive the namespace ID from the server
     if(!is_initialized_) {
         if(lock_.try_lock()) {
+            TRACEPOINT("HERE", (size_t)this)
             ipc_manager_->Connect();
             labstor::Registrar::Client registrar;
             ns_id_ = registrar.GetNamespaceID(GENERIC_POSIX_MODULE_ID);
@@ -32,8 +33,12 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     ipc_manager_->GetQueuePair(qp,
                                LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
 
+    TRACEPOINT("HERE2", (size_t)qp)
+
     //Allocate an fd
     fd = AllocateFD();
+
+    TRACEPOINT("HERE1")
 
     //Create CLIENT -> SERVER message
     client_rq = ipc_manager_->AllocRequest<generic_posix_open_request>(qp);

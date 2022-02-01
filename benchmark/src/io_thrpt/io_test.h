@@ -9,11 +9,14 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include "io_logger.h"
+#include <labstor/userspace/util/timer.h>
 
 namespace labstor {
 class IOTest {
 private:
     labstor::Generator *generator_;
+    labstor::ThreadedHighResMonotonicTimer timer_;
 public:
     void Init(labstor::Generator *generator) {
         generator_ = generator;
@@ -50,6 +53,9 @@ public:
     }
     size_t GetOffsetUnits(int tid) {
         return generator_->GetOffsetUnits(tid);
+    }
+    labstor::ThreadedHighResMonotonicTimer& GetTimer() {
+        return timer_;
     }
 };
 

@@ -100,6 +100,8 @@ public:
     struct spdk_nvme_transport_id transport_id_;
     std::vector<SPDKIOThread> thread_bufs_;
 public:
+    SPDKIO() = default;
+
     void Init(labstor::Generator *generator) {
         int ret = 0;
         struct spdk_env_opts opts;

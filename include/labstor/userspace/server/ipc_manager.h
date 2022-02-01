@@ -85,7 +85,7 @@ public:
     void ResumeQueues();
 
     inline bool RegisterQueuePair(labstor::ipc::queue_pair *qp) {
-        //TODO: Thread safety? Not important now.
+        //TODO: Thread safety? Not important now
         ++pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->num_stream_qps_;
         return qps_by_id_.Set(qp->GetQid(), qp);
     }

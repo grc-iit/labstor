@@ -59,5 +59,33 @@ labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, int dev_id, void *us
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
     return qtok;
 }
+int labstor::MQDriver::Client::GetNumHWQueues(int dev_id) {
+    AUTO_TRACE("");
+    labstor_mq_driver_request *client_rq;
+    labstor::ipc::queue_pair *qp;
+    labstor::ipc::qtok_t qtok;
+    int num_hw_queues = 0;
+
+    //Get SERVER QP
+    ipc_manager_->GetQueuePair(qp,
+                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
+
+    //Create CLIENT -> SERVER message
+    TRACEPOINT("Submit", "dev_id", dev_id)
+    client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
+    client_rq->Start(ns_id_, dev_id);
+
+    //Complete CLIENT -> SERVER interaction
+    qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
+    TRACEPOINT("Request_id", client_rq->header_.req_id_);
+    client_rq = ipc_manager_->Wait<labstor_mq_driver_request>(qtok);
+    num_hw_queues = client_rq->GetNumHWQueues();
+    TRACEPOINT("return_code",
+               (int)client_rq->header_.op_);
+
+    //Free requests
+    ipc_manager_->FreeRequest<labstor_mq_driver_request>(qtok, client_rq);
+    return num_hw_queues;
+}
 
 LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Client);

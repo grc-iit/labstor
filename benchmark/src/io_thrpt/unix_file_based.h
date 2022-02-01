@@ -31,7 +31,7 @@ struct UnixFileBasedIOThread {
             exit(1);
         }
         buf_ = reinterpret_cast<char*>(aligned_alloc(4096, block_size));
-        memset(buf_, 0, block_size);
+        memset(buf_, 140, block_size);
     }
 };
 class UnixFileBasedIOTest : public IOTest {

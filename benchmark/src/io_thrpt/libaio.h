@@ -25,6 +25,7 @@ class LibAIO : public UnixFileBasedIOTest {
 private:
     std::vector<LibAIOThread> thread_bufs_;
 public:
+    LibAIO() = default;
     void Init(char *path, bool do_truncate, labstor::Generator *generator) {
         UnixFileBasedIOTest::Init(path, do_truncate, generator);
         //Store per-thread data
@@ -54,11 +55,11 @@ public:
             printf("Error occurred reading events: %d\n", ret);
             exit(1);
         }
-        for(int i = 0; i < GetOpsPerBatch(); ++i) {
+        for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             if(thread.events_[i].res != GetBlockSizeBytes()) {
                 struct iocb *cb = thread.cbs_+i;
-                printf("LibAIO[%d]: I/O failed: %s\n", i, strerror(-thread.events_[i].res));
-                printf("CB: fd=%d disk_off=%lu nbytes=%lu prio=%d\n", cb->aio_fildes, cb->u.c.offset, cb->u.c.nbytes, cb->aio_reqprio);
+                printf("LibAIO[%lu]: I/O failed: %s\n", i, strerror(-thread.events_[i].res));
+                printf("CB: fd=%d disk_off=%lld nbytes=%lu prio=%d\n", cb->aio_fildes, cb->u.c.offset, cb->u.c.nbytes, cb->aio_reqprio);
                 exit(1);
             }
         }

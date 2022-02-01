@@ -24,13 +24,16 @@ void labstor::Client::IPCManager::Connect() {
     struct sockaddr_un server_addr;
     void *region;
 
+    TRACEPOINT("IS CONNECTED?")
+
     if(IsConnected()) {
         return;
     }
 
+    TRACEPOINT("NOT CONNECTED")
+
     //Get our pid
     pid_ = getpid();
-    n_cpu_ = get_nprocs_conf();
 
     //Create UDP socket
     TRACEPOINT("CREATE UDP SOCKET")

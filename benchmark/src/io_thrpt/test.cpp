@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 12/31/21.
 //
 
+#include <omp.h>
 #include "generator/sequential.h"
 #include "posix.h"
 #include "posix_aio.h"
@@ -10,38 +11,41 @@
 #include "io_uring.h"
 #include "libaio.h"
 #include "spdk.h"
+#include <labstor/userspace/util/partitioner.h>
 
-void write_test(labstor::IOTest *test);
-void read_test(labstor::IOTest *test);
 
-void write_test(labstor::IOTest *test) {
-    labstor::HighResMonotonicTimer t;
+void io_test(labstor::IOTest *test, const std::string &readwrite);
+
+void io_test(labstor::IOTest *test, const std::string &readwrite) {
     printf("BATCHES PER THREAD: %lu\n", test->GetBatchesPerThread());
     printf("OPS PER BATCH: %lu\n", test->GetOpsPerBatch());
     printf("Block Size Bytes: %lu\n", test->GetBlockSizeBytes());
-    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
-        t.Resume();
-        test->Write();
-        t.Pause();
+    labstor::ProcessAffiner affiner;
+    omp_set_dynamic(0);
+#pragma omp parallel num_threads(test->GetNumThreads())
+    {
+        int tid = labstor::ThreadLocal::GetTid();
+        affiner.SetCpu(affiner.GetNumCPU() - tid - 1);
+        if(readwrite == "read") {
+            printf("Read Test\n");
+            for (size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
+                test->GetTimer().Resume(tid);
+                test->Read();
+                test->GetTimer().Pause(tid);
+            }
+        } else {
+            printf("Write Test\n");
+            for (size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
+                test->GetTimer().Resume(tid);
+                test->Write();
+                test->GetTimer().Pause(tid);
+            }
+        }
     }
     printf("Total IO (MB): %lu MB\n", test->GetTotalIOBytes() / (1<<20));
-    printf("Write Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
-    printf("Write Throughput: %lf MOps\n", test->GetTotalNumOps()/t.GetUsec());
-}
-
-void read_test(labstor::IOTest *test) {
-    labstor::HighResMonotonicTimer t;
-    printf("BATCHES PER THREAD: %lu\n", test->GetBatchesPerThread());
-    printf("OPS PER BATCH: %lu\n", test->GetOpsPerBatch());
-    printf("Block Size Bytes: %lu\n", test->GetBlockSizeBytes());
-    for(size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
-        t.Resume();
-        test->Read();
-        t.Pause();
-    }
-    printf("Total IO (MB): %lu\n", test->GetTotalIOBytes() / (1<<20));
-    printf("Read Bandwidth: %lf MBps\n", test->GetTotalIOBytes()/t.GetUsec());
-    printf("Read Throughput: %lf MOps\n", test->GetTotalNumOps()/t.GetUsec());
+    printf("Total Time: %lf us\n", test->GetTimer().GetUsec());
+    printf("%s Bandwidth: %lf MBps\n", readwrite.c_str(), test->GetTotalIOBytes()/test->GetTimer().GetUsec());
+    printf("%s Throughput: %lf MOps\n", readwrite.c_str(), test->GetTotalNumOps()/test->GetTimer().GetUsec());
 }
 
 int main(int argc, char **argv) {
@@ -63,6 +67,7 @@ int main(int argc, char **argv) {
     generator->Init(block_size, total_size, ops_per_batch, nthreads);
 
     //I/O Mechanisms
+    printf("Selected I/O Method: %s\n", io_method.c_str());
     labstor::IOTest *test = nullptr;
     if(io_method == "posix") {
         labstor::PosixIO *test_impl = new labstor::PosixIO();
@@ -126,10 +131,5 @@ int main(int argc, char **argv) {
         printf("%s was not implemented\n", io_method.c_str());
         exit(1);
     }
-    if(read_or_write == "write") {
-        write_test(test);
-    }
-    else if(read_or_write == "read") {
-        read_test(test);
-    }
+    io_test(test, read_or_write);
 }

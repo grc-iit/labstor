@@ -42,6 +42,7 @@ MODULE_ALIAS_FS("request_layer_km");
 //Prototypes
 static int __init init_bio_driver_km(void);
 static void __exit exit_bio_driver_km(void);
+ktime_t start_g, end_g;
 
 /**
  * I/O REQUEST FUNCTIONS
@@ -68,9 +69,12 @@ static void io_complete(struct bio *bio) {
         code = bio->bi_status;
         pr_debug("Request did not complete: %d\n", code);
     }
+    bio_put(bio);
     pr_debug("SUCCESS! Request: (qid=%llu,req_id=%u, code=%d)\n",
              labstor_queue_pair_GetQid(rq->qp_), rq->header_.req_id_, code);
     labstor_complete_io(rq, code);
+    //end_g = ktime_get_ns();
+    //pr_info("IO_TIME: %llu us\n", (end_g - start_g)/1000);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -103,7 +107,7 @@ static inline struct bio *create_bio(struct labstor_bio_driver_request *rq, stru
     }
     bio_set_dev(bio, bdev);
     //bio_set_op_attrs(bio, op, 0);
-    bio->bi_opf = op;
+    bio->bi_opf = op | REQ_HIPRI;
     bio_set_flag(bio, BIO_USER_MAPPED);
     //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
@@ -123,6 +127,12 @@ inline void submit_bio_driver_io(struct labstor_queue_pair *qp, struct labstor_b
     int success, num_pages;
     struct block_device *bdev;
     struct bio *bio;
+    struct request_queue *q;
+    ktime_t start, end;
+    struct blk_plug plug;
+
+    start = ktime_get_ns();
+
     rq->qp_ = qp;
     success = LABSTOR_BIO_OK;
 
@@ -152,12 +162,19 @@ inline void submit_bio_driver_io(struct labstor_queue_pair *qp, struct labstor_b
         pr_err("Cannot allocate more BIOs\n");
         goto err_complete;
     }
+    //pr_info("LBA RANGE: [%lu, %lu)\n", rq->sector_, rq->sector_ + num_pages * 4096/512);
+
     //Submit I/O
     pr_debug("Submitting I/O\n");
+    //start_g = start;
+    blk_start_plug(&plug);
     submit_bio(bio);
+    blk_finish_plug(&plug);
 
     //I/O was successfully submitted
     kmem_cache_free(page_cache, pages);
+    //end = ktime_get_ns();
+    //pr_info("SUBMIT_TIME: %llu us\n", (end - start)/1000);
     return;
 
     //I/O was not successfully submitted (after page cache)

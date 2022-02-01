@@ -11,6 +11,7 @@
 void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE(request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
+        case Ops::kGetNumHWQueues:
         case Ops::kWrite:
         case Ops::kRead: {
             IOStart(qp, reinterpret_cast<labstor_mq_driver_request*>(request), creds);

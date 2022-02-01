@@ -38,6 +38,7 @@ class IOUringIO : public UnixFileBasedIOTest {
 private:
     std::vector<IOUringThread> thread_bufs_;
 public:
+    IOUringIO() = default;
     void Init(char *path, bool do_truncate, labstor::Generator *generator) {
         UnixFileBasedIOTest::Init(path, do_truncate, generator);
         //Store per-thread data
