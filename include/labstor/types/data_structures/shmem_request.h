@@ -13,10 +13,8 @@
 
 struct labstor_request {
     labstor_req_id_t req_id_;
-    union {
-        uint32_t ns_id_;
-        uint32_t code_;
-    };
+    uint32_t ns_id_;
+    uint32_t code_;
     uint16_t op_;
 #ifdef __cplusplus
     inline labstor_request() = default;

@@ -8,6 +8,5 @@ sudo insmod ${LABSTOR_ROOT}/modules/kernel/work_orchestrator/kernel/work_orchest
 sudo insmod ${LABSTOR_ROOT}/modules/kernel/ipc_test/kernel/ipc_test.ko
 sudo insmod ${LABSTOR_ROOT}/modules/kernel/blkdev_table/kernel/blkdev_table.ko
 sudo insmod ${LABSTOR_ROOT}/modules/kernel/mq_driver/kernel/mq_driver.ko
-sudo insmod ${LABSTOR_ROOT}/modules/kernel/bio_driver/kernel/bio_driver.ko
 sudo dmesg
 sudo chmod a+rwX /dev/labstor_shared_shmem0

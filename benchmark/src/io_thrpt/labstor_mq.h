@@ -16,12 +16,14 @@ namespace labstor {
 struct LabStorMQThread {
     void *buf_;
     labstor::ipc::qtok_set qtoks_;
+    int hctx_;
     LabStorMQThread(int ops_per_batch, size_t block_size) {
         int nonce = 12;
         buf_ = aligned_alloc(4096, block_size);
         memset(buf_, nonce, block_size);
         void *qtok_buf_ = malloc(labstor::ipc::qtok_set::GetSize(ops_per_batch));
         qtoks_.Init(qtok_buf_, labstor::ipc::qtok_set::GetSize(ops_per_batch));
+        hctx_ = -1;
     }
 };
 
@@ -32,6 +34,7 @@ private:
     labstor::BlkdevTable::Client blkdev_table_;
     labstor::MQDriver::Client mq_driver_;
     std::vector<LabStorMQThread> thread_bufs_;
+    int num_hw_queues_;
 public:
     LabStorMQ() = default;
     void Init(char *path, labstor::Generator *generator) {
@@ -49,7 +52,7 @@ public:
         mq_driver_.Register();
 
         //View the number of HW queues
-        printf("HW queues: %d\n", mq_driver_.GetNumHWQueues(dev_id_));
+        num_hw_queues_ = mq_driver_.GetNumHWQueues(dev_id_);
 
         //Store per-thread data
         for(int i = 0; i < GetNumThreads(); ++i) {
@@ -58,9 +61,12 @@ public:
     }
 
     void Write() {
-        int hctx = 0;
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
+        if(thread.hctx_ == -1) {
+            thread.hctx_ = sched_getcpu()%num_hw_queues_;
+        }
+        int hctx = thread.hctx_;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             thread.qtoks_.Enqueue(mq_driver_.AWrite(
                     dev_id_,
@@ -68,15 +74,17 @@ public:
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
-            //hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }
 
     void Read() {
-        int hctx = 0;
         int tid = labstor::ThreadLocal::GetTid();
         struct LabStorMQThread &thread = thread_bufs_[tid];
+        if(thread.hctx_ == -1) {
+            thread.hctx_ = sched_getcpu()%num_hw_queues_;
+        }
+        int hctx = thread.hctx_;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
             thread.qtoks_.Enqueue(mq_driver_.ARead(
                     dev_id_,
@@ -84,7 +92,6 @@ public:
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
-            //hctx = (hctx + 1) % 4;
         }
         ipc_manager_->Wait(thread.qtoks_);
     }

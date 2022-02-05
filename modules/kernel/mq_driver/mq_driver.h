@@ -20,17 +20,30 @@ enum {
     LABSTOR_MQ_CANNOT_ALLOCATE_REQUEST=-105,
     LABSTOR_MQ_DEVICE_BUSY=-106,
     LABSTOR_MQ_NOT_OK=-107,
+    LABSTOR_MQ_CANNOT_POLL=-108,
 
 };
 
+enum {
+    LABSTOR_MQ_IS_SUBMITTED_BIT,
+    LABSTOR_MQ_POLLED_IO_BIT,
+    LABSTOR_MQ_IO_IS_COMPLETE_BIT
+};
+
+#define LABSTOR_MQ_IS_SUBMITTED (1 << LABSTOR_MQ_IS_SUBMITTED_BIT)
+#define LABSTOR_MQ_POLLED_IO (1 << LABSTOR_MQ_POLLED_IO_BIT)
+#define LABSTOR_MQ_IO_IS_COMPLETE (1 << LABSTOR_MQ_IO_IS_COMPLETE_BIT)
+
 #ifdef __cplusplus
+typedef unsigned int blk_qc_t;
 namespace labstor::MQDriver {
 enum class Ops {
     kRegister,
     kWrite,
     kRead,
     kIOComplete,
-    kGetNumHWQueues
+    kGetNumHWQueues,
+    kPollCompletion
 };
 }
 #endif
@@ -41,7 +54,8 @@ enum {
     LABSTOR_MQ_DRIVER_WRITE,
     LABSTOR_MQ_DRIVER_READ,
     LABSTOR_MQ_IO_COMPLETE,
-    LABSTOR_MQ_NUM_HW_QUEUES
+    LABSTOR_MQ_NUM_HW_QUEUES,
+    LABSTOR_MQ_POLL_COMPLETION
 };
 #endif
 
@@ -54,6 +68,8 @@ struct labstor_mq_driver_request {
     int hctx_;
     int pid_;
     int num_hw_queues_;
+    blk_qc_t cookie_;
+    int flags_;
 
 #ifdef __cplusplus
     inline void Start(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
@@ -74,6 +90,7 @@ struct labstor_mq_driver_request {
         buf_size_ = buf_size;
         sector_ = sector;
         hctx_ = hctx;
+        flags_ = 0;
     }
     int GetNumHWQueues() {
         return num_hw_queues_;
@@ -82,18 +99,34 @@ struct labstor_mq_driver_request {
         header_.Copy(&rq->header_);
         num_hw_queues_ = rq->num_hw_queues_;
     }
-#endif
 
-    struct labstor_queue_pair *qp_;
+    bool IsSubmitted() {
+        return flags_ & LABSTOR_MQ_IS_SUBMITTED;
+    }
+    void AcknowledgeSubmission() {
+        flags_ |= LABSTOR_MQ_IS_SUBMITTED;
+    }
+    bool PollingEnabled() {
+        return flags_ & LABSTOR_MQ_POLLED_IO;
+    }
+    void BeginIOPoll() {
+        header_.ns_id_ = MQ_DRIVER_RUNTIME_ID;
+        header_.op_ = static_cast<int>(labstor::MQDriver::Ops::kPollCompletion);
+    }
+    bool IOIsComplete() {
+        return flags_ & LABSTOR_MQ_IO_IS_COMPLETE;
+    }
+#endif
 };
 
 #ifdef __cplusplus
 struct labstor_mq_driver_poll_request : public labstor::ipc::poll_request_single<labstor_mq_driver_request> {
-    void Init(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
+    labstor_mq_driver_request *poll_rq_;
+    void Init(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *reply_rq, labstor::ipc::qtok_t poll_qtok, labstor_mq_driver_request *poll_rq) {
         int op = static_cast<int>(labstor::MQDriver::Ops::kIOComplete);
+        poll_rq_ = poll_rq;
         labstor::ipc::poll_request_single<labstor_mq_driver_request>::Init(qp, reply_rq, poll_qtok, op);
     }
-
 };
 #endif
 

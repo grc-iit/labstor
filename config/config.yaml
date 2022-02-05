@@ -11,9 +11,6 @@ modules:
   MQDriver:
     client: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_server.so
-  BIODriver:
-    client: ${LABSTOR_BUILD_DIR}/modules/kernel/bio_driver/libbio_driver_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/kernel/bio_driver/libbio_driver_server.so
 work_orchestrator:
   time_slice_us: 1000
   work_queue_depth: 128

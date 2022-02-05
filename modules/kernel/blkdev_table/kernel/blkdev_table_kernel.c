@@ -87,6 +87,12 @@ inline void register_bdev(struct labstor_queue_pair *qp, struct labstor_blkdev_t
     pr_debug("Completed request\n");
 }
 
+inline void _unregister_bdev(int bdev_id) {
+    if(bdevs[bdev_id] == NULL) { return; }
+    blkdev_put(bdevs[bdev_id], BDEV_ACCESS_FLAGS);
+    bdevs[bdev_id] = NULL;
+}
+
 inline void unregister_bdev(struct labstor_queue_pair *qp, struct labstor_blkdev_table_unregister_request *kern_rq) {
 }
 
@@ -127,6 +133,10 @@ static int __init init_blkdev_table(void) {
 }
 
 static void __exit exit_blkdev_table(void) {
+    int i;
+    for(i = 0; i < MAX_MOUNTED_BDEVS; ++i) {
+        _unregister_bdev(i);
+    }
     unregister_labstor_module(&blkdev_table_pkg);
     pr_info("Blkdev table has ended");
 }

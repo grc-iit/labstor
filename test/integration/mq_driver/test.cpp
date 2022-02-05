@@ -44,11 +44,12 @@ void direct_read(int value, size_t sector, size_t buf_size, const char *path) {
 }
 
 int main(int argc, char **argv) {
-    if(argc < 2) {
-        printf("USAGE: ./test_mq_driver_exec [path]");
+    if(argc < 3) {
+        printf("USAGE: ./test_mq_driver_exec [path] [num_ios]");
         exit(1);
     }
     char *path = argv[1];
+    int num_ios = atoi(argv[2]);
 
     LABSTOR_ERROR_HANDLE_START()
         //Connect to trusted server
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
 
         //Create I/O request data
         int nonce = 12;
-        size_t buf_size =  128*labstor::SizeType::KB;
+        size_t buf_size =  4*labstor::SizeType::KB;
         void *user_buf = aligned_alloc(4096, buf_size);
         size_t sector = 0;
         int hctx = 0;
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
         mq_driver.Register();
 
         //Write to device
-        for(int i = 0; i < 256; ++i) {
+        for(int i = 0; i < num_ios; ++i) {
             printf("CURRENT: %d\n", i);
             memset(user_buf, nonce, buf_size);
             mq_driver.Write(dev_id, user_buf, buf_size, sector, hctx);

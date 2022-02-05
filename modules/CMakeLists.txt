@@ -11,7 +11,6 @@ add_subdirectory(kernel/ipc_manager)
 add_subdirectory(kernel/work_orchestrator)
 add_subdirectory(kernel/blkdev_table)
 add_subdirectory(kernel/mq_driver)
-add_subdirectory(kernel/bio_driver)
 add_subdirectory(kernel/ipc_test)
 add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&
@@ -21,7 +20,6 @@ add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean_ipc_test &&
         cd ${CMAKE_BINARY_DIR} && make clean_blkdev_table &&
         cd ${CMAKE_BINARY_DIR} && make clean_mq_driver &&
-        cd ${CMAKE_BINARY_DIR} && make clean_bio_driver &&
         cd ${CMAKE_BINARY_DIR} && make clean_work_orchestrator)
 
 ######MODULES

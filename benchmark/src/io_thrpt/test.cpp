@@ -7,7 +7,7 @@
 #include "posix.h"
 #include "posix_aio.h"
 #include "labstor_mq.h"
-#include "labstor_bio.h"
+//#include "labstor_bio.h"
 #include "io_uring.h"
 #include "libaio.h"
 #include "spdk.h"
@@ -20,12 +20,14 @@ void io_test(labstor::IOTest *test, const std::string &readwrite) {
     printf("BATCHES PER THREAD: %lu\n", test->GetBatchesPerThread());
     printf("OPS PER BATCH: %lu\n", test->GetOpsPerBatch());
     printf("Block Size Bytes: %lu\n", test->GetBlockSizeBytes());
-    labstor::ProcessAffiner affiner;
     omp_set_dynamic(0);
 #pragma omp parallel num_threads(test->GetNumThreads())
     {
+        labstor::ProcessAffiner affiner;
         int tid = labstor::ThreadLocal::GetTid();
-        affiner.SetCpu(affiner.GetNumCPU() - tid - 1);
+        affiner.SetCpu(affiner.GetNumCPU()/2 - tid - 1);
+        affiner.Affine(gettid());
+        printf("[tid=%d] CPU: %d vs %d\n", tid, sched_getcpu(), affiner.GetNumCPU() - tid - 1);
         if(readwrite == "read") {
             printf("Read Test\n");
             for (size_t i = 0; i < test->GetBatchesPerThread(); ++i) {
@@ -104,14 +106,6 @@ int main(int argc, char **argv) {
     else if(io_method == "mq") {
         LABSTOR_ERROR_HANDLE_START()
         labstor::LabStorMQ *test_impl = new labstor::LabStorMQ();
-        generator->SetOffsetUnit(512);
-        test_impl->Init(path, generator);
-        test = test_impl;
-        LABSTOR_ERROR_HANDLE_END();
-    }
-    else if(io_method == "bio") {
-        LABSTOR_ERROR_HANDLE_START()
-        labstor::LabStorBIO *test_impl = new labstor::LabStorBIO();
         generator->SetOffsetUnit(512);
         test_impl->Init(path, generator);
         test = test_impl;

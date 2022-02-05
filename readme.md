@@ -23,6 +23,7 @@ sudo yum install linux-headers-`uname -r`
 ### SCSPKG
 ```
 git clone https://github.com/lukemartinlogan/scspkg.git
+cd scspkg
 bash install.sh
 source ~/.bashrc
 ```
@@ -58,7 +59,7 @@ cd `scspkg pkg-src mpich`
 wget http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz --no-check-certificate
 tar -xzf mpich-3.2.tar.gz
 cd mpich-3.2
-./configure --prefix=`scspkg pkg-root mpich` --enable-fast=O3 --enable-romio --enable-shared --with-pvfs2=`scspkg pkg-root orangefs` --with-file-system=pvfs2
+./configure --prefix=`scspkg pkg-root mpich` --enable-fast=O3 --enable-romio --enable-shared 
 make -j8
 make install
 ```
@@ -66,6 +67,7 @@ make install
 ### SCSBENCH
 ```
 git clone https://github.com/lukemartinlogan/scsbench.git
+cd scsbench
 python3 -m pip install -r requirements.txt  
 python3 setup.py develop --user
 ```
@@ -145,11 +147,17 @@ make -j4
 
 ## 3. Running
 ```
-module load mpi yaml-cpp
+module load mpich yaml-cpp liburing spdk
 make start_kernel_server
 make start_trusted_server
 make stop_trusted_server
 make stop_kernel_server
+
+https://community.intel.com/t5/Blogs/Products-and-Solutions/Memory-Storage/Tuning-the-performance-of-Intel-Optane-SSDs-on-Linux-Operating/post/1334953
+https://serverfault.com/questions/1052448/how-can-i-override-irq-affinity-for-nvme-devices
+sudo su
+modprobe -r nvme && modprobe nvme poll_queues=4
+cat /sys/block/nvme0n1/queue/io_poll
 ```
 
 ### Random Notes

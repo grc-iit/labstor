@@ -25,7 +25,6 @@ struct poll_request_single : labstor_request {
         reply_rq_ = reply_rq;
     }
 };
-
 }
 
 #endif

@@ -434,11 +434,6 @@ static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
  * I/O REQUEST FUNCTIONS
  * */
 
-static void labstor_complete_io(struct labstor_mq_driver_request *rq, int code) {
-    rq->header_.code_ = code;
-    labstor_queue_pair_CompleteInf(rq->qp_, (struct labstor_request*)rq);
-}
-
 static void io_complete(struct bio *bio) {
     int code = 0;
     struct labstor_mq_driver_request *rq;
@@ -451,19 +446,22 @@ static void io_complete(struct bio *bio) {
         pr_err("io_complete request is NULL\n");
         return;
     }
+    pr_info("Begin Complete: %d\n", rq->cookie_);
     if(bio->bi_status != BLK_STS_OK) {
         code = bio->bi_status;
         pr_debug("Request did not complete: %d\n", code);
     }
-    pr_debug("SUCCESS! Request: (qid=%llu,req_id=%u, code=%d)\n",
-             labstor_queue_pair_GetQid(rq->qp_), rq->header_.req_id_, code);
-    labstor_complete_io(rq, code);
+    pr_debug("SUCCESS! Request: (req_id=%u, code=%d)\n",
+             rq->header_.req_id_, code);
+    rq->header_.code_ = code;
+    rq->flags_ |= LABSTOR_MQ_IO_IS_COMPLETE;
+    pr_info("Did complete: %d\n", rq->cookie_);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
     struct task_struct *task;
     struct page **pages;
-    int num_pages;
+    int num_pages, true_num_pages;
 
     task = pid_task(find_vpid(pid), PIDTYPE_PID);
     num_pages = (length % PAGE_SIZE) ? length/PAGE_SIZE + 1 : length/PAGE_SIZE;
@@ -473,7 +471,13 @@ static inline struct page **convert_user_buf(int pid, void *user_buf, size_t len
         *num_pagesp = 0;
         return NULL;
     }
-    get_user_pages_remote(task, task->mm, (long unsigned)user_buf, num_pages, 0, pages, NULL, NULL);
+    true_num_pages = get_user_pages_remote(task, task->mm, (long unsigned)user_buf, num_pages, 0, pages, NULL, NULL);
+    if(num_pages != true_num_pages) {
+        pr_err("Not all pages were successfully pinned");
+        *num_pagesp = 0;
+        kmem_cache_free(page_cache, pages);
+        return NULL;
+    }
 
     *num_pagesp = num_pages;
     return pages;
@@ -490,13 +494,14 @@ static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struc
     }
     bio_set_dev(bio, bdev);
     //bio_set_op_attrs(bio, op, 0);
-    bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC | REQ_RAHEAD;
+    bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC | REQ_RAHEAD | REQ_HIPRI;
     bio_set_flag(bio, BIO_USER_MAPPED);
     //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     for(i = 0; i < num_pages; ++i) {
         bio_add_page(bio, pages[i], PAGE_SIZE, 0);
     }
+    pr_info("PAGES: %d, PAGE_SIZE: %d, SECTOR: %d", num_pages, PAGE_SIZE, sector);
     bio->bi_private = rq;
     bio->bi_end_io = &io_complete;
     bio->bi_status = BLK_STS_OK;
@@ -553,10 +558,12 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     struct block_device *bdev;
     struct request_queue *q;
     struct bio *bio;
-    rq->qp_ = qp;
+    ktime_t start, end;
     success = LABSTOR_MQ_OK;
 
     pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
+
+    pr_info("Starting I/O submission");
 
     //Convert user's buffer to pages
     pr_debug("Converting user pages: %p %lu\n", rq->user_buf_, rq->buf_size_);
@@ -577,7 +584,11 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     //Get request queue associated with device
     q = bdev->bd_disk->queue;
     //Disable stats
-    q->queue_flags &= ~QUEUE_FLAG_STATS;
+    clear_bit(QUEUE_FLAG_STATS, &q->queue_flags);
+    //Enable polled I/O if possible
+    if(test_bit(QUEUE_FLAG_POLL, &q->queue_flags)) {
+        rq->flags_ |= LABSTOR_MQ_POLLED_IO;
+    }
     //Create bio
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
     pr_debug("Create BIO: %p\n", bio);
@@ -586,25 +597,26 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
         pr_err("Cannot allocate more BIOs\n");
         goto err_complete;
     }
-    //Create request to hctx
-    dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
-    pr_debug("Create HCTX request: %p\n", dev_rq);
-    if(dev_rq == NULL) {
-        success = LABSTOR_MQ_CANNOT_ALLOCATE_REQUEST;
-        goto err_complete;
+    //Submit BIO to MQ layer
+    if(q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
+        //pr_info("MQ");
+        //Create request to hctx
+        dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
+        if(dev_rq == NULL) {
+            success = LABSTOR_MQ_CANNOT_ALLOCATE_REQUEST;
+            goto err_complete;
+        }
+        //Submit request to HCTX
+        success = blk_mq_try_issue_directly(dev_rq, &cookie);
     }
-
-    //Submit I/O
-    pr_debug("Submitting I/O\n");
-    success = blk_mq_try_issue_directly(dev_rq, &cookie);
+    //Submit BIO to BIO layer
+    else {
+        //pr_info("SUBMIT_BIO");
+        cookie = submit_bio(bio);
+    }
+    rq->cookie_ = cookie;
     pr_debug("Driver Submission Status: %d\n", success);
-    if(success <  0) {
-        goto err_complete;
-    }
-
-    //I/O was successfully submitted
-    kmem_cache_free(page_cache, pages);
-    return;
+    //pr_info("COOKIE,hctx: cookie=%d,cookie_hctx=%d,true_hctx=%d\n", cookie, blk_qc_t_to_queue_num(cookie), rq->hctx_);
 
     //I/O was not successfully submitted (after page cache)
     err_complete:
@@ -612,10 +624,43 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
 
     //I/O was not successfully submitted (before page cache)
     err_complete_before:
-    labstor_complete_io(rq, success);
+    rq->header_.code_ = success;
+    labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
+    pr_info("I/O has been submitted: %d", rq->cookie_);
 }
 
-inline int get_num_hw_queues(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
+inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
+    struct blk_mq_hw_ctx *hctx;
+    struct block_device *bdev;
+    struct request_queue *q;
+    blk_qc_t cookie;
+    int ret, srcu_idx;
+
+    /*
+     * Whenever polling succeeds, no more requests can be processed.
+     * */
+
+    static int in_poll = 0;
+    if(in_poll < 1024) {
+        pr_info("Polling cookie: %d\n", rq->cookie_);
+    }
+    ++in_poll;
+
+    bdev = labstor_get_bdev(rq->dev_id_);
+    q = bdev->bd_disk->queue;
+    cookie = rq->cookie_;
+    if(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE) && (rq->flags_ & LABSTOR_MQ_POLLED_IO)) {
+        hctx = q->queue_hw_ctx[blk_qc_t_to_queue_num(cookie)];
+        ret = q->mq_ops->poll(hctx);
+        if(ret > 0) {
+            pr_info("POLLING DID COMPLETE: %d\n", cookie);
+        }
+    }
+    rq->header_.code_ = LABSTOR_MQ_OK;
+    labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
+}
+
+inline void get_num_hw_queues(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
     struct block_device *bdev;
     struct request_queue *q;
     bdev = labstor_get_bdev(rq->dev_id_);
@@ -623,10 +668,10 @@ inline int get_num_hw_queues(struct labstor_queue_pair *qp, struct labstor_mq_dr
     rq->num_hw_queues_ = q->nr_hw_queues;
     rq->header_.code_ = LABSTOR_REQUEST_SUCCESS;
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
-    return 0;
 }
 
 void mq_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request *rq) {
+    pr_debug("OPERATION: %d", rq->op_);
     switch(rq->op_) {
         case LABSTOR_MQ_DRIVER_WRITE:
         case LABSTOR_MQ_DRIVER_READ: {
@@ -635,6 +680,10 @@ void mq_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request
         }
         case LABSTOR_MQ_NUM_HW_QUEUES: {
             get_num_hw_queues(qp, (struct labstor_mq_driver_request*)rq);
+            break;
+        }
+        case LABSTOR_MQ_POLL_COMPLETION: {
+            poll_io_completion(qp, (struct labstor_mq_driver_request*)rq);
             break;
         }
         default: {

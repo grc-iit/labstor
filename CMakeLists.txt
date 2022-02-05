@@ -98,4 +98,4 @@ add_executable(partitioner util/partitioner.cpp)
 ######MODULES & TESTS
 add_subdirectory(modules)
 add_subdirectory(test)
-add_subdirectory(benchmark)
+#add_subdirectory(benchmark)
