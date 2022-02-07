@@ -20,8 +20,8 @@ struct poll_request_single : labstor_request {
         ns_id_ = reply_rq->header_.ns_id_;
         op_ = op;
         poll_qtok_ = poll_qtok;
-        reply_qtok_.qid = qp->GetQid();
-        reply_qtok_.req_id = reply_rq->header_.req_id_;
+        reply_qtok_.qid_ = qp->GetQid();
+        reply_qtok_.req_id_ = reply_rq->header_.req_id_;
         reply_rq_ = reply_rq;
     }
 };

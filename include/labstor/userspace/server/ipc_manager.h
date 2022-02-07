@@ -149,7 +149,7 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
-        qp = qps_by_id_[qtok.qid];
+        qp = qps_by_id_[qtok.qid_];
     }
 
     template<typename T>
@@ -172,7 +172,7 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::qtok_t &qtok, T *rq) {
-        return FreeRequest(qtok.qid, rq);
+        return FreeRequest(qtok.qid_, rq);
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::queue_pair *qp, T *rq) {
@@ -185,7 +185,7 @@ public:
         T *rq;
         labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
-        rq = qp->Wait<T>(qtok.req_id);
+        rq = qp->Wait<T>(qtok.req_id_);
         return rq;
     }
 

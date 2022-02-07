@@ -111,8 +111,8 @@ sudo apt install libaio-dev
 scspkg create spdk
 cd `scspkg pkg-src spdk`
 git clone https://github.com/spdk/spdk
-git checkout v21.10
 cd spdk
+git checkout v21.10
 git submodule update --init
 sudo scripts/pkgdep.sh --all
 ./configure --prefix=`scspkg pkg-root spdk`

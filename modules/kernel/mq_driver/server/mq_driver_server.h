@@ -23,7 +23,14 @@ public:
     }
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
     void IOStart(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *rq_submit, labstor::credentials *creds);
-    void IOComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);
+    void IOSubmitComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);
+    void IOPollComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);
+    void IOInterruptComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);
+    void IOComplete(
+            labstor::ipc::queue_pair *kern_qp,
+            labstor_mq_driver_request *kern_rq,
+            labstor::ipc::queue_pair *private_qp,
+            labstor_mq_driver_poll_request *poll_rq);
     void GetStatistics(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *rq_submit, labstor::credentials *creds);
 };
 

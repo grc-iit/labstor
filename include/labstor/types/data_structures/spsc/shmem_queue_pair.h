@@ -201,7 +201,7 @@ static inline bool labstor_queue_pair_CompleteQuick(struct labstor_queue_pair *q
 }
 
 static inline bool labstor_queue_pair_CompleteByQtok(struct labstor_queue_pair *qp, struct labstor_qtok_t *qtok, struct labstor_request *rq) {
-    rq->req_id_ = qtok->req_id;
+    rq->req_id_ = qtok->req_id_;
     return labstor_queue_pair_CompleteInf(qp, rq);
 }
 
@@ -330,7 +330,7 @@ void labstor::ipc::queue_pair::Complete(labstor::ipc::qtok_t &qtok, T *rq) {
 
 template<typename T>
 bool labstor::ipc::queue_pair::IsComplete(labstor::ipc::qtok_t &qtok, T *&rq) {
-    return labstor_queue_pair_IsComplete(this, qtok.req_id, reinterpret_cast<labstor::ipc::request**>(&rq));
+    return labstor_queue_pair_IsComplete(this, qtok.req_id_, reinterpret_cast<labstor::ipc::request**>(&rq));
 }
 
 template<typename T>
@@ -353,12 +353,12 @@ T* labstor::ipc::queue_pair::Wait(uint32_t req_id, uint32_t max_ms) {
 
 template<typename T>
 T* labstor::ipc::queue_pair::Wait(labstor::ipc::qtok_t &qtok) {
-    return Wait<T>(qtok.req_id);
+    return Wait<T>(qtok.req_id_);
 }
 
 template<typename T>
 inline T* labstor::ipc::queue_pair::Wait(labstor::ipc::qtok_t &qtok, uint32_t max_ms) {
-    return Wait<T>(qtok.req_id, max_ms);
+    return Wait<T>(qtok.req_id_, max_ms);
 }
 
 uint64_t labstor::ipc::queue_pair::GetStreamQueuePairID(labstor::ipc::qid_t flags, uint32_t hash, uint32_t num_qps, int pid) {

@@ -20,8 +20,16 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
             IOStart(qp, reinterpret_cast<labstor_mq_driver_request*>(request), creds);
             break;
         }
-        case Ops::kIOComplete: {
-            IOComplete(qp, reinterpret_cast<labstor_mq_driver_poll_request*>(request));
+        case Ops::kIOSubmitComplete: {
+            IOSubmitComplete(qp, reinterpret_cast<labstor_mq_driver_poll_request*>(request));
+            break;
+        }
+        case Ops::kIOPollComplete: {
+            IOPollComplete(qp, reinterpret_cast<labstor_mq_driver_poll_request*>(request));
+            break;
+        }
+        case Ops::kIOInterruptComplete: {
+            IOInterruptComplete(qp, reinterpret_cast<labstor_mq_driver_poll_request*>(request));
             break;
         }
     }
@@ -34,26 +42,31 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_mq
     labstor::ipc::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
+    printf("IOStart\n");
+
     //Get KERNEL QP
     ipc_manager_->GetQueuePairByPid(kern_qp,
-                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
-                               KERNEL_PID);
+                                    LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE |
+                                    LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
+                                    KERNEL_PID);
     ipc_manager_->GetNextQueuePair(private_qp,
-                               LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
+                                   LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE |
+                                   LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
 
     //Create SERVER -> KERNEL message to submit an I/O request
     TRACEPOINT("Received_req", client_rq->header_.req_id_)
     kern_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(kern_qp);
     kern_rq->Start(MQ_DRIVER_RUNTIME_ID, client_rq);
     kern_qp->Enqueue<labstor_mq_driver_request>(kern_rq, qtok);
+    printf("QTOK: %ld %d\n", qtok.qid_, qtok.req_id_);
 
     //From SERVER, poll the I/O request happening in the KERNEL
     poll_rq = ipc_manager_->AllocRequest<labstor_mq_driver_poll_request>(private_qp);
-    poll_rq->Init(qp, client_rq, qtok,kern_rq);
+    poll_rq->IOSubmitInit(qp, client_rq, qtok, kern_rq);
     private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
 }
 
-void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+void labstor::MQDriver::Server::IOSubmitComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
     AUTO_TRACE(poll_rq->op_);
     labstor::ipc::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
     labstor_mq_driver_request *kern_rq;
@@ -62,74 +75,120 @@ void labstor::MQDriver::Server::IOComplete(labstor::ipc::queue_pair *private_qp,
 
     //Get the queue pairs to re-submit polling requests to
     ipc_manager_->GetQueuePairByPid(kern_resubmit_qp,
-                                    LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
+                                    LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE |
+                                    LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                                     KERNEL_PID);
     ipc_manager_->GetNextQueuePair(private_resubmit_qp,
                                    LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
-
-    TRACEPOINT("A");
 
     //Get the kernel request and queue
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
     kern_rq = poll_rq->poll_rq_;
 
-    TRACEPOINT("B");
-
-    //Case 1: Wait for the I/O to actually become submitted
-    if(!kern_rq->IsSubmitted()) {
-        //Case 1-1: The I/O has not finished being submitted, re-poll later
-        if(!kern_qp->IsComplete<labstor_mq_driver_request>(poll_rq->poll_qtok_, kern_rq)) {
-            private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
-            return;
-        }
-        //Case 1-2: The I/O has been submitted
-        else {
-            TRACEPOINT("C");
-            kern_rq->AcknowledgeSubmission();
-            if(kern_rq->header_.code_ != LABSTOR_REQUEST_SUCCESS) {
-                goto complete_io_request;
-            }
-            if(kern_rq->PollingEnabled()) {
-                kern_rq->BeginIOPoll();
-                kern_resubmit_qp->Enqueue<labstor_mq_driver_request>(kern_rq, qtok);
-                poll_rq->poll_qtok_ = qtok;
-                kern_qp = kern_resubmit_qp;
-            }
-        }
-    }
-    //Case 2: Polling-based I/O is used
-    if(kern_rq->PollingEnabled()) {
-        TRACEPOINT("D");
-        if(kern_qp->IsComplete<labstor_mq_driver_request>(poll_rq->poll_qtok_, kern_rq)) {
-            if(kern_rq->IOIsComplete() || kern_rq->header_.code_ != LABSTOR_REQUEST_SUCCESS) {
-                goto complete_io_request;
-            }
-            kern_resubmit_qp->Enqueue<labstor_mq_driver_request>(kern_rq, qtok);
-            poll_rq->poll_qtok_ = qtok;
-        }
-        poll_rq->poll_qtok_ = qtok;
+    //Check if the I/O submission is complete
+    if(!kern_qp->IsComplete<labstor_mq_driver_request>(poll_rq->poll_qtok_, kern_rq)) {
         private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
         return;
     }
-    //Case 3: Interrupt-based I/O is used
+
+    //Poll for I/O completion
+    if(kern_rq->PollingEnabled()) {
+        kern_rq->BeginIOPoll();
+        poll_rq->IOPollInit();
+        kern_resubmit_qp->Enqueue<labstor_mq_driver_request>(kern_rq, poll_rq->poll_qtok_);
+        private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
+        return;
+    }
+
+    //Submit a command to poll for interrupt-based I/O completion
+    else {
+        poll_rq->IOInterruptInit();
+        private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
+        return;
+    }
+}
+
+void labstor::MQDriver::Server::IOPollComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+    AUTO_TRACE(poll_rq->op_);
+    labstor::ipc::queue_pair *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
+    labstor_mq_driver_request *kern_rq;
+    labstor_mq_driver_request *client_rq;
+    labstor::ipc::qtok_t qtok;
+
+    //Get the queue pairs to re-submit polling requests to
+    ipc_manager_->GetQueuePairByPid(kern_resubmit_qp,
+                                    LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE |
+                                    LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
+                                    KERNEL_PID);
+
+    ipc_manager_->GetNextQueuePair(private_resubmit_qp,
+                                   LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
+
+    //Get the kernel request and queue
+    ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
+    kern_rq = poll_rq->poll_rq_;
+
+    printf("Checking if kernel poll RQ completed\n");
+
+    //Check if the I/O poll submission is complete
+    if(!kern_qp->IsComplete<labstor_mq_driver_request>(poll_rq->poll_qtok_, kern_rq)) {
+        private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
+        return;
+    }
+
+    printf("Poll completed, but did the I/O[cookie=%d]? %d\n", kern_rq->cookie_, kern_rq->IOIsComplete());
+
+    //Check if the I/O request is complete
+    if(!kern_rq->IOIsComplete()) {
+        kern_resubmit_qp->Enqueue<labstor_mq_driver_request>(kern_rq, poll_rq->poll_qtok_);
+        private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
+        return;
+    }
+
+    IOComplete(kern_qp, kern_rq, private_qp, poll_rq);
+}
+
+void labstor::MQDriver::Server::IOInterruptComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+    AUTO_TRACE(poll_rq->op_);
+    labstor::ipc::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
+    labstor_mq_driver_request *kern_rq;
+    labstor_mq_driver_request *client_rq;
+    labstor::ipc::qtok_t qtok;
+
+    //Get the queue pairs to re-submit polling requests to
+    ipc_manager_->GetNextQueuePair(private_resubmit_qp,
+                                   LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
+
+    //Get the kernel request and queue
+    ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
+    kern_rq = poll_rq->poll_rq_;
+
+    //Check if the I/O request is complete
     if(!kern_rq->IOIsComplete()) {
         private_resubmit_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
         return;
     }
+    IOComplete(kern_qp, kern_rq, private_qp, poll_rq);
+}
 
-    //Create message for the USER
-    complete_io_request:
-    TRACEPOINT("Completing this request", "qid", poll_rq->reply_qtok_.qid, "req_id", poll_rq->reply_qtok_.req_id, "ret_code", kern_rq->header_.code_)
+void labstor::MQDriver::Server::IOComplete(
+        labstor::ipc::queue_pair *kern_qp,
+        labstor_mq_driver_request *kern_rq,
+        labstor::ipc::queue_pair *private_qp,
+        labstor_mq_driver_poll_request *poll_rq) {
+
+    labstor::ipc::queue_pair *client_qp;
+    labstor_mq_driver_request *client_rq;
+
+    printf("I/O completed\n");
+
+    //Respond to client
     ipc_manager_->GetQueuePair(client_qp, poll_rq->reply_qtok_);
     client_rq = poll_rq->reply_rq_;
     client_rq->Copy(kern_rq);
-    TRACEPOINT("Current client request", "qid", client_qp->GetQid(), "req_id", client_rq->header_.req_id_, "ret_code", client_rq->header_.code_);
-
-    //Complete SERVER -> USER interaction
     client_qp->Complete<labstor_mq_driver_request>(poll_rq->reply_qtok_, client_rq);
 
     //Free completed requests
-    TRACEPOINT("Complete");
     ipc_manager_->FreeRequest<labstor_mq_driver_request>(kern_qp, kern_rq);
     ipc_manager_->FreeRequest<labstor_mq_driver_poll_request>(private_qp, poll_rq);
 }

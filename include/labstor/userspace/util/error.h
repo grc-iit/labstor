@@ -17,7 +17,8 @@
 #define LABSTOR_ERROR_HANDLE_START() try {
 #define LABSTOR_ERROR_HANDLE_END() } catch(LABSTOR_ERROR_TYPE &err) { err->print(); exit(err->get_code()); }
 #define LABSTOR_ERROR_HANDLE_TRY try
-#define LABSTOR_ERROR_HANDLE_CATCH catch(LABSTOR_ERROR_TYPE &err)
+#define LABSTOR_ERROR_PTR err
+#define LABSTOR_ERROR_HANDLE_CATCH catch(LABSTOR_ERROR_TYPE &LABSTOR_ERROR_PTR)
 #define LABSTOR_ERROR_IS(err, check) (err->get_code() == check.get_code())
 
 namespace labstor {

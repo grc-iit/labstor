@@ -455,7 +455,7 @@ static void io_complete(struct bio *bio) {
              rq->header_.req_id_, code);
     rq->header_.code_ = code;
     rq->flags_ |= LABSTOR_MQ_IO_IS_COMPLETE;
-    pr_info("Did complete: %d\n", rq->cookie_);
+    pr_info("Did complete: %d %X\n", rq->cookie_);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -558,6 +558,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     struct block_device *bdev;
     struct request_queue *q;
     struct bio *bio;
+    struct blk_mq_hw_ctx *hctx;
     ktime_t start, end;
     success = LABSTOR_MQ_OK;
 
@@ -617,6 +618,15 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     rq->cookie_ = cookie;
     pr_debug("Driver Submission Status: %d\n", success);
     //pr_info("COOKIE,hctx: cookie=%d,cookie_hctx=%d,true_hctx=%d\n", cookie, blk_qc_t_to_queue_num(cookie), rq->hctx_);
+
+    pr_info("Cookie: %d\n", cookie);
+    /*if(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE) && (rq->flags_ & LABSTOR_MQ_POLLED_IO)) {
+        hctx = q->queue_hw_ctx[blk_qc_t_to_queue_num(cookie)];
+        do {
+            q->mq_ops->poll(hctx);
+        } while(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE));
+        pr_info("Polling complete");
+    }*/
 
     //I/O was not successfully submitted (after page cache)
     err_complete:

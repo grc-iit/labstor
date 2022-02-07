@@ -10,7 +10,7 @@
 //#include "labstor_bio.h"
 #include "io_uring.h"
 #include "libaio.h"
-#include "spdk.h"
+//#include "spdk.h"
 #include <labstor/userspace/util/partitioner.h>
 
 
@@ -96,10 +96,10 @@ int main(int argc, char **argv) {
         test = test_impl;
     }
     else if(io_method == "spdk") {
-        labstor::SPDKIO *test_impl = new labstor::SPDKIO();
+        /*labstor::SPDKIO *test_impl = new labstor::SPDKIO();
         generator->SetOffsetUnit(512);
         test_impl->Init(generator);
-        test = test_impl;
+        test = test_impl;*/
     }
     else if(io_method == "dax") {
     }

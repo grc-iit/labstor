@@ -12,21 +12,25 @@
 void labstor::Server::Worker::DoWork() {
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     work_queue_depth = work_queue_.GetDepth();
-    LABSTOR_ERROR_HANDLE_START()
-    for(uint32_t i = 0; i < work_queue_depth; ++i) {
-        if(!work_queue_.Peek(qp, creds, i)) { break; }
-        qp_depth = qp->GetDepth();
-        for(uint32_t j = 0; j < qp_depth; ++j) {
-            if (!qp->Dequeue(rq)) { break; }
-            module = namespace_->Get(rq->GetNamespaceID());
-            if(!module) {
-                rq->SetCode(-1);
-                qp->Complete(rq);
-                TRACEPOINT("Could not find module in namespace", rq->GetNamespaceID())
-                continue;
+    LABSTOR_ERROR_HANDLE_TRY {
+        for (uint32_t i = 0; i < work_queue_depth; ++i) {
+            if (!work_queue_.Peek(qp, creds, i)) { break; }
+            qp_depth = qp->GetDepth();
+            for (uint32_t j = 0; j < qp_depth; ++j) {
+                if (!qp->Dequeue(rq)) { break; }
+                module = namespace_->Get(rq->GetNamespaceID());
+                if (!module) {
+                    rq->SetCode(-1);
+                    qp->Complete(rq);
+                    TRACEPOINT("Could not find module in namespace", rq->GetNamespaceID())
+                    continue;
+                }
+                module->ProcessRequest(qp, rq, creds);
             }
-            module->ProcessRequest(qp, rq, creds);
         }
     }
-    LABSTOR_ERROR_HANDLE_END()
+    LABSTOR_ERROR_HANDLE_CATCH {
+        printf("In worker\n");
+        LABSTOR_ERROR_PTR->print();
+    };
 }

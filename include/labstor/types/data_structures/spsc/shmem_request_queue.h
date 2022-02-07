@@ -98,8 +98,8 @@ static inline bool labstor_request_queue_Enqueue(struct labstor_request_queue *l
     LABSTOR_INF_SPINWAIT_PREAMBLE()
     LABSTOR_INF_SPINWAIT_START()
     if(labstor_request_ring_buffer_Enqueue(&lrq->queue_, LABSTOR_REGION_SUB(rq, lrq->base_region_), &rq->req_id_)) {
-        qtok->qid = lrq->header_->qid_;
-        qtok->req_id = rq->req_id_;
+        qtok->qid_ = lrq->header_->qid_;
+        qtok->req_id_ = rq->req_id_;
         return true;
     }
     LABSTOR_INF_SPINWAIT_END()

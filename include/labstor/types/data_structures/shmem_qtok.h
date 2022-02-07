@@ -11,13 +11,13 @@ typedef uint64_t labstor_qid_t;
 
 typedef uint32_t labstor_req_id_t;
 struct labstor_qtok_t {
-    labstor_qid_t qid;
-    labstor_req_id_t req_id;
+    labstor_qid_t qid_;
+    labstor_req_id_t req_id_;
 #ifdef __cplusplus
     labstor_qtok_t() = default;
     void Init(labstor_qid_t qid_, labstor_req_id_t req_id_) {
-        qid = qid_;
-        req_id = req_id_;
+        qid_ = qid_;
+        req_id_ = req_id_;
     }
 #endif
 };

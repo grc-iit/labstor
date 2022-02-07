@@ -90,10 +90,10 @@ public:
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
         AUTO_TRACE("")
-        if(LABSTOR_QP_IS_SHMEM(qtok.qid)) {
-            qp = shmem_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
+        if(LABSTOR_QP_IS_SHMEM(qtok.qid_)) {
+            qp = shmem_qps_[LABSTOR_GET_QP_IDX(qtok.qid_)];
         } else {
-            qp = private_qps_[LABSTOR_GET_QP_IDX(qtok.qid)];
+            qp = private_qps_[LABSTOR_GET_QP_IDX(qtok.qid_)];
         }
     }
     template<typename T>
@@ -126,7 +126,7 @@ public:
     template<typename T>
     inline void FreeRequest(labstor::ipc::qtok_t &qtok, T *rq) {
         AUTO_TRACE("")
-        return FreeRequest(qtok.qid, rq);
+        return FreeRequest(qtok.qid_, rq);
     }
     template<typename T=labstor::ipc::request>
     T* Wait(labstor::ipc::qtok_t &qtok) {
@@ -134,7 +134,7 @@ public:
         T *rq;
         labstor::ipc::queue_pair *qp;
         GetQueuePair(qp, qtok);
-        rq = qp->Wait<T>(qtok.req_id);
+        rq = qp->Wait<T>(qtok.req_id_);
         return rq;
     }
     template<typename T=labstor::ipc::request>
