@@ -7,6 +7,7 @@
 
 #include <labstor/types/allocator/allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
+#include <labstor/userspace/util/errors.h>
 #include <vector>
 
 namespace labstor::Server {
@@ -36,11 +37,24 @@ struct PerProcessIPC {
 
     void RegisterQueuePair(labstor::ipc::queue_pair *qp) {
         qps_.resize(LABSTOR_MAX_QP_FLAG_COMBOS);
-        qps_[qp->GetQid().flags_].resize(qp->GetQid().cnt_ + 1);
+        auto qid = qp->GetQid();
+        if(qid.flags_ >= qps_.size()) {
+            throw INVALID_QP_FLAGS.format(qid.flags_);
+        }
+        auto &qps_by_flags = qps_[qid.flags_];
+        qps_by_flags.resize(qp->GetQid().cnt_ + 1);
         qps_[qp->GetQid().flags_][qp->GetQid().cnt_] = qp;
+        ++num_stream_qps_;
     }
     labstor::ipc::queue_pair* GetQueuePair(labstor::ipc::qid_t qid) {
-        return qps_[qid.flags_][qid.cnt_];
+        if(qid.flags_ >= qps_.size()) {
+            throw INVALID_QP_FLAGS.format(qid.flags_);
+        }
+        auto &qps_by_flags = qps_[qid.flags_];
+        if(qid.cnt_ >= qps_by_flags.size()) {
+            throw INVALID_QP_CNT.format(qid.cnt_);
+        }
+        return qps_by_flags[qid.cnt_];
     }
 };
 }

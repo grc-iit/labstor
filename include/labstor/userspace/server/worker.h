@@ -39,7 +39,7 @@ public:
     }
     void AssignQP(labstor::ipc::queue_pair *qp, labstor::credentials *creds) {
         if(!work_queue_.Enqueue(qp, creds)) {
-            throw FAILED_TO_ASSIGN_QUEUE.format(qp->GetQid(), id_);
+            throw FAILED_TO_ASSIGN_QUEUE.format(qp->GetQid().pid_, id_);
         }
     }
     uint32_t GetQueueDepth() {

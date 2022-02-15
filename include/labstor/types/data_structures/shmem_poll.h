@@ -13,8 +13,8 @@ namespace labstor::ipc {
 
 template<typename T>
 struct poll_request_single : labstor_request {
-    struct labstor_qtok_t poll_qtok_; //The request being polled
-    struct labstor_qtok_t reply_qtok_; //The request waiting for the qtok
+    labstor_qtok_t poll_qtok_; //The request being polled
+    labstor_qtok_t reply_qtok_; //The request waiting for the qtok
     T *reply_rq_; //The request that will be used to hold the reply
     void Init(labstor::ipc::queue_pair *qp, T *reply_rq, labstor::ipc::qtok_t &poll_qtok, int op) {
         ns_id_ = reply_rq->header_.ns_id_;

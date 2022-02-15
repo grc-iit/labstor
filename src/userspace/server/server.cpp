@@ -71,10 +71,10 @@ public:
             ipc_manager_->RegisterClient(client_fd_, creds);
         }
         LABSTOR_ERROR_HANDLE_CATCH {
-            printf("Failed to accept client (pid=%d uid=%d gid=%d)\n", creds.pid, creds.uid, creds.gid);
+            printf("Failed to accept client (pid=%d uid=%d gid=%d)\n", creds.pid_, creds.uid_, creds.gid_);
             LABSTOR_ERROR_PTR->print();
         };
-        printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
+        printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid_, creds.uid_, creds.gid_);
     }
 };
 

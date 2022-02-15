@@ -47,8 +47,7 @@ void labstor::Server::IPCManager::InitializeKernelIPCManager() {
     LoadMemoryConfig("kernel", memconf);
 
     //Create new IPC for the kernel
-    uint16_t lpid;
-    PerProcessIPC *client_ipc = RegisterIPC(KERNEL_PID, lpid);
+    PerProcessIPC *client_ipc = RegisterIPC(KERNEL_PID);
 
     //Create SHMEM region
     LABSTOR_KERNEL_SHMEM_ALLOC_T shmem = LABSTOR_KERNEL_SHMEM_ALLOC;
@@ -91,7 +90,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
     std::vector<labstor_assign_qp_request> assign_qp_vec;
 
     //Get Kernel IPC region
-    PerProcessIPC *client_ipc = lpid_to_ipc_[KERNEL_PID];
+    PerProcessIPC *client_ipc = pid_to_ipc_[KERNEL_PID];
 
     //Allocate & register SHMEM queues for the kernel
     LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
@@ -116,7 +115,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         if(!RegisterQueuePair(qp)) {
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
         }
-        TRACEPOINT("RemoteAttach3", (size_t)remote_qp->sq.base_region_, (size_t)remote_qp->sq.header_);
+        TRACEPOINT("RemoteAttach3", (size_t)remote_qp->sq_.base_region_, (size_t)remote_qp->sq_.header_);
 
         //Add to netlink message
         assign_qp_vec.emplace_back(qp, ptr);
@@ -132,8 +131,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     LoadMemoryConfig("private", memconf);
 
     //Create new IPC for private queues
-    pid_to_ipc_.Set(pid_, new PerProcessIPC());
-    PerProcessIPC *client_ipc = pid_to_ipc_[pid_];
+    PerProcessIPC *client_ipc = RegisterIPC(pid_);
 
     //Allocator internal memory
     private_mem_ = malloc(memconf.region_size);
@@ -185,11 +183,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     LoadMemoryConfig("client", memconf);
 
     //Create new IPC
-    if(!lpids_.Dequeue(lpid)) {
-        throw MAX_CONNECTIONS_EXCEEDED.format();
-    }
-    pid_to_ipc_.Set(creds.pid, new PerProcessIPC(client_fd, creds));
-    PerProcessIPC *client_ipc = pid_to_ipc_[creds.pid];
+    PerProcessIPC *client_ipc = RegisterIPC(client_fd, creds);
 
     //Create shared memory
     LABSTOR_KERNEL_SHMEM_ALLOC_T shmem = LABSTOR_KERNEL_SHMEM_ALLOC; 
@@ -198,7 +192,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
         throw SHMEM_CREATE_FAILED.format();
     }
     shmem->GrantPidShmem(getpid(), client_ipc->region_id_);
-    shmem->GrantPidShmem(creds.pid, client_ipc->region_id_);
+    shmem->GrantPidShmem(creds.pid_, client_ipc->region_id_);
     region = shmem->MapShmem(client_ipc->region_id_, memconf.region_size);
     if(!region) {
         throw MMAP_FAILED.format(strerror(errno));
@@ -213,7 +207,6 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     reply.queue_region_size_ = memconf.queue_region_size;
     reply.queue_depth_ = memconf.queue_depth;
     reply.num_queues_ = memconf.num_queues;
-    reply.lpid_ = lpid;
     TRACEPOINT("Registering", reply.region_id, reply.region_size, reply.request_unit)
     client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
 

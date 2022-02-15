@@ -41,7 +41,7 @@
 #define LABSTOR_QP_FLAG_BITS 10
 
 #define LABSTOR_GET_QP_IDX(qid) (qid.cnt_)
-#define LABSTOR_GET_QP_IPC_ID(qid) (qid.lpid_)
+#define LABSTOR_GET_QP_IPC_ID(qid) (qid.pid_)
 
 /*QUEUE DEFINITION*/
 
@@ -359,10 +359,10 @@ inline T* labstor::ipc::queue_pair::Wait(labstor::ipc::qtok_t &qtok, uint32_t ma
     return Wait<T>(qtok.req_id_, max_ms);
 }
 
-labstor_qid_t labstor::ipc::queue_pair::GetStreamQueuePairID(uint16_t flags, uint32_t hash, uint32_t num_qps, int lpid) {
+labstor_qid_t labstor::ipc::queue_pair::GetStreamQueuePairID(uint16_t flags, uint32_t hash, uint32_t num_qps, int pid) {
     labstor_qid_t qid;
     qid.cnt_ = hash % num_qps;
-    qid.lpid_ = lpid;
+    qid.pid_ = pid;
     qid.flags_ = flags;
     return qid;
 }

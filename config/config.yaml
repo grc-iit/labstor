@@ -24,8 +24,6 @@ work_orchestrator:
     - {worker_id: 0, cpu_id: 2}
     - {worker_id: 1, cpu_id: 3}
 ipc_manager:
-  max_connected_procs: 4096
-
   client:
     max_region_size_kb: 64
     num_queues: 4

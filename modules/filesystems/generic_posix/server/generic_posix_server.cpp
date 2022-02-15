@@ -43,7 +43,7 @@ void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_p
     int len = strlen(path);
     int fd = client_rq->GetFD();
     uint32_t ns_id;
-    uint64_t pid_fd = PID_FD(creds->pid, fd);
+    uint64_t pid_fd = PID_FD(creds->pid_, fd);
     labstor::Module *module;
     while(len > 0) {
         if(namespace_->GetIfExists(labstor::ipc::string(client_rq->path_, len), ns_id)) {
@@ -62,7 +62,7 @@ void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_p
 
 void labstor::GenericPosix::Server::Close(labstor::ipc::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
     labstor::Module *module;
-    uint64_t pid_fd = PID_FD(creds->pid, client_rq->GetFD());
+    uint64_t pid_fd = PID_FD(creds->pid_, client_rq->GetFD());
     uint32_t ns_id;
     if(fd_to_ns_id_.Find(pid_fd, ns_id)) {
         fd_to_ns_id_.Remove(ns_id);
@@ -78,7 +78,7 @@ void labstor::GenericPosix::Server::Close(labstor::ipc::queue_pair *qp, generic_
 
 void labstor::GenericPosix::Server::Passthrough(labstor::ipc::queue_pair *qp, generic_posix_passthrough_request *client_rq, labstor::credentials *creds) {
     labstor::Module *module;
-    uint64_t pid_fd = PID_FD(creds->pid, client_rq->GetFD());
+    uint64_t pid_fd = PID_FD(creds->pid_, client_rq->GetFD());
     uint32_t ns_id;
     if(fd_to_ns_id_.Find(pid_fd, ns_id)) {
         module = namespace_->Get(ns_id);

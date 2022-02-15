@@ -35,7 +35,6 @@ struct setup_reply : public admin_reply {
     uint32_t queue_region_size_;
     uint32_t queue_depth_;
     uint32_t num_queues_;
-    uint32_t lpid_;
 };
 
 struct register_qp_request : public labstor::ipc::admin_request {

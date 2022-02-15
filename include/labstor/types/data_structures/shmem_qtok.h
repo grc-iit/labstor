@@ -5,26 +5,30 @@
 #ifndef LABSTOR_SHMEM_QTOK_H
 #define LABSTOR_SHMEM_QTOK_H
 
+#ifdef __cplusplus
+#include <labstor/userspace/util/serializeable.h>
+#endif
+
 #define LABSTOR_QTOK_INVALID(qtok) (qtok.req_id==-1 || qtok.qid==-1)
 
 typedef struct labstor_qid_t {
     uint16_t flags_;
-    uint16_t lpid_;
+    uint32_t pid_;
     uint32_t cnt_;
 #ifdef __cplusplus
     labstor_qid_t() = default;
-    labstor_qid_t(uint32_t qid) : flags_(0), lpid_(0), cnt_(qid) {}
-    uint64_t ToUint() {
+    labstor_qid_t(uint32_t qid) : flags_(0), pid_(0), cnt_(qid) {}
+    uint64_t Hash() {
         uint64_t num = 0;
         num += flags_;
         num <<= 16;
-        num += lpid_;
+        num += pid_ % (1<<16);
         num <<= 16;
         num += cnt_;
         return num;
     }
     bool operator ==(const labstor_qid_t &qid) {
-        return (qid.flags_ == flags_) && (qid.lpid_ == lpid_) && (qid.cnt_ == cnt_);
+        return (qid.flags_ == flags_) && (qid.pid_ == pid_) && (qid.cnt_ == cnt_);
     }
 #endif
 } labstor_qid_t;
