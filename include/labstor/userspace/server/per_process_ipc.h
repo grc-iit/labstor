@@ -7,6 +7,7 @@
 
 #include <labstor/types/allocator/allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
+#include <vector>
 
 namespace labstor::Server {
 struct PerProcessIPC {
@@ -16,6 +17,7 @@ struct PerProcessIPC {
     labstor::GenericAllocator *alloc_;
     labstor::segment_allocator *qp_alloc_;
     int num_stream_qps_;
+    std::vector<std::vector<labstor::ipc::queue_pair*>> qps_;
 
     PerProcessIPC() : num_stream_qps_(0) {}
 
@@ -31,6 +33,15 @@ struct PerProcessIPC {
     inline UnixSocket &GetSocket() { return clisock_; };
 
     inline void *GetRegion() { return alloc_->GetRegion(); }
+
+    void RegisterQueuePair(labstor::ipc::queue_pair *qp) {
+        qps_.resize(LABSTOR_MAX_QP_FLAG_COMBOS);
+        qps_[qp->GetQid().flags_].resize(qp->GetQid().cnt_ + 1);
+        qps_[qp->GetQid().flags_][qp->GetQid().cnt_] = qp;
+    }
+    labstor::ipc::queue_pair* GetQueuePair(labstor::ipc::qid_t qid) {
+        return qps_[qid.flags_][qid.cnt_];
+    }
 };
 }
 

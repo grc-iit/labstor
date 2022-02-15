@@ -23,12 +23,7 @@ struct labstor_request {
         ns_id_ = ns_id;
         op_ = op;
     }
-    inline void Complete(uint32_t code) {
-        SetCode(code);
-    }
-    inline void Copy(labstor_request *rq) {
-        code_ = rq->code_;
-    }
+
     inline uint32_t GetNamespaceID() { return ns_id_; }
     inline uint32_t GetCode() { return code_; }
     inline uint32_t GetRequestID() { return req_id_; }

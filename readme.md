@@ -105,6 +105,17 @@ make install
 sudo apt install libaio-dev
 ```
 
+### FIO
+```
+scspkg create fio
+cd `scspkg pkg-src fio`
+git clone https://github.com/axboe/fio
+cd fio
+./configure --prefix=`scspkg pkg-root fio`
+make -j8
+make install
+```
+
 ### SPDK
 
 ```
@@ -115,7 +126,7 @@ cd spdk
 git checkout v21.10
 git submodule update --init
 sudo scripts/pkgdep.sh --all
-./configure --prefix=`scspkg pkg-root spdk`
+./configure --prefix=`scspkg pkg-root spdk` --with-fio=`scspkg pkg-src fio`
 make -j8
 make install
 ```
@@ -123,16 +134,9 @@ make install
 ```
 cd `scspkg pkg-src spdk`/spdk
 #Allocate huge pages & unbind NVMes
-sudo HUGEMEM=2048 scripts/setup.sh
+sudo HUGEMEM=8192 scripts/setup.sh
 #Rebind NVMes
 sudo scripts/setup.sh reset
-```
-
-### FIO
-```
-scspkg create fio
-cd `scspkg pkg-src fio`
-git clone 
 ```
 
 ## 2. Building
@@ -153,11 +157,23 @@ make start_trusted_server
 make stop_trusted_server
 make stop_kernel_server
 
+LD_PRELOAD=`scspkg pkg-src spdk`/spdk/build/fio/spdk_nvme fio ../benchmark/src/fio/microbench.fio --name spdk
+
 https://community.intel.com/t5/Blogs/Products-and-Solutions/Memory-Storage/Tuning-the-performance-of-Intel-Optane-SSDs-on-Linux-Operating/post/1334953
 https://serverfault.com/questions/1052448/how-can-i-override-irq-affinity-for-nvme-devices
+
 sudo su
-modprobe -r nvme && modprobe nvme poll_queues=4
+modprobe -r nvme && modprobe nvme poll_queues=32 
+echo 0 > /sys/block/nvme0n1/queue/iostats
+echo 0 > /sys/block/nvme0n1/queue/read_ahead_kb
+echo 0 > /sys/block/nvme0n1/queue/rotational
+echo 2 > /sys/block/nvme0n1/queue/nomerges
+
 cat /sys/block/nvme0n1/queue/io_poll
+cat /sys/block/nvme0n1/queue/iostats
+cat /sys/block/nvme0n1/queue/read_ahead_kb
+cat /sys/block/nvme0n1/queue/rotational
+cat /sys/block/nvme0n1/queue/nomerges
 ```
 
 ### Random Notes

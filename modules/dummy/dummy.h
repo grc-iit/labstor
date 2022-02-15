@@ -7,6 +7,8 @@
 
 #include <labstor/types/data_structures/shmem_request.h>
 
+#define LABSTOR_DUMMY_MODULE_ID "Dummy"
+
 namespace labstor::test::Dummy {
 
 enum class Ops {

@@ -41,34 +41,32 @@ struct MemoryConfig {
 class IPCManager {
 private:
     int pid_;
+    uint16_t lpid_;
     int server_fd_;
     void *private_mem_, *kern_base_region_;
     std::mutex lock_;
     std::vector<int> pids_;
     labstor::GenericAllocator *private_alloc_;
-    labstor::ipc::mpmc::int_map<int,PerProcessIPC*> pid_to_ipc_;
-    labstor::ipc::mpmc::int_map<labstor::ipc::qid_t,labstor::ipc::queue_pair*> qps_by_id_;
+    labstor::ipc::mpmc::ring_buffer<uint16_t> lpids_;
+    std::unordered_map<uint32_t,uint32_t> pid_to_lpid_;
+    std::vector<PerProcessIPC*> lpid_to_ipc_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
 public:
     IPCManager() {
         pid_ = getpid();
         labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
-        uint32_t pid_to_ipc_size = labstor_config_->config_["ipc_manager"]["pid_to_ipc_size_mb"].as<uint32_t>()*SizeType::MB;
-        uint32_t qps_by_id_size = labstor_config_->config_["ipc_manager"]["qps_by_id_size_mb"].as<uint32_t>()*SizeType::MB;
-        uint32_t max_collisions = labstor_config_->config_["ipc_manager"]["max_collisions"].as<uint32_t>();
+        uint32_t max_procs = labstor_config_->config_["ipc_manager"]["max_connected_procs"].as<uint32_t>();
 
-        void *base_region;
-        pid_to_ipc_.Init(base_region = malloc(pid_to_ipc_size), base_region, pid_to_ipc_size, 16);
-        qps_by_id_.Init(base_region = malloc(pid_to_ipc_size), base_region, qps_by_id_size, 16);
-        pid_to_ipc_.Set(pid_, new PerProcessIPC());
-    }
-    ~IPCManager() {
-        free(pid_to_ipc_.GetRegion());
-        free(qps_by_id_.GetRegion());
-    }
+        //Cache available LPIDs
+        uint32_t region_size = labstor::ipc::mpmc::ring_buffer<uint16_t>::GetSize(max_procs);
+        lpids_.Init(malloc(region_size), region_size);
+        for(int i = 0; i < max_procs; ++i) {
+            lpids_.Enqueue(i);
+        }
+        lpid_to_ipc_.resize(max_procs);
 
-    inline int GetPid() {
-        return pid_;
+        //Initialize self lpid
+        RegisterIPC(pid_, lpid_);
     }
 
     inline void SetServerFd(int fd) { server_fd_ = fd; }
@@ -84,59 +82,71 @@ public:
     void WaitForPause();
     void ResumeQueues();
 
+    PerProcessIPC* RegisterIPC(int pid, uint16_t &lpid) {
+        PerProcessIPC *ipc = new PerProcessIPC();
+        lpids_.Dequeue(lpid);
+        pid_to_lpid_.emplace(pid, lpid);
+        return ipc;
+    }
+    int GetLPID(int pid) {
+        return pid_to_lpid_[pid];
+    }
     inline bool RegisterQueuePair(labstor::ipc::queue_pair *qp) {
         //TODO: Thread safety? Not important now
-        ++pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->num_stream_qps_;
-        return qps_by_id_.Set(qp->GetQid(), qp);
+        ++lpid_to_ipc_[qp->GetQid().lpid_]->num_stream_qps_;
+        return true;
     }
     inline bool UnregisterQueuePair(labstor::ipc::queue_pair *qp) {
-        return qps_by_id_.Remove(qp->GetQid());
+        return false;
     }
-    inline void* GetRegion(int pid) {
+    /*inline void* GetRegion(int pid) {
         return pid_to_ipc_[pid]->GetRegion();
-    }
+    }*/
     inline void* GetRegion(labstor::ipc::queue_pair *qp, labstor::credentials *&creds) {
         PerProcessIPC *ipc = pid_to_ipc_[qp->GetPID()];
         creds = &ipc->creds_;
         return ipc->GetRegion();
     }
     inline void* GetRegion(labstor::ipc::queue_pair *qp) {
-        return pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->GetRegion();
+        return lpid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->GetRegion();
     }
-    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
+    inline void GetQueuePair(labstor::ipc::queue_pair *&qp, uint16_t flags) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
-            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, labstor::ThreadLocal::GetTid(), num_qps, pid_)];
+            uint32_t num_qps = lpid_to_ipc_[lpid_]->num_stream_qps_;
+            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, labstor::ThreadLocal::GetTid(), num_qps, pid_);
+            qp = lpid_to_ipc_[qid.lpid_]->GetQueuePair(qid);
             return;
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePairByName(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, const std::string &str, uint32_t ns_id) {
+    inline void GetQueuePairByName(labstor::ipc::queue_pair *&qp, uint16_t flags, const std::string &str, uint32_t ns_id) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid_]->num_stream_qps_;
-            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, pid_)];
+            uint32_t num_qps = lpid_to_ipc_[lpid_]->num_stream_qps_;
+            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, str, ns_id, num_qps, lpid_);
+            qp = lpid_to_ipc_[qid.lpid_]->GetQueuePair(qid);
             return;
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePairByPidHash(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int pid, int hash) {
+    inline void GetQueuePairByLpidHash(labstor::ipc::queue_pair *&qp, uint16_t flags, int lpid, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[pid]->num_stream_qps_;
-            qp = qps_by_id_[labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid)];
+            uint32_t num_qps = lpid_to_ipc_[lpid]->num_stream_qps_;
+            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, lpid);
+            qp = lpid_to_ipc_[qid.lpid_]->GetQueuePair(qid);
             return;
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePairByHash(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int hash) {
-        return GetQueuePairByPidHash(qp, flags, pid_, hash);
+    inline void GetQueuePairByHash(labstor::ipc::queue_pair *&qp, uint16_t flags, int hash) {
+        return GetQueuePairByLpidHash(qp, flags, lpid_, hash);
     }
-    inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, int pid) {
-        return GetQueuePairByPidHash(qp, flags, pid, labstor::ThreadLocal::GetTid());
+    inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, uint16_t flags, int lpid) {
+        return GetQueuePairByLpidHash(qp, flags, lpid, labstor::ThreadLocal::GetTid());
     }
-    inline void GetNextQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags) {
-        return GetQueuePairByPidHash(qp, flags, pid_, labstor::ThreadLocal::GetTid() + 1);
+    inline void GetNextQueuePair(labstor::ipc::queue_pair *&qp, uint16_t flags) {
+        return GetQueuePairByLpidHash(qp, flags, lpid_, labstor::ThreadLocal::GetTid() + 1);
     }
-    inline void GetBatchQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qid_t flags, uint32_t depth) {
+    inline void GetBatchQueuePair(labstor::ipc::queue_pair *&qp, uint16_t flags, uint32_t depth) {
         if(LABSTOR_QP_IS_BATCH(flags)) {
             uint32_t sq_sz = labstor::ipc::request_queue::GetSize(depth);
             uint32_t cq_sz = labstor::ipc::request_map::GetSize(depth);
@@ -149,12 +159,13 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
-        qp = qps_by_id_[qtok.qid_];
+        labstor::ipc::qid_t qid = qp->GetQid();
+        qp = lpid_to_ipc_[qid.lpid_]->GetQueuePair(qid);
     }
 
     template<typename T>
     inline T* AllocRequest(labstor::ipc::qid_t qid, uint32_t size) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
+        labstor::GenericAllocator* alloc = lpid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
         return (T*)alloc->Alloc(size, labstor::ThreadLocal::GetTid());
     }
     template<typename T>
@@ -167,7 +178,7 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::qid_t qid, T *rq) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
+        labstor::GenericAllocator* alloc = lpid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qid)]->alloc_;
         alloc->Free((void*)rq);
     }
     template<typename T>
@@ -176,7 +187,7 @@ public:
     }
     template<typename T>
     inline void FreeRequest(labstor::ipc::queue_pair *qp, T *rq) {
-        labstor::GenericAllocator* alloc = pid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->alloc_;
+        labstor::GenericAllocator* alloc = lpid_to_ipc_[LABSTOR_GET_QP_IPC_ID(qp->GetQid())]->alloc_;
         alloc->Free((void*)rq);
     }
 
@@ -204,7 +215,7 @@ public:
         return pids_;
     }
     inline PerProcessIPC* GetIPC(int pid) {
-        return pid_to_ipc_[pid];
+        return lpid_to_ipc_[pid];
     }
 };
 

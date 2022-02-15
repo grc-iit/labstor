@@ -11,8 +11,16 @@
 void labstor::MQDriver::Client::Register() {
     AUTO_TRACE("")
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance(MQ_DRIVER_MODULE_ID, MQ_DRIVER_MODULE_ID);
+    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(MQ_DRIVER_MODULE_ID, MQ_DRIVER_MODULE_ID);
     TRACEPOINT(ns_id_)
+}
+
+int labstor::MQDriver::Client::GetNamespaceID() {
+    auto registrar = labstor::Registrar::Client();
+    if(ns_id_ == 0) {
+        ns_id_ = registrar.GetNamespaceID(MQ_DRIVER_MODULE_ID);
+    }
+    return ns_id_;
 }
 
 void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
@@ -28,7 +36,7 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
     //Create CLIENT -> SERVER message
     TRACEPOINT("Submit", "dev_id", dev_id)
     client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->Start(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
+    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Complete CLIENT -> SERVER interaction
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
@@ -53,7 +61,7 @@ labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, int dev_id, void *us
     //Create CLIENT -> SERVER message
     TRACEPOINT("Submit", "dev_id", dev_id)
     client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->Start(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
+    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Enqueue the request
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
@@ -73,7 +81,7 @@ int labstor::MQDriver::Client::GetNumHWQueues(int dev_id) {
     //Create CLIENT -> SERVER message
     TRACEPOINT("Submit", "dev_id", dev_id)
     client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->Start(ns_id_, dev_id);
+    client_rq->IOStatsClientStart(ns_id_, dev_id);
 
     //Complete CLIENT -> SERVER interaction
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
@@ -88,4 +96,4 @@ int labstor::MQDriver::Client::GetNumHWQueues(int dev_id) {
     return num_hw_queues;
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Client);
+LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Client, MQ_DRIVER_MODULE_ID);

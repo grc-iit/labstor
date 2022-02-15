@@ -23,13 +23,11 @@ public:
         start_ = T::now();
     }
     double Pause() {
-        end_ = T::now();
-        time_ns_ += std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();
+        time_ns_ += GetNsecFromStart();
         return time_ns_;
     }
     double Pause(double &dt) {
-        end_ = T::now();
-        dt = std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();
+        dt = GetNsecFromStart();
         time_ns_ += dt;
         return time_ns_;
     }
@@ -37,11 +35,24 @@ public:
         time_ns_ = 0;
     }
 
-    double GetMsecFromStart() {
+    double GetNsecFromStart() {
         end_ = T::now();
         double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end_ - start_).count();
-        return elapsed/1000000;
+        return elapsed;
     }
+    double GetUsecFromStart() {
+        end_ = T::now();
+        return std::chrono::duration_cast<std::chrono::microseconds>(end_ - start_).count();
+    }
+    double GetMsecFromStart() {
+        end_ = T::now();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(end_ - start_).count();
+    }
+    double GetSecFromStart() {
+        end_ = T::now();
+        return std::chrono::duration_cast<std::chrono::seconds>(end_ - start_).count();
+    }
+
     double GetNsec() const {
         return time_ns_;
     }
@@ -54,6 +65,7 @@ public:
     double GetSec() const {
         return time_ns_/1000000000;
     }
+
     double GetUsFromEpoch() const {
         std::chrono::time_point<std::chrono::system_clock> point = std::chrono::system_clock::now();
         return std::chrono::duration_cast<std::chrono::microseconds>(point.time_since_epoch()).count();
@@ -88,6 +100,7 @@ public:
         MinimumTID(tid);
         return timers_[tid].GetMsecFromStart();
     }
+
     double GetNsec(int tid) {
         MinimumTID(tid);
         return timers_[tid].GetNsec();

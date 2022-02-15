@@ -5,7 +5,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 
 int main() {
-    labstor::ipc::mpmc::int_map<labstor::ipc::qid_t,labstor::ipc::queue_pair*> qps_by_id_;
+    /*labstor::ipc::mpmc::int_map<labstor::ipc::qid_t,labstor::ipc::queue_pair*> qps_by_id_;
     uint32_t region_size = (1<<20);
     int queue_size = 2048;
     void *region = malloc(region_size);
@@ -27,7 +27,7 @@ int main() {
         void *sq_region = region;
         void *cq_region = (char*)region + queue_size;
         qp->Init(qid, region, sq_region, queue_size, cq_region, queue_size);
-        printf("%d\n", qp->cq.GetNumBuckets());
+        printf("%d\n", qp->cq_.GetNumBuckets());
 
         //Store QP internally
         qps_by_id_.Set(qid, qp);
@@ -40,5 +40,5 @@ int main() {
             num_queues,
             KERNEL_PID);
     kern_qp = qps_by_id_[qid];
-    printf("%d\n", kern_qp->cq.GetNumBuckets());
+    printf("%d\n", kern_qp->cq_.GetNumBuckets());*/
 }

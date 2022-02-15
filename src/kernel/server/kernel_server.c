@@ -71,7 +71,7 @@ static void server_loop(struct sk_buff *skb) {
 
     //Process command
     if(pkg->process_request_fn_netlink == NULL) {
-        pr_err("Module %s does not support access over the netlink socket\n", pkg->module_id.key);
+        pr_err("Module %s does not support access over the netlink socket\n", pkg->module_id.key_);
         code = -2;
         labstor_msg_trusted_server(&code, sizeof(code), pid);
         return;

@@ -11,22 +11,24 @@ modules:
   MQDriver:
     client: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_server.so
+admin_thread: 0
+system_monitor: 1
 work_orchestrator:
   time_slice_us: 1000
   work_queue_depth: 128
   policy: round-robin
   kernel_workers:
     - {worker_id: 0, cpu_id: 0}
+    - {worker_id: 1, cpu_id: 1}
   server_workers:
     - {worker_id: 0, cpu_id: 2}
+    - {worker_id: 1, cpu_id: 3}
 ipc_manager:
-  pid_to_ipc_size_mb: 2
-  qps_by_id_size_mb: 2
-  max_collisions: 64
+  max_connected_procs: 4096
 
   client:
     max_region_size_kb: 64
-    num_queues: 1
+    num_queues: 4
     queue_depth: 100
     request_unit_bytes: 64
     min_request_region_kb: 32
@@ -50,4 +52,3 @@ namespace:
   max_collisions: 16
   shmem_request_unit: 128
   shmem_kb: 1024
-admin_thread: 0

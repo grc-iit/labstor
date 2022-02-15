@@ -20,10 +20,17 @@ class UserspaceDaemon : public Daemon {
 private:
     std::thread thread_;
     bool continue_work_;
+    std::atomic<bool> started_;
 public:
     void Start() override {
         continue_work_ = true;
+        started_ = false;
         thread_ = std::thread(daemon_thread, this, worker_);
+        while(!started_);
+    }
+
+    void SetStarted() {
+        started_ = true;
     }
 
     void Pause() override {
@@ -46,7 +53,6 @@ public:
     }
 
     void SetAffinity(int cpu_id) override {
-        int ret = 0;
         cpu_set_t cpus[n_cpu_];
         CPU_ZERO(cpus);
         CPU_SET(cpu_id, cpus);
@@ -60,6 +66,7 @@ public:
 
 private:
     static void daemon_thread(UserspaceDaemon *daemon, std::shared_ptr<DaemonWorker> worker) {
+        daemon->SetStarted();
         while(daemon->ShouldContinue()) {
             worker->DoWork();
         }
@@ -68,7 +75,7 @@ private:
     inline void pthread_setaffinity_np_safe(int n_cpu, cpu_set_t *cpus) {
         int ret = pthread_setaffinity_np(thread_.native_handle(), n_cpu, cpus);
         if(ret != 0) {
-            throw INVALID_AFFINITY.format(strerror(errno));
+            throw INVALID_AFFINITY.format(strerror(ret));
         }
     }
 };

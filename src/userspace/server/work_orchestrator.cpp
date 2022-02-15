@@ -18,7 +18,7 @@
 #include <modules/kernel/work_orchestrator/netlink_client/work_orchestrator_client_netlink.h>
 
 void labstor::Server::WorkOrchestrator::CreateWorkers() {
-    AUTO_TRACE("labstor::Server::WorkOrchestrator::CreateWorkers")
+    AUTO_TRACE("")
     auto labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
     auto netlink_client_ = LABSTOR_KERNEL_CLIENT;
     const auto &config = labstor_config_->config_["work_orchestrator"];
@@ -30,18 +30,19 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     if(nworkers == 0) {
         throw WORK_ORCHESTRATOR_HAS_NO_WORKERS.format("server");
     }
-    worker_pool_.emplace(pid_, nworkers);
+    worker_pool_.emplace(pid_, std::move(std::vector<std::shared_ptr<labstor::Daemon>>(nworkers)));
     auto &server_workers = worker_pool_[pid_];
+    server_workers.resize(nworkers);
     for (const auto &worker_conf : config["server_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();
         TRACEPOINT("id", worker_id, "cpu", cpu_id)
         std::shared_ptr<labstor::UserspaceDaemon> worker_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
         std::shared_ptr<labstor::Server::Worker> worker = std::shared_ptr<labstor::Server::Worker>(new labstor::Server::Worker(queue_depth, worker_id));
+        server_workers[worker_id] = worker_daemon;
         worker_daemon->SetWorker(worker);
         worker_daemon->Start();
         worker_daemon->SetAffinity(cpu_id);
-        server_workers[worker_id] = worker_daemon;
     }
 
     //Create kernel work queue region
@@ -66,8 +67,9 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     kernel_work_orchestrator->CreateWorkers(nworkers, region_id, region_size, 0);
 
     //Worker queues
-    worker_pool_.emplace(KERNEL_PID, nworkers);
+    worker_pool_.emplace(KERNEL_PID, std::move(std::vector<std::shared_ptr<labstor::Daemon>>(nworkers)));
     auto &kernel_workers = worker_pool_[KERNEL_PID];
+    kernel_workers.resize(nworkers);
     for (const auto &worker_conf : config["kernel_workers"]) {
         int worker_id = worker_conf["worker_id"].as<int>();
         int cpu_id = worker_conf["cpu_id"].as<int>();

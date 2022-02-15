@@ -21,8 +21,7 @@ struct LabStorMQThread {
         int nonce = 12;
         buf_ = aligned_alloc(4096, block_size);
         memset(buf_, nonce, block_size);
-        void *qtok_buf_ = malloc(labstor::ipc::qtok_set::GetSize(ops_per_batch));
-        qtoks_.Init(qtok_buf_, labstor::ipc::qtok_set::GetSize(ops_per_batch));
+        qtoks_.Reserve(ops_per_batch);
         hctx_ = -1;
     }
 };

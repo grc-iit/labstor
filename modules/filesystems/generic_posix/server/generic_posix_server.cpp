@@ -90,4 +90,4 @@ void labstor::GenericPosix::Server::Passthrough(labstor::ipc::queue_pair *qp, ge
 
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::GenericPosix::Server)
+LABSTOR_MODULE_CONSTRUCT(labstor::GenericPosix::Server, GENERIC_POSIX_MODULE_ID)

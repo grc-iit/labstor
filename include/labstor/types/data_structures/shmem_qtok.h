@@ -7,7 +7,27 @@
 
 #define LABSTOR_QTOK_INVALID(qtok) (qtok.req_id==-1 || qtok.qid==-1)
 
-typedef uint64_t labstor_qid_t;
+typedef struct labstor_qid_t {
+    uint16_t flags_;
+    uint16_t lpid_;
+    uint32_t cnt_;
+#ifdef __cplusplus
+    labstor_qid_t() = default;
+    labstor_qid_t(uint32_t qid) : flags_(0), lpid_(0), cnt_(qid) {}
+    uint64_t ToUint() {
+        uint64_t num = 0;
+        num += flags_;
+        num <<= 16;
+        num += lpid_;
+        num <<= 16;
+        num += cnt_;
+        return num;
+    }
+    bool operator ==(const labstor_qid_t &qid) {
+        return (qid.flags_ == flags_) && (qid.lpid_ == lpid_) && (qid.cnt_ == cnt_);
+    }
+#endif
+} labstor_qid_t;
 
 typedef uint32_t labstor_req_id_t;
 struct labstor_qtok_t {
@@ -25,7 +45,7 @@ struct labstor_qtok_t {
 
 #ifdef __cplusplus
 namespace labstor::ipc {
-    typedef uint64_t qid_t;
+    typedef labstor_qid_t qid_t;
     typedef labstor_qtok_t qtok_t;
     typedef labstor_req_id_t req_id_t;
 }

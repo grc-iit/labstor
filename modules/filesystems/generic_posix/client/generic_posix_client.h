@@ -73,6 +73,7 @@ public:
         Initialize();
         LABSTOR_ERROR_HANDLE_END()
     }
+    void Initialize(labstor::ipc::request *rq) {}
     inline bool IsInitialized() {
         return is_initialized_;
     }

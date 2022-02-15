@@ -27,7 +27,7 @@ struct int_map_bucket {
         return key_;
     }
     static inline uint32_t KeyHash(const S key, const void *region) {
-        return key;
+        return  key;
     }
     static inline bool KeyCompare(S key1, S key2) {
         return key1==key2;

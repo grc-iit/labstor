@@ -7,9 +7,12 @@
 
 #include <labstor/userspace/types/module.h>
 
+#define LABSTOR_SIMPLE_MODULE_ID "SIMPLE_MODULE"
+
 class SimpleModule : public labstor::Module {
 public:
-    SimpleModule() : Module("SIMPLE_MODULE") {}
+    SimpleModule() : Module(LABSTOR_SIMPLE_MODULE_ID) {}
+    void Initialize(labstor::ipc::request *rq) {}
     void print1();
     void print2();
     void print3();

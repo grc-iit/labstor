@@ -42,7 +42,7 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_mq
     labstor::ipc::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
-    printf("IOStart\n");
+    //printf("IOStart\n");
 
     //Get KERNEL QP
     ipc_manager_->GetQueuePairByPid(kern_qp,
@@ -56,9 +56,9 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_mq
     //Create SERVER -> KERNEL message to submit an I/O request
     TRACEPOINT("Received_req", client_rq->header_.req_id_)
     kern_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(kern_qp);
-    kern_rq->Start(MQ_DRIVER_RUNTIME_ID, client_rq);
+    kern_rq->IOKernelStart(MQ_DRIVER_RUNTIME_ID, client_rq);
     kern_qp->Enqueue<labstor_mq_driver_request>(kern_rq, qtok);
-    printf("QTOK: %ld %d\n", qtok.qid_, qtok.req_id_);
+    //printf("QTOK: %ld %d\n", qtok.qid_, qtok.req_id_);
 
     //From SERVER, poll the I/O request happening in the KERNEL
     poll_rq = ipc_manager_->AllocRequest<labstor_mq_driver_poll_request>(private_qp);
@@ -128,7 +128,7 @@ void labstor::MQDriver::Server::IOPollComplete(labstor::ipc::queue_pair *private
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
     kern_rq = poll_rq->poll_rq_;
 
-    printf("Checking if kernel poll RQ completed\n");
+    //printf("Checking if kernel poll RQ completed\n");
 
     //Check if the I/O poll submission is complete
     if(!kern_qp->IsComplete<labstor_mq_driver_request>(poll_rq->poll_qtok_, kern_rq)) {
@@ -136,7 +136,7 @@ void labstor::MQDriver::Server::IOPollComplete(labstor::ipc::queue_pair *private
         return;
     }
 
-    printf("Poll completed, but did the I/O[cookie=%d]? %d\n", kern_rq->cookie_, kern_rq->IOIsComplete());
+    //printf("Poll completed, but did the I/O[cookie=%d]? %d\n", kern_rq->cookie_, kern_rq->IOIsComplete());
 
     //Check if the I/O request is complete
     if(!kern_rq->IOIsComplete()) {
@@ -180,7 +180,7 @@ void labstor::MQDriver::Server::IOComplete(
     labstor::ipc::queue_pair *client_qp;
     labstor_mq_driver_request *client_rq;
 
-    printf("I/O completed\n");
+    //printf("I/O completed\n");
 
     //Respond to client
     ipc_manager_->GetQueuePair(client_qp, poll_rq->reply_qtok_);
@@ -206,7 +206,7 @@ void labstor::MQDriver::Server::GetStatistics(labstor::ipc::queue_pair *qp, labs
 
     //Create SERVER -> KERNEL message to submit an I/O request
     kern_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(kern_qp);
-    kern_rq->Start(MQ_DRIVER_RUNTIME_ID, client_rq);
+    kern_rq->IOStatsKernelStart(MQ_DRIVER_RUNTIME_ID, client_rq);
     kern_qp->Enqueue<labstor_mq_driver_request>(kern_rq, qtok);
     kern_qp->Wait<labstor_mq_driver_request>(qtok);
 
@@ -219,4 +219,4 @@ void labstor::MQDriver::Server::GetStatistics(labstor::ipc::queue_pair *qp, labs
     ipc_manager_->FreeRequest<labstor_mq_driver_request>(kern_qp, kern_rq);
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Server);
+LABSTOR_MODULE_CONSTRUCT(labstor::MQDriver::Server, MQ_DRIVER_MODULE_ID);

@@ -9,36 +9,38 @@
 #include "ipc_test_client.h"
 
 void labstor::IPCTest::Client::Register() {
-    AUTO_TRACE("labstor::IPCTest::Register::Client")
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
-    TRACEPOINT("labstor::IPCTest::Client::Register::NamespaceID", ns_id_)
+    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
 }
 
-int labstor::IPCTest::Client::Start() {
-    AUTO_TRACE("labstor::IPCTest::Client::AddBdev", ns_id_)
+int labstor::IPCTest::Client::GetNamespaceID() {
+    auto registrar = labstor::Registrar::Client();
+    if(ns_id_ == 0) {
+        ns_id_ = registrar.GetNamespaceID(IPC_TEST_MODULE_ID);
+        printf("NS ID: %d\n", ns_id_);
+    }
+    return ns_id_;
+}
+
+int labstor::IPCTest::Client::Start(int batch_size) {
     labstor::ipc::queue_pair *qp;
-    labstor::ipc::qtok_t qtok;
+    labstor::ipc::qtok_t qtoks[batch_size];
     labstor_ipc_test_request *client_rq;
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    client_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(qp);
-    client_rq->Start(ns_id_, 24);
+    printf("QP: %lu\n", qp->GetQid());
+    for(int i = 0; i < batch_size; ++i) {
+        client_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(qp);
+        client_rq->IPCClientStart(ns_id_, 24);
+        qp->Enqueue<labstor_ipc_test_request>(client_rq, qtoks[i]);
+    }
 
-    TRACEPOINT("labstor::IPCTest::Client::Enqueue", client_rq->header_.ns_id_);
-    qp->Enqueue<labstor_ipc_test_request>(client_rq, qtok);
-    TRACEPOINT("labstor::IPCTest::Client::Enqueue", "req_id", qtok.req_id, "qid", qtok.qid, "qdepth", qp->GetDepth());
-    client_rq = ipc_manager_->Wait<labstor_ipc_test_request>(qtok);
-    int ret = client_rq->GetReturnCode();
-    TRACEPOINT("labstor::IPCTest::Client::Start", "Complete",
-               "return_code", ret)
-    ipc_manager_->FreeRequest<labstor_ipc_test_request>(qtok, client_rq);
-
-    if(ret != IPC_TEST_SUCCESS) {
+    int ret = ipc_manager_->Wait<labstor_ipc_test_request>(qtoks, batch_size);
+    if (ret != LABSTOR_REQUEST_SUCCESS) {
         printf("IPC test failed: return code %d\n", ret);
         exit(1);
     }
     return dev_id;
 }
-LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Client)
+LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Client, IPC_TEST_MODULE_ID)

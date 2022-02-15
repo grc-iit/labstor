@@ -10,7 +10,7 @@
 void labstor::BlkdevTable::Client::Register() {
     AUTO_TRACE("")
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance(BLKDEV_TABLE_MODULE_ID, BLKDEV_TABLE_MODULE_ID);
+    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(BLKDEV_TABLE_MODULE_ID, BLKDEV_TABLE_MODULE_ID);
     TRACEPOINT(ns_id_)
 }
 
@@ -38,7 +38,7 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
 }
 
 void labstor::BlkdevTable::Client::UnregisterBlkdev(int dev_id) {
-    AUTO_TRACE(ns_id_)
+    AUTO_TRACE(dev_id)
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Client)
+LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Client, BLKDEV_TABLE_MODULE_ID)

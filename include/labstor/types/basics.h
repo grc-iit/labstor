@@ -21,14 +21,14 @@ typedef uint32_t labstor_runtime_id_t;
 typedef int32_t labstor_off_t;
 
 struct labstor_id {
-    char key[MODULE_KEY_SIZE];
+    char key_[MODULE_KEY_SIZE];
 };
 
 struct labstor_credentials {
-    int pid;
-    int uid;
-    int gid;
-    int priority;
+    int pid_;
+    int uid_;
+    int gid_;
+    int priority_;
 };
 
 #ifdef __cplusplus

@@ -16,3 +16,5 @@ void labstor::test::Dummy::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
         }
     }
 }
+
+LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Server, LABSTOR_DUMMY_MODULE_ID)

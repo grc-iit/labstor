@@ -107,7 +107,6 @@ public:
             return private_state_[ns_id];
         }
         return nullptr;
-        //throw INVALID_NAMESPACE_ENTRY.format(ns_id);
     }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {

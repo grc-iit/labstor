@@ -446,7 +446,7 @@ static void io_complete(struct bio *bio) {
         pr_err("io_complete request is NULL\n");
         return;
     }
-    pr_info("Begin Complete: %d\n", rq->cookie_);
+    pr_debug("Begin Complete: %d\n", rq->cookie_);
     if(bio->bi_status != BLK_STS_OK) {
         code = bio->bi_status;
         pr_debug("Request did not complete: %d\n", code);
@@ -455,7 +455,7 @@ static void io_complete(struct bio *bio) {
              rq->header_.req_id_, code);
     rq->header_.code_ = code;
     rq->flags_ |= LABSTOR_MQ_IO_IS_COMPLETE;
-    pr_info("Did complete: %d %X\n", rq->cookie_);
+    pr_err("Did complete: cookie %d\n", rq->cookie_);
 }
 
 static inline struct page **convert_user_buf(int pid, void *user_buf, size_t length, int *num_pagesp) {
@@ -494,14 +494,14 @@ static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struc
     }
     bio_set_dev(bio, bdev);
     //bio_set_op_attrs(bio, op, 0);
-    bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC | REQ_RAHEAD | REQ_HIPRI;
+    //bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC | REQ_HIPRI | REQ_NOMERGE_FLAGS | REQ_FAILFAST_MASK | REQ_IDLE;
+    bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC;
     bio_set_flag(bio, BIO_USER_MAPPED);
-    //bio->bi_flags |= (1U << BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     for(i = 0; i < num_pages; ++i) {
         bio_add_page(bio, pages[i], PAGE_SIZE, 0);
     }
-    pr_info("PAGES: %d, PAGE_SIZE: %d, SECTOR: %d", num_pages, PAGE_SIZE, sector);
+    pr_debug("PAGES: %d, PAGE_SIZE: %lu, SECTOR: %lu", num_pages, PAGE_SIZE, sector);
     bio->bi_private = rq;
     bio->bi_end_io = &io_complete;
     bio->bi_status = BLK_STS_OK;
@@ -540,7 +540,7 @@ struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio
             }
         }
     }
-    rq->rq_flags &= ~RQF_IO_STAT;
+    //pr_info("CMDFLAGS: %X\n", rq->cmd_flags);
     rq->bio = rq->biotail = NULL;
     rq->rq_disk = bio->bi_disk;
     rq->__sector = bio->bi_iter.bi_sector;
@@ -558,13 +558,12 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     struct block_device *bdev;
     struct request_queue *q;
     struct bio *bio;
-    struct blk_mq_hw_ctx *hctx;
-    ktime_t start, end;
+    static int cnt = 0;
     success = LABSTOR_MQ_OK;
 
     pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
 
-    pr_info("Starting I/O submission");
+    pr_debug("Starting I/O submission");
 
     //Convert user's buffer to pages
     pr_debug("Converting user pages: %p %lu\n", rq->user_buf_, rq->buf_size_);
@@ -589,6 +588,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     //Enable polled I/O if possible
     if(test_bit(QUEUE_FLAG_POLL, &q->queue_flags)) {
         rq->flags_ |= LABSTOR_MQ_POLLED_IO;
+        pr_err("Poll enabled?\n");
     }
     //Create bio
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
@@ -600,7 +600,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     }
     //Submit BIO to MQ layer
     if(q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
-        //pr_info("MQ");
+        pr_err("HCTX: %d\n", rq->hctx_);
         //Create request to hctx
         dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
         if(dev_rq == NULL) {
@@ -612,21 +612,11 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     }
     //Submit BIO to BIO layer
     else {
-        //pr_info("SUBMIT_BIO");
         cookie = submit_bio(bio);
     }
     rq->cookie_ = cookie;
-    pr_debug("Driver Submission Status: %d\n", success);
-    //pr_info("COOKIE,hctx: cookie=%d,cookie_hctx=%d,true_hctx=%d\n", cookie, blk_qc_t_to_queue_num(cookie), rq->hctx_);
-
-    pr_info("Cookie: %d\n", cookie);
-    /*if(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE) && (rq->flags_ & LABSTOR_MQ_POLLED_IO)) {
-        hctx = q->queue_hw_ctx[blk_qc_t_to_queue_num(cookie)];
-        do {
-            q->mq_ops->poll(hctx);
-        } while(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE));
-        pr_info("Polling complete");
-    }*/
+    //pr_info("Driver Submission Status: %d, cookie=%d, count=%d, vs 1507562\n", success, cookie, cnt);
+    //++cnt;
 
     //I/O was not successfully submitted (after page cache)
     err_complete:
@@ -636,7 +626,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     err_complete_before:
     rq->header_.code_ = success;
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
-    pr_info("I/O has been submitted: %d", rq->cookie_);
+    pr_err("I/O has been submitted: %d", rq->cookie_);
 }
 
 inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
@@ -644,17 +634,11 @@ inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_
     struct block_device *bdev;
     struct request_queue *q;
     blk_qc_t cookie;
-    int ret, srcu_idx;
+    int ret;
 
     /*
      * Whenever polling succeeds, no more requests can be processed.
      * */
-
-    static int in_poll = 0;
-    if(in_poll < 1024) {
-        pr_info("Polling cookie: %d\n", rq->cookie_);
-    }
-    ++in_poll;
 
     bdev = labstor_get_bdev(rq->dev_id_);
     q = bdev->bd_disk->queue;
@@ -662,9 +646,9 @@ inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_
     if(!(rq->flags_ & LABSTOR_MQ_IO_IS_COMPLETE) && (rq->flags_ & LABSTOR_MQ_POLLED_IO)) {
         hctx = q->queue_hw_ctx[blk_qc_t_to_queue_num(cookie)];
         ret = q->mq_ops->poll(hctx);
-        if(ret > 0) {
+        /*if(ret > 0) {
             pr_info("POLLING DID COMPLETE: %d\n", cookie);
-        }
+        }*/
     }
     rq->header_.code_ = LABSTOR_MQ_OK;
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);

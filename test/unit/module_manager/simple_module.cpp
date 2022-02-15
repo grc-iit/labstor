@@ -18,4 +18,4 @@ void SimpleModule::ProcessRequest(labstor::ipc::queue_pair qp, labstor::ipc::req
     printf("HERE?");
 }
 
-LABSTOR_MODULE_CONSTRUCT(SimpleModule)
+LABSTOR_MODULE_CONSTRUCT(SimpleModule, LABSTOR_SIMPLE_MODULE_ID)

@@ -64,33 +64,33 @@ void labstor::Client::IPCManager::Connect() {
     labstor::ipc::setup_reply reply;
     serversock_.RecvMSG(&reply, sizeof(reply));
     TRACEPOINT("Receive reply", "region_id", reply.region_id, "region_size", reply.region_size, "queue_size", reply.queue_region_size, "queue_depth", reply.queue_depth)
-    region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id, reply.region_size);
+    region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id_, reply.region_size_);
 
     //Initialize SHMEM request allocator
     TRACEPOINT("Attach SHMEM allocator")
     labstor::ipc::shmem_allocator *shmem_alloc;
     shmem_alloc = new labstor::ipc::shmem_allocator();
-    shmem_alloc->Init(region, region, reply.request_region_size, reply.request_unit, n_cpu_);
+    shmem_alloc->Init(region, region, reply.request_region_size_, reply.request_unit_, n_cpu_);
     shmem_alloc_ = shmem_alloc;
     TRACEPOINT("SHMEM allocator", (size_t)shmem_alloc->GetRegion())
 
     //Initialize SHMEM queue allocator
     qp_alloc_ = new labstor::segment_allocator();
     qp_alloc_->Attach(
-            LABSTOR_REGION_ADD(reply.request_region_size, region), reply.queue_region_size);
+            LABSTOR_REGION_ADD(reply.request_region_size_, region), reply.queue_region_size_);
 
     //Initialize internal allocator
     TRACEPOINT("Initialize internal allocator")
     labstor::ipc::shmem_allocator *private_alloc;
     private_alloc = new labstor::ipc::shmem_allocator();
-    private_alloc->Init(region=malloc(reply.region_size), region, reply.region_size, reply.request_unit, n_cpu_);
+    private_alloc->Init(region=malloc(reply.region_size_), region, reply.region_size_, reply.request_unit_, n_cpu_);
     private_alloc_ = private_alloc;
     TRACEPOINT("Internal allocator", (size_t)private_alloc->GetRegion())
 
     //Create the SHMEM queues
     TRACEPOINT("Create SHMEM queues")
-    CreateQueuesSHMEM(reply.num_queues, reply.queue_depth);
-    CreatePrivateQueues(n_cpu_, reply.queue_depth);
+    CreateQueuesSHMEM(reply.num_queues_, reply.queue_depth_);
+    CreatePrivateQueues(n_cpu_, reply.queue_depth_);
 
     //Mark as connected
     is_connected_ = true;

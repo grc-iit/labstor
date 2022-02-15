@@ -60,6 +60,18 @@ enum {
 };
 #endif
 
+#ifdef __cplusplus
+namespace labstor::MQDriver {
+struct mq_driver_init_request : labstor::Registrar::register_request {
+    int dev_id_;
+    void ConstructModuleStart(const std::string &module_id, const std::string &key, int dev_id) {
+        labstor::Registrar::register_request::ConstructModuleStart(module_id, key);
+        dev_id_ = dev_id;
+    }
+};
+}
+#endif
+
 struct labstor_mq_driver_request {
     struct labstor_request header_;
     int dev_id_;
@@ -71,18 +83,22 @@ struct labstor_mq_driver_request {
     int num_hw_queues_;
     blk_qc_t cookie_;
     int flags_;
+    int lock_;
 
 #ifdef __cplusplus
-    inline void Start(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        Start(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
+    inline void IOClientStart(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        IOStart(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
     }
-    inline void Start(int ns_id, struct labstor_mq_driver_request *rq) {
-        Start(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
+    inline void IOKernelStart(int ns_id, struct labstor_mq_driver_request *rq) {
+        IOStart(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
     }
-    inline void Start(int ns_id, int dev_id) {
-        Start(ns_id, 0, static_cast<int>(labstor::MQDriver::Ops::kGetNumHWQueues), dev_id, nullptr, 0, 0, 0);
+    inline void IOStatsClientStart(int ns_id, int dev_id) {
+        IOStart(ns_id, 0, static_cast<int>(labstor::MQDriver::Ops::kGetNumHWQueues), dev_id, nullptr, 0, 0, 0);
     }
-    inline void Start(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+    inline void IOStatsKernelStart(int ns_id, struct labstor_mq_driver_request *rq) {
+        IOStart(ns_id, rq->pid_, rq->header_.op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
+    }
+    inline void IOStart(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
         header_.ns_id_ = ns_id;
         header_.op_ = op;
         pid_ = pid;
@@ -97,7 +113,7 @@ struct labstor_mq_driver_request {
         return num_hw_queues_;
     }
     void Copy(labstor_mq_driver_request *rq) {
-        header_.Copy(&rq->header_);
+        header_.SetCode(rq->header_.GetCode());
         num_hw_queues_ = rq->num_hw_queues_;
     }
 

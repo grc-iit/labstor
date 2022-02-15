@@ -34,26 +34,29 @@ void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_ipc_t
 
     //Create SERVER -> KERNEL message
     kern_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(kern_qp);
-    kern_rq->Start(IPC_TEST_MODULE_RUNTIME_ID);
-    TRACEPOINT("labstor::IPCTest::Server::Start", "start_req_id", client_rq->header_.GetRequestID(), "kern_qp_id", kern_qp->GetQid(), "depth", kern_qp->GetDepth());
+    kern_rq->IPCKernelStart(IPC_TEST_MODULE_RUNTIME_ID);
     kern_qp->Enqueue<labstor_ipc_test_request>(kern_rq, qtok);
 
-    //Poll SERVER -> KERNEL interaction
-    TRACEPOINT("labstor::IPCTest::Server::Start", "Allocating Poll RQ")
+    //Poll SERVER -> KERNEL interaction.
+    TRACEPOINT("Allocating Poll RQ")
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_ipc_test_request>(private_qp);
     poll_rq->Init(qp, client_rq, qtok);
     private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
 }
 
 void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor_poll_ipc_test_request *poll_rq) {
-    labstor::ipc::queue_pair *qp, *kern_qp;
+    labstor::ipc::queue_pair *qp, *kern_qp, *resubmit_qp;
     labstor_ipc_test_request *kern_rq, *client_rq;
     labstor::ipc::qtok_t qtok;
+
+    //Get KERNEL & PRIVATE QP
+    ipc_manager_->GetNextQueuePair(resubmit_qp,
+                                   LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
 
     //Check if the QTOK has been completed
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
     if(!kern_qp->IsComplete<labstor_ipc_test_request>(poll_rq->poll_qtok_, kern_rq)) {
-        private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
+        resubmit_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
         return;
     }
 
@@ -75,4 +78,4 @@ void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor
     ipc_manager_->FreeRequest<labstor_poll_ipc_test_request>(private_qp, poll_rq);
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Server)
+LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Server, IPC_TEST_MODULE_ID)

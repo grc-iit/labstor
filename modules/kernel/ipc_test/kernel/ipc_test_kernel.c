@@ -40,7 +40,7 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS_FS("ipc_test");
 
 inline void complete_test(struct labstor_queue_pair *qp, struct labstor_ipc_test_request *kern_rq) {
-    kern_rq->header_.code_ = IPC_TEST_SUCCESS;
+    kern_rq->header_.code_ = LABSTOR_REQUEST_SUCCESS;
     if(!labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)kern_rq)) {
         pr_err("Could not complete IPC test quickly! Giving up.\n");
     }

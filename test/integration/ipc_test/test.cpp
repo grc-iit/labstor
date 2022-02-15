@@ -17,7 +17,7 @@ int main() {
     client.Register();
 
     for(int i = 0; i < 1024; ++i) {
-        client.Start();
+        client.Start(1);
     }
 
     LABSTOR_ERROR_HANDLE_END()

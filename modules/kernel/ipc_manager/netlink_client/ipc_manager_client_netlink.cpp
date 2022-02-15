@@ -12,7 +12,6 @@
 #include "ipc_manager_client_netlink.h"
 
 void* labstor::kernel::netlink::IPCManager::Register(int region_id) {
-    AUTO_TRACE("labstor::kernel::netlink::IPCManager::Register", region_id);
     void *region;
     struct labstor_ipc_manager_register_request rq;
     rq.header.ns_id_ = IPC_MANAGER_MODULE_RUNTIME_ID;

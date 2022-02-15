@@ -28,13 +28,14 @@ struct admin_reply {
 };
 
 struct setup_reply : public admin_reply {
-    uint32_t region_id;
-    uint32_t region_size;
-    uint32_t request_region_size;
-    uint32_t request_unit;
-    uint32_t queue_region_size;
-    uint32_t queue_depth;
-    uint32_t num_queues;
+    uint32_t region_id_;
+    uint32_t region_size_;
+    uint32_t request_region_size_;
+    uint32_t request_unit_;
+    uint32_t queue_region_size_;
+    uint32_t queue_depth_;
+    uint32_t num_queues_;
+    uint32_t lpid_;
 };
 
 struct register_qp_request : public labstor::ipc::admin_request {

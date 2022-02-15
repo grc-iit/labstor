@@ -87,4 +87,4 @@ void labstor::BlkdevTable::Server::UnregisterBlkdev(labstor::ipc::queue_pair *qp
     AUTO_TRACE("")
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Server)
+LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Server, BLKDEV_TABLE_MODULE_ID)

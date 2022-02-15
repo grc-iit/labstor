@@ -25,7 +25,7 @@ struct UnixFileBasedIOThread {
     char *buf_;
     UnixFileBasedIOThread(char *path, size_t block_size) {
         //Open file
-        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
+        fd_ = open(path, O_DIRECT | O_CREAT | O_RDWR | O_SYNC | O_DSYNC, 0x644);
         if(fd_ < 0) {
             printf("Could not open/create file\n");
             exit(1);

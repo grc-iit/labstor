@@ -14,7 +14,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 
 void labstor::Server::ModuleManager::LoadDefaultModules() {
-    AUTO_TRACE("labstor::Server::ModuleManager::LoadDefaultModules")
+    AUTO_TRACE("")
     if(labstor_config_->config_["modules"]) {
         for (const auto &module : labstor_config_->config_["modules"]) {
             labstor::id module_id(module.first.as<std::string>());
@@ -38,7 +38,7 @@ void labstor::Server::ModuleManager::LoadDefaultModules() {
 }
 
 void labstor::Server::ModuleManager::UpdateModule(std::string path) {
-    AUTO_TRACE("labstor::Server::ModuleManager::UpdateModule", path)
+    AUTO_TRACE("", path)
     labstor::id module_id;
     labstor::ModuleHandle module_info;
     labstor::Module *old_instance, *new_instance;
@@ -73,12 +73,12 @@ void labstor::Server::ModuleManager::UpdateModule(std::string path) {
 }
 
 void labstor::Server::ModuleManager::AddModulePaths(labstor::id module_id, labstor::ModulePath paths) {
-    AUTO_TRACE("labstor::Server::ModuleManager::AddModulePaths")
+    AUTO_TRACE("")
     paths_[module_id] = paths;
 }
 
 std::string labstor::Server::ModuleManager::GetModulePath(labstor::id module_id, ModulePathType type) {
-    AUTO_TRACE("labstor::Server::ModuleManager::GetModulePath")
+    AUTO_TRACE("")
     switch(type) {
         case ModulePathType::CLIENT: {
             return paths_[module_id].client;

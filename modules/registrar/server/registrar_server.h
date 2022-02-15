@@ -5,6 +5,7 @@
 #ifndef LABSTOR_REGISTRAR_SERVER_H
 #define LABSTOR_REGISTRAR_SERVER_H
 
+#include "registrar.h"
 #include <labstor/userspace/server/server.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/macros.h>
@@ -20,11 +21,12 @@ private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
 public:
-    Server() : labstor::Module("Registrar") {
+    Server() : labstor::Module(LABSTOR_REGISTRAR_MODULE_ID) {
         module_manager_ = LABSTOR_MODULE_MANAGER;
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
+    void Initialize(labstor::ipc::request *rq) {}
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
 

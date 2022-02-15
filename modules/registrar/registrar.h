@@ -9,37 +9,65 @@
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
 
+#define LABSTOR_REGISTRAR_MODULE_ID "Registrar"
+
+#define UPGRADE_CENTRALIZED 1
+#define UPGRADE_DECENTRALIZED 2
+
 namespace labstor::Registrar {
 
 enum class Ops {
     kRegister,
-    kGetNamespaceId
+    kGetNamespaceId,
+    kPushUpgrade,
+    kTerminate,
 };
 
 struct register_request : labstor::ipc::request {
     labstor::id module_id_;
     labstor::id key_;
-    void Start(const std::string &module_id, const std::string &key) {
+    void ConstructModuleStart(const std::string &module_id, const std::string &key) {
         ns_id_ = LABSTOR_REGISTRAR_ID;
         op_ = static_cast<int>(Ops::kRegister);
         module_id_.copy(module_id);
         key_.copy(key);
     }
-    void Complete(uint32_t ns_id) {
+    void ConstructModuleEnd(uint32_t ns_id) {
         ns_id_ = ns_id;
     }
 };
 
 struct namespace_id_request : labstor::ipc::request {
     labstor::id key_;
-    void Start(const std::string &key) {
+    void GetNamespaceIDStart(const std::string &key) {
         ns_id_ = LABSTOR_REGISTRAR_ID;
         op_ = static_cast<int>(Ops::kGetNamespaceId);
         key_.copy(key);
     }
-    void Complete(uint32_t ns_id) {
+    void GetNamespaceIDEnd(uint32_t ns_id) {
+        code_ = LABSTOR_REQUEST_SUCCESS;
         ns_id_ = ns_id;
     }
+};
+
+struct upgrade_request : labstor::ipc::request {
+    labstor::id key_;
+    void PushUpgradeStart(const std::string &key, int flags) {
+        ns_id_ = LABSTOR_REGISTRAR_ID;
+        op_ = static_cast<int>(Ops::kPushUpgrade);
+        key_.copy(key);
+    }
+    void PushUpgradeEnd() {
+        SetCode(LABSTOR_REQUEST_SUCCESS);
+    }
+};
+
+struct terminate_request : labstor::ipc::request {
+    void TerminateStart() {
+        ns_id_ = LABSTOR_REGISTRAR_ID;
+        op_ = static_cast<int>(Ops::kTerminate);
+    }
+    void TerminateEnd() {}
 };
 
 }

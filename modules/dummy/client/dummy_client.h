@@ -5,6 +5,7 @@
 #ifndef LABSTOR_DUMMY_CLIENT_H
 #define LABSTOR_DUMMY_CLIENT_H
 
+#include <modules/dummy/dummy.h>
 #include <labstor/userspace/client/client.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
@@ -22,14 +23,15 @@ private:
     LABSTOR_NAMESPACE_T namespace_;
     uint32_t ns_id_;
 public:
-    Client() : labstor::Module("Dummy") {
+    Client() : labstor::Module(LABSTOR_DUMMY_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
+    void Initialize(labstor::ipc::request *rq) {}
+    int GetNamespaceID();
     void Register();
     void GetValue();
 };
-LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Client)
 
 }
 

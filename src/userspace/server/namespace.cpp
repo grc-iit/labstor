@@ -6,7 +6,6 @@
 #include <labstor/constants/debug.h>
 #include <labstor/userspace/server/namespace.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
-#include <modules/live_upgrade/live_upgrade.h>
 #include <modules/registrar/server/registrar_server.h>
 
 labstor::Server::Namespace::Namespace() {
@@ -34,6 +33,8 @@ labstor::Server::Namespace::Namespace() {
 
     //Initialize the namespace tables
     TRACEPOINT("NamespaceTables")
+    //labstor_segment_allocator seg_alloc;
+    //seg_alloc.Init(region_, shmem_size);
     uint32_t remainder = shmem_size;
     void *section = region_;
     ns_ids_.Init(section, labstor::ipc::mpmc::ring_buffer<uint32_t>::GetSize(max_entries));
@@ -48,17 +49,13 @@ labstor::Server::Namespace::Namespace() {
     TRACEPOINT("NamespaceTables")
 
     //Create memory allocator on remaining memory
-    TRACEPOINT("Allocator")
     labstor::ipc::shmem_allocator *alloc;
     alloc = new labstor::ipc::shmem_allocator();
     alloc->Init(region_, section, remainder, request_unit);
     shmem_alloc_ = alloc;
-    TRACEPOINT("Allocator")
 }
 
 void labstor::Server::Namespace::Init() {
     //Add the registration module
-    TRACEPOINT("AddKey")
     AddKey(labstor::ipc::string("Registrar", shmem_alloc_), new labstor::Registrar::Server());
-    TRACEPOINT("AddKey")
 }

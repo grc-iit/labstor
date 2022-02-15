@@ -17,13 +17,12 @@ class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
-    Server() : labstor::Module("Dummy") {
+    Server() : labstor::Module(LABSTOR_DUMMY_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-
+    void Initialize(labstor::ipc::request *rq) {}
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
-LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Server)
 
 }
 

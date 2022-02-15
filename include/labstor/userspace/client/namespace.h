@@ -43,17 +43,24 @@ struct Namespace {
     }
 
     uint32_t GetNamespaceID(std::string key) {
-        if(is_decentralized_) {
-            return key_to_ns_id_[labstor::ipc::string(key)];
+        uint32_t ns_id;
+        if(is_decentralized_ && key_to_ns_id_.Find(labstor::ipc::string(key), ns_id)) {
+            return ns_id;
         } else {
             return registrar_.GetNamespaceID(key);
         }
+        return LABSTOR_INVALID_NAMESPACE_KEY;
     }
 
     void* GetSharedState(uint32_t ns_id) {
         if(is_decentralized_) {
-            return LABSTOR_REGION_ADD(shared_state_[ns_id], region_);
+            uint32_t off =  shared_state_[ns_id];
+            if(off == -1) {
+                return nullptr;
+            }
+            return LABSTOR_REGION_ADD(off, region_);
         }
+        return nullptr;
     }
 };
 

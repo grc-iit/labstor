@@ -42,15 +42,13 @@ public:
     }
 
     void DoWork() {
-        AUTO_TRACE("labstor::Server::AcceptWorker")
+        AUTO_TRACE("")
         int ret;
         struct ucred ucred;
         labstor::credentials creds;
         struct sockaddr_un client_addr_;
         socklen_t clilen, len;
         int client_fd_;
-
-        LABSTOR_ERROR_HANDLE_START()
 
         //Accept client connection
         clilen = sizeof(client_addr_);
@@ -67,15 +65,21 @@ public:
             throw labstor::UNIX_GETSOCKOPT_FAILED.format(strerror(errno));
         }
         memcpy(&creds, &ucred, sizeof(ucred));
-        printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
-        ipc_manager_->RegisterClient(client_fd_, creds);
 
-        LABSTOR_ERROR_HANDLE_END()
+        //Register Client with LabStor
+        LABSTOR_ERROR_HANDLE_TRY {
+            ipc_manager_->RegisterClient(client_fd_, creds);
+        }
+        LABSTOR_ERROR_HANDLE_CATCH {
+            printf("Failed to accept client (pid=%d uid=%d gid=%d)\n", creds.pid, creds.uid, creds.gid);
+            LABSTOR_ERROR_PTR->print();
+        };
+        printf("New client (pid=%d uid=%d gid=%d) was accepted!\n", creds.pid, creds.uid, creds.gid);
     }
 };
 
 void server_init(void) {
-    AUTO_TRACE("labstor::Server::server_init")
+    AUTO_TRACE("")
     int server_fd;
     int optval = 1;
     int ret;
@@ -111,7 +115,7 @@ void server_init(void) {
 }
 
 int main(int argc, char **argv) {
-    AUTO_TRACE("labstor::Server")
+    AUTO_TRACE("")
     if(argc != 2) {
         printf("USAGE: ./server [config.yaml]\n");
         exit(1);

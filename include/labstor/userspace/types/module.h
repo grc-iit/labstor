@@ -14,9 +14,10 @@
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/userspace/util/errors.h>
 
-#define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME) \
+#define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME, MODULE_ID) \
     extern "C" {                              \
         labstor::Module* create_module() { return new MODULE_NAME(); } \
+        labstor::id get_module_id(void) { return labstor::id(MODULE_ID); } \
     }
 
 namespace labstor {
@@ -28,10 +29,15 @@ public:
     Module(labstor::id module_id) : module_id_(module_id) {}
     inline labstor::id GetModuleID() { return module_id_; }
 
-    virtual void ReinforceRequestStats(
+    virtual void Initialize(labstor::ipc::request *rq) = 0;
+    virtual void ReinforceCpuTime(
             labstor::ipc::request *request, size_t time_measure_ns) {};
-    virtual size_t EstRequestTime(
+    virtual void ReinforceIOTime(
+            labstor::ipc::request *request, size_t time_measure_ns) {};
+    virtual size_t EstRequestCpuTime(
             labstor::ipc::request *request){ return 1; };
+    virtual size_t EstRequestIOTime(
+            labstor::ipc::request *request){ return 0; };
     virtual void ProcessRequest(
             labstor::ipc::queue_pair *qp,
             labstor::ipc::request *request,
@@ -39,6 +45,7 @@ public:
     virtual void StateUpdate(labstor::Module *prior) {}
 };
 typedef labstor::Module* (*create_module_fn)(void);
+typedef labstor::id (*get_module_id_fn)(void);
 
 struct ModulePath {
     std::string client;
@@ -73,7 +80,11 @@ public:
         if(create_module == NULL) {
             throw DLSYM_MODULE_NO_CONSTRUCTOR.format(path);
         }
-        module_id = create_module()->GetModuleID();
+        labstor::get_module_id_fn get_module_id = (labstor::get_module_id_fn)dlsym(handle, "get_module_id");
+        if(get_module_id == NULL) {
+            throw DLSYM_MODULE_NO_CONSTRUCTOR.format(path);
+        }
+        module_id = get_module_id();
         module_info.constructor_ = create_module;
         module_info.handle_ = handle;
         return module_info;

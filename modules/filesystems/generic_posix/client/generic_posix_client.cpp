@@ -116,4 +116,4 @@ ssize_t labstor::GenericPosix::Client::IOSync(labstor::GenericPosix::Ops op, int
     return ret;
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::GenericPosix::Client);
+LABSTOR_MODULE_CONSTRUCT(labstor::GenericPosix::Client, GENERIC_POSIX_MODULE_ID);

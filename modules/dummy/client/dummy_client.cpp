@@ -11,8 +11,16 @@
 void labstor::test::Dummy::Client::Register() {
     AUTO_TRACE("")
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance("Dummy", "DummyExample");
+    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(LABSTOR_DUMMY_MODULE_ID, LABSTOR_DUMMY_MODULE_ID);
     TRACEPOINT(ns_id_)
+}
+
+int labstor::test::Dummy::Client::GetNamespaceID() {
+    auto registrar = labstor::Registrar::Client();
+    if(ns_id_ == 0) {
+        ns_id_ = registrar.GetNamespaceID(LABSTOR_DUMMY_MODULE_ID);
+    }
+    return ns_id_;
 }
 
 void labstor::test::Dummy::Client::GetValue() {
@@ -38,3 +46,5 @@ void labstor::test::Dummy::Client::GetValue() {
         ipc_manager_->FreeRequest(qtok, rq);
     }
 }
+
+LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Client, LABSTOR_DUMMY_MODULE_ID)

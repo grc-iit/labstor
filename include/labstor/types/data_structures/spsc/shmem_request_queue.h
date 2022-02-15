@@ -63,8 +63,8 @@ static inline uint32_t labstor_request_queue_GetMaxDepth(struct labstor_request_
     return labstor_request_ring_buffer_GetMaxDepth(&lrq->queue_);
 }
 
-static inline labstor_qid_t labstor_request_queue_GetFlags(struct labstor_request_queue *lrq) {
-    return lrq->header_->qid_;
+static inline uint32_t labstor_request_queue_GetFlags(struct labstor_request_queue *lrq) {
+    return lrq->header_->qid_.flags_;
 }
 
 static inline void labstor_request_queue_Init(

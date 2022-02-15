@@ -31,8 +31,8 @@ public:
             dev_ids_.Enqueue(i);
         }
     }
-
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    void Initialize(labstor::ipc::request *rq) {}
     void RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *rq, labstor::credentials *creds);
     void RegisterBlkdevComplete(labstor::ipc::queue_pair *private_qp, labstor_poll_blkdev_table_register *poll_rq);
     void UnregisterBlkdev(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *rq);

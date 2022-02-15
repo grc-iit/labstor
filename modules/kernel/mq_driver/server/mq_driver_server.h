@@ -22,6 +22,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    void Initialize(labstor::ipc::request *rq) {}
     void IOStart(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *rq_submit, labstor::credentials *creds);
     void IOSubmitComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);
     void IOPollComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq);

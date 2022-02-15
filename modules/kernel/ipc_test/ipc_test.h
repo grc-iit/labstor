@@ -13,8 +13,6 @@
 #include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 
-#define IPC_TEST_SUCCESS 1234
-
 enum IPCTestOps {
     LABSTOR_START_IPC_TEST,
     LABSTOR_COMPLETE_IPC_TEST
@@ -33,22 +31,17 @@ struct labstor_ipc_test_request {
     struct labstor_request header_;
     int nonce_;
 #ifdef __cplusplus
-    inline void Start(int ns_id, int nonce) {
+    inline void IPCClientStart(int ns_id, int nonce) {
         header_.ns_id_ = ns_id;
         header_.op_ = static_cast<int>(labstor::IPCTest::Ops::kStartIPCTest);
         nonce_ = nonce;
     }
-    inline void Start(int ns_id) {
+    inline void IPCKernelStart(int ns_id) {
         header_.ns_id_ = ns_id;
         header_.op_ = static_cast<int>(labstor::IPCTest::Ops::kStartIPCTest);
     }
-    inline void Start(labstor_ipc_test_request *rq) {
-        header_.ns_id_ = rq->header_.ns_id_;
-        header_.op_ = static_cast<int>(labstor::IPCTest::Ops::kStartIPCTest);
-        nonce_ = rq->nonce_;
-    }
     inline void Copy(labstor_ipc_test_request *rq) {
-        header_.Copy(&rq->header_);
+        header_.SetCode(rq->header_.GetCode());
         nonce_ = rq->nonce_;
     }
     int GetReturnCode() {

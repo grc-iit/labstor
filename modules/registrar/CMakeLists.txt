@@ -40,3 +40,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
     #add_dependencies(${MODULE_NAME}_server labstor_server_library)
     #target_link_libraries(${MODULE_NAME}_server labstor_server_library)
 endif()
+
+add_executable(terminate_server_exec util/terminate.cpp)
+add_dependencies(terminate_server_exec labstor_client_library ${MODULE_NAME}_client)
+target_link_libraries(terminate_server_exec labstor_client_library ${MODULE_NAME}_client)

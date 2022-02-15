@@ -31,6 +31,7 @@ namespace labstor::BlkdevTable {
         kUnregister,
         kRegisterBdev,
         kRegisterBdevComplete,
+        kGetBdevID,
         kUnregisterBdev
     };
 }
@@ -60,7 +61,7 @@ struct labstor_blkdev_table_register_request {
         path_[pathlen_] = 0;
     }
     void Copy(labstor_blkdev_table_register_request *rq) {
-        header_.Copy(&rq->header_);
+        header_.SetCode(rq->header_.GetCode());
         dev_id_ = rq->GetDeviceID();
     }
     int GetDeviceID() {

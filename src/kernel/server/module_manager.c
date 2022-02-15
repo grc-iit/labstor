@@ -22,7 +22,7 @@ void register_labstor_module(struct labstor_module *pkg) {
         modules[pkg->runtime_id] = pkg;
         return;
     }
-    pr_err("Module %s has invalid runtime id %d\n", pkg->module_id.key, pkg->runtime_id);
+    pr_err("Module %s has invalid runtime id %d\n", pkg->module_id.key_, pkg->runtime_id_);
 }
 EXPORT_SYMBOL(register_labstor_module);
 

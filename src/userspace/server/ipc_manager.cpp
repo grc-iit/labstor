@@ -42,13 +42,13 @@ void labstor::Server::IPCManager::LoadMemoryConfig(std::string pid_type, MemoryC
 }
 
 void labstor::Server::IPCManager::InitializeKernelIPCManager() {
-    AUTO_TRACE("labstor::Server::IPCManager::InitializeKernelIPCManager")
+    AUTO_TRACE("")
     MemoryConfig memconf;
     LoadMemoryConfig("kernel", memconf);
 
     //Create new IPC for the kernel
-    pid_to_ipc_.Set(KERNEL_PID, new PerProcessIPC());
-    PerProcessIPC *client_ipc = pid_to_ipc_[KERNEL_PID];
+    uint16_t lpid;
+    PerProcessIPC *client_ipc = RegisterIPC(KERNEL_PID, lpid);
 
     //Create SHMEM region
     LABSTOR_KERNEL_SHMEM_ALLOC_T shmem = LABSTOR_KERNEL_SHMEM_ALLOC;
@@ -91,7 +91,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
     std::vector<labstor_assign_qp_request> assign_qp_vec;
 
     //Get Kernel IPC region
-    PerProcessIPC *client_ipc = pid_to_ipc_[KERNEL_PID];
+    PerProcessIPC *client_ipc = lpid_to_ipc_[KERNEL_PID];
 
     //Allocate & register SHMEM queues for the kernel
     LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
@@ -106,8 +106,8 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         void *sq_region = client_ipc->qp_alloc_->Alloc(memconf.request_queue_size);
         void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
         remote_qp->Init(qid, client_ipc->alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
-        TRACEPOINT("labstor::Server::IPCManager::CreateKernelQueues", "qid", remote_qp->GetQid(), "depth", remote_qp->GetDepth(),
-                   "offset2", LABSTOR_REGION_SUB(remote_qp->cq.GetRegion(), client_ipc->GetRegion()));
+        TRACEPOINT("qid", remote_qp->GetQid(), "depth", remote_qp->GetDepth(),
+                   "offset2", LABSTOR_REGION_SUB(remote_qp->cq_.GetRegion(), client_ipc->GetRegion()));
         remote_qp->GetPointer(ptr, client_ipc->alloc_->GetRegion());
 
         //Make a new QP that holds userspace addresses & store internally
@@ -165,7 +165,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
         void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
         TRACEPOINT("qid", qp->GetQid(), "depth", qp->GetDepth(),
-                   "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
+                   "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -180,10 +180,14 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
 void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credentials &creds) {
     AUTO_TRACE(client_fd)
     void *region;
+    uint32_t lpid;
     MemoryConfig memconf;
     LoadMemoryConfig("client", memconf);
 
     //Create new IPC
+    if(!lpids_.Dequeue(lpid)) {
+        throw MAX_CONNECTIONS_EXCEEDED.format();
+    }
     pid_to_ipc_.Set(creds.pid, new PerProcessIPC(client_fd, creds));
     PerProcessIPC *client_ipc = pid_to_ipc_[creds.pid];
 
@@ -202,13 +206,14 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
 
     //Send shared memory to client
     labstor::ipc::setup_reply reply;
-    reply.region_id = client_ipc->region_id_;
-    reply.region_size = memconf.region_size;
-    reply.request_unit = memconf.request_unit;
-    reply.request_region_size = memconf.request_region_size;
-    reply.queue_region_size = memconf.queue_region_size;
-    reply.queue_depth = memconf.queue_depth;
-    reply.num_queues = memconf.num_queues;
+    reply.region_id_ = client_ipc->region_id_;
+    reply.region_size_ = memconf.region_size;
+    reply.request_unit_ = memconf.request_unit;
+    reply.request_region_size_ = memconf.request_region_size;
+    reply.queue_region_size_ = memconf.queue_region_size;
+    reply.queue_depth_ = memconf.queue_depth;
+    reply.num_queues_ = memconf.num_queues;
+    reply.lpid_ = lpid;
     TRACEPOINT("Registering", reply.region_id, reply.region_size, reply.request_unit)
     client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
 
@@ -236,7 +241,7 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc, vo
         labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
         qp->Attach(ptrs[i], client_ipc->GetRegion());
         TRACEPOINT("qid", qp->GetQid(), "depth", qp->GetDepth(),
-                   "offset2", LABSTOR_REGION_SUB(qp->cq.GetRegion(), client_ipc->GetRegion()))
+                   "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
         if(!RegisterQueuePair(qp)) {
             free(ptrs);
             throw IPC_MANAGER_CANT_REGISTER_QP.format();

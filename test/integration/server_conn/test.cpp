@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     {
         LABSTOR_ERROR_HANDLE_START()
         for (int i = 0; i < n_msgs; ++i) {
-            client.Start();
+            client.Start(1);
         }
         #pragma omp barrier
         LABSTOR_ERROR_HANDLE_END()
