@@ -114,23 +114,23 @@ public:
         }
         throw INVALID_QP_QUERY.format();
     }
-    inline void GetQueuePairByLpidHash(labstor::ipc::queue_pair *&qp, uint16_t flags, int lpid, int hash) {
+    inline void GetQueuePairByPidHash(labstor::ipc::queue_pair *&qp, uint16_t flags, int pid, int hash) {
         if(LABSTOR_QP_IS_STREAM(flags)) {
-            uint32_t num_qps = pid_to_ipc_[lpid]->num_stream_qps_;
-            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, lpid);
+            uint32_t num_qps = pid_to_ipc_[pid]->num_stream_qps_;
+            labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(flags, hash, num_qps, pid);
             qp = pid_to_ipc_[qid.pid_]->GetQueuePair(qid);
             return;
         }
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePairByHash(labstor::ipc::queue_pair *&qp, uint16_t flags, int hash) {
-        return GetQueuePairByLpidHash(qp, flags, pid_, hash);
+        return GetQueuePairByPidHash(qp, flags, pid_, hash);
     }
-    inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, uint16_t flags, int lpid) {
-        return GetQueuePairByLpidHash(qp, flags, lpid, labstor::ThreadLocal::GetTid());
+    inline void GetQueuePairByPid(labstor::ipc::queue_pair *&qp, uint16_t flags, int pid) {
+        return GetQueuePairByPidHash(qp, flags, pid, labstor::ThreadLocal::GetTid());
     }
     inline void GetNextQueuePair(labstor::ipc::queue_pair *&qp, uint16_t flags) {
-        return GetQueuePairByLpidHash(qp, flags, pid_, labstor::ThreadLocal::GetTid() + 1);
+        return GetQueuePairByPidHash(qp, flags, pid_, labstor::ThreadLocal::GetTid() + 1);
     }
     inline void GetBatchQueuePair(labstor::ipc::queue_pair *&qp, uint16_t flags, uint32_t depth) {
         if(LABSTOR_QP_IS_BATCH(flags)) {
@@ -145,8 +145,7 @@ public:
         throw INVALID_QP_QUERY.format();
     }
     inline void GetQueuePair(labstor::ipc::queue_pair *&qp, labstor::ipc::qtok_t &qtok) {
-        labstor::ipc::qid_t qid = qp->GetQid();
-        qp = pid_to_ipc_[qid.pid_]->GetQueuePair(qid);
+        qp = pid_to_ipc_[qtok.qid_.pid_]->GetQueuePair(qtok.qid_);
     }
 
     template<typename T>

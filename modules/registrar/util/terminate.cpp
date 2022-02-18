@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     labstor::Registrar::Client client;
     if(argc != 1) {
-        printf("USAGE: ./register\n");
+        printf("USAGE: ./terminate\n");
         exit(1);
     }
     LABSTOR_ERROR_HANDLE_START()

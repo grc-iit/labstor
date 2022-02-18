@@ -11,6 +11,9 @@ add_executable(test_getcpu getcpu/test.cpp)
 #Atomic throughput
 add_executable(test_atomic_thrpt atomics/test.cpp)
 
+#Unordered map throughput
+add_executable(test_map_thrpt unordered_map/test.cpp)
+
 #Queue throughput
 add_executable(test_queue_thrpt queue_thrpt/test.cpp)
 target_link_libraries(test_queue_thrpt -pthread -lrt)

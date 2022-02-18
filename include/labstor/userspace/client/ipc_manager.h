@@ -32,7 +32,6 @@ private:
     labstor::GenericAllocator *private_alloc_;
     std::vector<labstor::ipc::queue_pair*> shmem_qps_;
     std::vector<labstor::ipc::queue_pair*> private_qps_;
-    int lpid_;
     bool is_connected_;
 public:
     IPCManager() : is_connected_(false) {

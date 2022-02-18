@@ -29,7 +29,7 @@ int labstor::IPCTest::Client::Start(int batch_size) {
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    printf("QP: %lu\n", qp->GetQid());
+    printf("[tid=%d] QP: %lu\n", labstor::ThreadLocal::GetTid(), qp->GetQid().Hash());
     for(int i = 0; i < batch_size; ++i) {
         client_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(qp);
         client_rq->IPCClientStart(ns_id_, 24);

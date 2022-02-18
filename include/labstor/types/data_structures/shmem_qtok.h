@@ -13,8 +13,8 @@
 
 typedef struct labstor_qid_t {
     uint16_t flags_;
+    uint16_t cnt_;
     uint32_t pid_;
-    uint32_t cnt_;
 #ifdef __cplusplus
     labstor_qid_t() = default;
     labstor_qid_t(uint32_t qid) : flags_(0), pid_(0), cnt_(qid) {}
