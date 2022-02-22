@@ -20,7 +20,9 @@ struct PerProcessIPC {
     int num_stream_qps_;
     std::vector<std::vector<labstor::ipc::queue_pair*>> qps_;
 
-    PerProcessIPC() : num_stream_qps_(0) {}
+    PerProcessIPC(int pid) : num_stream_qps_(0), qp_alloc_(nullptr), alloc_(nullptr) {
+        creds_.pid_ = pid;
+    }
 
     PerProcessIPC(int fd, labstor::credentials creds) : clisock_(fd), creds_(creds), num_stream_qps_(0) {}
 
@@ -35,6 +37,8 @@ struct PerProcessIPC {
 
     inline void *GetRegion() { return alloc_->GetRegion(); }
 
+    inline int GetPID() { return creds_.pid_; }
+
     void RegisterQueuePair(labstor::ipc::queue_pair *qp) {
         qps_.resize(LABSTOR_MAX_QP_FLAG_COMBOS);
         auto qid = qp->GetQid();
@@ -46,6 +50,7 @@ struct PerProcessIPC {
         qps_[qp->GetQid().flags_][qp->GetQid().cnt_] = qp;
         ++num_stream_qps_;
     }
+
     labstor::ipc::queue_pair* GetQueuePair(labstor::ipc::qid_t qid) {
         if(qid.flags_ >= qps_.size()) {
             throw INVALID_QP_FLAGS.format(qid.flags_);

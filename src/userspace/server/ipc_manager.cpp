@@ -249,10 +249,6 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc, vo
 }
 
 void labstor::Server::IPCManager::PauseQueues() {
-    for(int pid : pids_) {
-        PerProcessIPC *ipc = pid_to_ipc_[pid];
-        //Search all primary streaming queues
-    }
 }
 
 void labstor::Server::IPCManager::WaitForPause() {

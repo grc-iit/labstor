@@ -44,7 +44,6 @@ private:
     int server_fd_;
     void *private_mem_, *kern_base_region_;
     std::mutex lock_;
-    std::vector<int> pids_;
     labstor::GenericAllocator *private_alloc_;
     std::unordered_map<uint32_t,PerProcessIPC*> pid_to_ipc_;
     LABSTOR_CONFIGURATION_MANAGER_T labstor_config_;
@@ -67,8 +66,11 @@ public:
     void WaitForPause();
     void ResumeQueues();
 
+    int GetPID() {
+        return pid_;
+    }
     PerProcessIPC* RegisterIPC(int pid) {
-        PerProcessIPC *ipc = new PerProcessIPC();
+        PerProcessIPC *ipc = new PerProcessIPC(pid);
         pid_to_ipc_.emplace(pid, ipc);
         return ipc;
     }
@@ -196,8 +198,8 @@ public:
         }
         return LABSTOR_REQUEST_SUCCESS;
     }
-    inline std::vector<int> &GetConnectedProcesses() {
-        return pids_;
+    std::unordered_map<uint32_t,PerProcessIPC*>& GetAllIPC() {
+        return pid_to_ipc_;
     }
     inline PerProcessIPC* GetIPC(int pid) {
         return pid_to_ipc_[pid];

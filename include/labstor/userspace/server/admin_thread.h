@@ -14,7 +14,6 @@ namespace labstor::Server {
 
 class AdminWorker : public DaemonWorker {
 private:
-    int nothing;
     LABSTOR_IPC_MANAGER_T ipc_manager_;
 public:
     AdminWorker() {
@@ -23,15 +22,21 @@ public:
 
     void DoWork() override {
         int op;
-        for(int pid : ipc_manager_->GetConnectedProcesses()) {
+        auto &ipcs = ipc_manager_->GetAllIPC();
+        for(auto iter = ipcs.begin(); iter != ipcs.end();) {
             LABSTOR_ERROR_HANDLE_TRY {
                 labstor::ipc::admin_request header;
-                PerProcessIPC *ipc = ipc_manager_->GetIPC(pid);
+                PerProcessIPC *ipc = iter->second;
+                if(ipc->GetPID() == ipc_manager_->GetPID()) { continue; }
+                if(ipc->GetPID() == 0) { continue; }
                 if(!ipc->GetSocket().RecvMSGPeek(&header, sizeof(header), false)) {
                     continue;
                 }
+                ++iter;
             } LABSTOR_ERROR_HANDLE_CATCH {
-                //TODO: Free IPC
+                printf("PID %d disconnected\n", iter->first);
+                delete iter->second;
+                iter = ipcs.erase(iter);
             }
         }
     }
