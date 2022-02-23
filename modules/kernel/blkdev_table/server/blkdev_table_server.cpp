@@ -24,7 +24,7 @@ void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
 }
 
 void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *client_rq, labstor::credentials *creds) {
-    AUTO_TRACE("qp_ptr", (size_t)qp, "qp_id", qp->GetQid(), "path", client_rq->path_);
+    AUTO_TRACE("qp_ptr", (size_t)qp, "qp_id", qp->GetQid().Hash(), "path", client_rq->path_);
     labstor_poll_blkdev_table_register *poll_rq;
     labstor_blkdev_table_register_request *kern_rq;
     labstor::ipc::queue_pair *kern_qp, *private_qp;
@@ -47,7 +47,7 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     kern_qp->Enqueue<labstor_blkdev_table_register_request>(kern_rq, qtok);
 
     //Poll SERVER -> KERNEL interaction
-    TRACEPOINT("Allocating Poll RQ", "private_qp_id", private_qp->GetQid())
+    TRACEPOINT("Allocating Poll RQ", "private_qp_id", private_qp->GetQid().Hash())
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_blkdev_table_register>(private_qp);
     poll_rq->Init(qp, client_rq, qtok);
     private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq, qtok);

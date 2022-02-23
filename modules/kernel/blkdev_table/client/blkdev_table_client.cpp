@@ -26,7 +26,7 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
          labstor_blkdev_table_register_request::GetSize(path.size()));
     rq->Start(ns_id_, path.c_str(), path.size(), -1);
 
-    TRACEPOINT("path", rq->path_, "qp_id", qp->GetQid());
+    TRACEPOINT("path", rq->path_, "qp_id", qp->GetQid().Hash());
     qp->Enqueue<labstor_blkdev_table_register_request>(rq, qtok);
     rq = ipc_manager_->Wait<labstor_blkdev_table_register_request>(qtok);
     dev_id = rq->GetDeviceID();

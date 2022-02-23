@@ -63,7 +63,7 @@ void labstor::Client::IPCManager::Connect() {
     TRACEPOINT("Get SHMEM region")
     labstor::ipc::setup_reply reply;
     serversock_.RecvMSG(&reply, sizeof(reply));
-    TRACEPOINT("Receive reply", "region_id", reply.region_id, "region_size", reply.region_size, "queue_size", reply.queue_region_size, "queue_depth", reply.queue_depth)
+    TRACEPOINT("Receive reply", "region_id", reply.region_id_, "region_size", reply.region_size_, "queue_size", reply.queue_region_size_, "queue_depth", reply.queue_depth_)
     region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id_, reply.region_size_);
 
     //Initialize SHMEM request allocator
@@ -113,10 +113,10 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
                 pid_);
         void *sq_region = qp_alloc_->Alloc(request_queue_size);
         void *cq_region = qp_alloc_->Alloc(request_map_size);
-        TRACEPOINT("Creating queue", i, qid);
+        TRACEPOINT("Creating queue", i, qid.Hash());
         shmem_qps_.emplace_back(
                 new labstor::ipc::queue_pair(qid, shmem_alloc_->GetRegion(), sq_region, request_queue_size, cq_region, request_map_size));
-        TRACEPOINT("Created queue", i, qid);
+        TRACEPOINT("Created queue", i, qid.Hash());
         qps[i].Init(qid, sq_region, cq_region, shmem_alloc_->GetRegion());
     }
 

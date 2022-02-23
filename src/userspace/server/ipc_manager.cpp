@@ -105,7 +105,7 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
         void *sq_region = client_ipc->qp_alloc_->Alloc(memconf.request_queue_size);
         void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
         remote_qp->Init(qid, client_ipc->alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
-        TRACEPOINT("qid", remote_qp->GetQid(), "depth", remote_qp->GetDepth(),
+        TRACEPOINT("qid", remote_qp->GetQid().Hash(), "depth", remote_qp->GetDepth(),
                    "offset2", LABSTOR_REGION_SUB(remote_qp->cq_.GetRegion(), client_ipc->GetRegion()));
         remote_qp->GetPointer(ptr, client_ipc->alloc_->GetRegion());
 
@@ -162,7 +162,7 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
         void *sq_region = client_ipc->qp_alloc_->Alloc(memconf.request_queue_size);
         void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
-        TRACEPOINT("qid", qp->GetQid(), "depth", qp->GetDepth(),
+        TRACEPOINT("qid", qp->GetQid().Hash(), "depth", qp->GetDepth(),
                    "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
 
         //Store QP internally
@@ -207,7 +207,7 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     reply.queue_region_size_ = memconf.queue_region_size;
     reply.queue_depth_ = memconf.queue_depth;
     reply.num_queues_ = memconf.num_queues;
-    TRACEPOINT("Registering", reply.region_id, reply.region_size, reply.request_unit)
+    TRACEPOINT("Registering", reply.region_id_, reply.region_size_, reply.request_unit_)
     client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
 
     //Receive and register client QPs
@@ -233,7 +233,7 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc, vo
     for(int i = 0; i < request.count_; ++i) {
         labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
         qp->Attach(ptrs[i], client_ipc->GetRegion());
-        TRACEPOINT("qid", qp->GetQid(), "depth", qp->GetDepth(),
+        TRACEPOINT("qid", qp->GetQid().Hash(), "depth", qp->GetDepth(),
                    "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
         if(!RegisterQueuePair(qp)) {
             free(ptrs);

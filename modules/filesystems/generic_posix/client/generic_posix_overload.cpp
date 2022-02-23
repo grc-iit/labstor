@@ -67,8 +67,6 @@ FORWARD_DECL(ssize_t, pwritev64, int fd, const struct iovec *iov, int iovcnt, of
 FORWARD_DECL(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 FORWARD_DECL(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
 
-size_t write_size = 0;
-
 labstor::GenericPosix::Client client;
 
 /**
