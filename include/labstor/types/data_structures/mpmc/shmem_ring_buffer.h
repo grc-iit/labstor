@@ -7,7 +7,6 @@
 
 #include <labstor/constants/busy_wait.h>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/mpmc/bitmap.h>
 #include <labstor/types/shmem_type.h>
 #include <labstor/userspace/util/errors.h>
 
@@ -18,13 +17,11 @@ struct ring_buffer_header {
     uint32_t enqueued_, dequeued_;
     uint16_t e_lock_, d_lock_;
     uint32_t max_depth_;
-    labstor_bitmap_t bitmap_[];
 };
 
 template<typename T>
 struct ring_buffer : public labstor::shmem_type {
     ring_buffer_header<T> *header_;
-    labstor_bitmap_t *bitmap_;
     T *queue_;
 
     ring_buffer() = default;
@@ -37,8 +34,7 @@ struct ring_buffer : public labstor::shmem_type {
 
     static inline uint32_t GetSize(uint32_t max_depth) {
         return sizeof(struct ring_buffer) +
-               sizeof(T)*max_depth
-               + labstor_bitmap_GetSize(max_depth);
+               sizeof(T)*max_depth;
     }
 
     inline uint32_t GetSize() {
@@ -74,24 +70,17 @@ struct ring_buffer : public labstor::shmem_type {
             throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
         }
         if(max_depth == 0) {
-            max_depth = region_size - sizeof(struct ring_buffer);
-            max_depth *= LABSTOR_BITMAP_ENTRIES_PER_BLOCK;
-            max_depth /= (sizeof(T)*LABSTOR_BITMAP_ENTRIES_PER_BLOCK + sizeof(labstor_bitmap_t));
+            max_depth = (region_size - sizeof(struct ring_buffer))/sizeof(T);
         }
         if(max_depth ==0) {
             throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
         }
         header_->max_depth_ = max_depth;
-        bitmap_ = header_->bitmap_;
-        labstor_bitmap_Init(bitmap_, header_->max_depth_);
-        queue_ = (T*)(labstor_bitmap_GetNextSection(bitmap_, header_->max_depth_));
         return true;
     }
 
     inline void Attach(void *region) {
         header_ = (struct ring_buffer_header<T>*)region;
-        bitmap_ = header_->bitmap_;
-        queue_ = (T*)(labstor_bitmap_GetNextSection(bitmap_, header_->max_depth_));
     }
 
     inline bool Enqueue(T data, uint32_t &req_id) {
@@ -106,7 +95,6 @@ struct ring_buffer : public labstor::shmem_type {
             entry = enqueued % header_->max_depth_;
             req_id = enqueued;
             queue_[entry] = data;
-            labstor_bitmap_Set(bitmap_, entry);
             ++header_->enqueued_;
             LABSTOR_INF_LOCK_RELEASE(&header_->e_lock_);
             return true;
@@ -125,12 +113,11 @@ struct ring_buffer : public labstor::shmem_type {
             enqueued = header_->enqueued_;
             dequeued = header_->dequeued_;
             entry = dequeued % header_->max_depth_;
-            if(enqueued - dequeued == 0 || !labstor_bitmap_IsSet(bitmap_, entry)) {
+            if(enqueued - dequeued == 0) {
                 LABSTOR_INF_LOCK_RELEASE(&header_->d_lock_);
                 return false;
             }
             data = queue_[entry];
-            labstor_bitmap_Unset(bitmap_, entry);
             ++header_->dequeued_;
             LABSTOR_INF_LOCK_RELEASE(&header_->d_lock_);
             return true;

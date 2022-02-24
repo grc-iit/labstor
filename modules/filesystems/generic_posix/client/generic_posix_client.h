@@ -27,7 +27,8 @@ const Error TOO_MANY_FDS(5000, "Too many file descriptors allocated by thread");
 struct FDAllocator {
     int min_fd_, alloced_fds_, max_fds_;
     labstor::ipc::mpmc::ring_buffer<int> free_fds_;
-    FDAllocator(int min_fd, char *region, size_t fd_alloc_size, int max_fds_per_thread) : free_fds_(region, fd_alloc_size, max_fds_per_thread) {
+    FDAllocator(int min_fd, char *region, size_t fd_alloc_size, int max_fds_per_thread) {
+        free_fds_.Init(region, fd_alloc_size, max_fds_per_thread);
         min_fd_ = min_fd;
         alloced_fds_ = 0;
         max_fds_ = max_fds_per_thread;
@@ -65,6 +66,7 @@ public:
         is_initialized_ = false;
         size_t fd_alloc_size = labstor::ipc::mpmc::ring_buffer<int>::GetSize(LABSTOR_MAX_FDS_PER_THREAD);
         char *region = (char*)malloc( fd_alloc_size * ipc_manager_->GetNumCPU());
+        fds_.reserve(ipc_manager_->GetNumCPU());
         for(int i = 0; i < ipc_manager_->GetNumCPU(); ++i) {
             region += fd_alloc_size;
             fds_.emplace_back(LABSTOR_FD_MIN + i*LABSTOR_MAX_FDS_PER_THREAD, region, fd_alloc_size, LABSTOR_MAX_FDS_PER_THREAD);
@@ -77,7 +79,7 @@ public:
     inline bool IsInitialized() {
         return is_initialized_;
     }
-    inline void Initialize();
+    void Initialize();
     int Open(const char *path, int oflag);
     int Close(int fd);
     int AllocateFD() {

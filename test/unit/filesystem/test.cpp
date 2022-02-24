@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
     printf("PATH: %s\n", path);
     //Open file
     LABSTOR_ERROR_HANDLE_START()
+    printf("HERE1\n");
     int fd = open(path, O_DIRECT | O_CREAT | O_RDWR, 0x644);
     printf("FD: %d\n", fd);
     if(fd < 0) {

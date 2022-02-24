@@ -2,6 +2,8 @@
 // Created by lukemartinlogan on 6/7/21.
 //
 #define _GNU_SOURCE
+//#define DISABLE_LABSTOR
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -67,13 +69,19 @@ FORWARD_DECL(ssize_t, pwritev64, int fd, const struct iovec *iov, int iovcnt, of
 FORWARD_DECL(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags)
 FORWARD_DECL(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags)
 
-labstor::GenericPosix::Client client;
+#define LABSTOR_GENERIC_POSIX_CLIENT_CLASS labstor::GenericPosix::Client
+#define LABSTOR_GENERIC_POSIX_CLIENT_T SINGLETON_T(LABSTOR_GENERIC_POSIX_CLIENT_CLASS)
+#define LABSTOR_GENERIC_POSIX_CLIENT_SINGLETON scs::Singleton<LABSTOR_GENERIC_POSIX_CLIENT_CLASS>
+#define LABSTOR_GENERIC_POSIX_CLIENT LABSTOR_GENERIC_POSIX_CLIENT_SINGLETON::GetInstance()
+DEFINE_SINGLETON(GENERIC_POSIX_CLIENT);
+bool initialized_;
 
 /**
  * POSIX FUNCTIONS
  * */
 
 static __attribute__((constructor)) void Init() {
+    initialized_ = false;
     GETFUN(int, open, const char *path, int oflag, ...);
     GETFUN(int, close, int fd);
     GETFUN(ssize_t, read, int fd, void *buf, size_t size);
@@ -92,6 +100,8 @@ static __attribute__((constructor)) void Init() {
     GETFUN(ssize_t, pwritev64, int fd, const struct iovec *iov, int iovcnt, off64_t offset);
     GETFUN(ssize_t, pwritev2, int fd, const struct iovec *iov, int iovcnt, labstor::off_t offset, int flags);
     GETFUN(ssize_t, pwritev64v2, int fd, const struct iovec *iov, int iovcnt, off64_t offset, int flags);
+    LABSTOR_GENERIC_POSIX_CLIENT;
+    initialized_ = true;
 }
 
 int WRAPPER_FUN(open)(const char *path, int oflag, ...) {
@@ -104,8 +114,8 @@ int WRAPPER_FUN(open)(const char *path, int oflag, ...) {
         mode = va_arg(args, mode_t);
     }
     va_end(args);
-    if(client.IsInitialized()) {
-        fd = client.Open(path, oflag);
+    if(initialized_) {
+        fd = LABSTOR_GENERIC_POSIX_CLIENT->Open(path, oflag);
     }
     if(fd == LABSTOR_GENERIC_FS_PATH_NOT_FOUND) {
         fd = REAL_FUN(open)(path, oflag, mode);
@@ -116,8 +126,8 @@ int WRAPPER_FUN(open)(const char *path, int oflag, ...) {
 int WRAPPER_FUN(close)(int fd) {
     AUTO_TRACE("")
     int ret = LABSTOR_GENERIC_FS_INVALID_FD;
-    if(client.IsInitialized()) {
-        ret = client.Close(fd);
+    if(initialized_) {
+        ret = LABSTOR_GENERIC_POSIX_CLIENT->Close(fd);
     }
     if(ret == LABSTOR_GENERIC_FS_INVALID_FD) {
         ret = REAL_FUN(close)(fd);
@@ -128,8 +138,8 @@ int WRAPPER_FUN(close)(int fd) {
 ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t size) {
     AUTO_TRACE("")
     ssize_t ret_size = LABSTOR_GENERIC_FS_INVALID_FD;
-    if(client.IsInitialized()) {
-        ret_size = client.Read(fd, buf, size);
+    if(initialized_) {
+        ret_size = LABSTOR_GENERIC_POSIX_CLIENT->Read(fd, buf, size);
     }
     if(ret_size == LABSTOR_GENERIC_FS_INVALID_FD) {
         ret_size = REAL_FUN(read)(fd, buf, size);
@@ -140,8 +150,8 @@ ssize_t WRAPPER_FUN(read)(int fd, void *buf, size_t size) {
 ssize_t WRAPPER_FUN(write)(int fd, void *buf, size_t size) {
     AUTO_TRACE("")
     ssize_t ret_size = LABSTOR_GENERIC_FS_INVALID_FD;
-    if(client.IsInitialized()) {
-        ret_size = client.Write(fd, buf, size);
+    if(initialized_) {
+        ret_size = LABSTOR_GENERIC_POSIX_CLIENT->Write(fd, buf, size);
     }
     if(ret_size == LABSTOR_GENERIC_FS_INVALID_FD) {
         ret_size = REAL_FUN(write)(fd, buf, size);
