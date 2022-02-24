@@ -9,6 +9,7 @@
 #define PID_FD(pid, fd) (((uint64_t)pid<<32) + fd)
 
 void labstor::GenericPosix::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    AUTO_TRACE("")
     switch(static_cast<Ops>(request->GetOp())) {
         case Ops::kOpen: {
             Open(qp, reinterpret_cast<generic_posix_open_request*>(request), creds);
@@ -32,13 +33,14 @@ int labstor::GenericPosix::Server::PriorSlash(char *path, int len) {
     int i = 0;
     for(i = len - 1; i >= 0; --i) {
        if(path[i] == '/') {
-           return i+1;
+           return i;
        }
     }
     return 0;
 }
 
 void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
+    AUTO_TRACE("")
     char *path = client_rq->path_;
     int len = strlen(path);
     int fd = client_rq->GetFD();

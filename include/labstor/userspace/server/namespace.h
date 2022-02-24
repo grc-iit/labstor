@@ -64,7 +64,9 @@ public:
             private_state_.emplace_back(module);
         }
         TRACEPOINT(key.data_, ns_id);
-        key_to_ns_id_.Set(key, ns_id);
+        if(!key_to_ns_id_.Set(key, ns_id)) {
+            FAILED_TO_SET_NAMESPACE_KEY.format(ns_id)->print();
+        }
         module_id_to_instance_.emplace(module->GetModuleID(), std::move(std::queue<labstor::Module*>()));
         module_id_to_instance_[module->GetModuleID()].push(module);
         return ns_id;
@@ -94,6 +96,7 @@ public:
     }
     inline uint32_t Get(labstor::ipc::string key) {
         uint32_t ns_id;
+        printf("KEY: %s\n", key.c_str());
         if(key_to_ns_id_.Find(key, ns_id)) {
             return ns_id;
         }

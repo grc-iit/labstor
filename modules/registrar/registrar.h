@@ -44,8 +44,8 @@ struct namespace_id_request : labstor::ipc::request {
         op_ = static_cast<int>(Ops::kGetNamespaceId);
         key_.copy(key);
     }
-    void GetNamespaceIDEnd(uint32_t ns_id) {
-        code_ = LABSTOR_REQUEST_SUCCESS;
+    void GetNamespaceIDEnd(uint32_t ns_id, uint32_t code) {
+        code_ = code;
         ns_id_ = ns_id;
     }
 };

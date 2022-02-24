@@ -47,10 +47,11 @@ struct string {
         length_ = length;
     }
 
-    inline string(labstor::id key) {
+    inline string(const std::string &str) {
         header_ = nullptr;
-        data_ = (char*)key.key;
-        length_ = strlen(data_);
+        data_ = (char*)malloc(str.size());
+        memcpy(data_, str.c_str(), str.size());
+        length_ = str.size();
     }
 
     inline string(const string &old_str) {

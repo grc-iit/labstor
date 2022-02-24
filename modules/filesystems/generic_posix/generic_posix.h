@@ -35,10 +35,11 @@ struct generic_posix_open_request {
     int oflags_;
     int fd_;
     char path_[];
-    inline void Start(int ns_id, const char *path, int oflags) {
+    inline void ClientInit(int ns_id, const char *path, int oflags, int fd) {
         header_.SetNamespaceID(ns_id);
         header_.SetOp(static_cast<int>(labstor::GenericPosix::Ops::kOpen));
         oflags_ = oflags;
+        fd_ = fd;
         strcpy(path_, path);
     }
     inline void Complete(int code) {

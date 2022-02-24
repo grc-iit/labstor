@@ -11,6 +11,9 @@ modules:
   MQDriver:
     client: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_server.so
+  GenericPosix:
+    client: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_client.so
+    server: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_server.so
 admin_thread: 0
 system_monitor: 1
 work_orchestrator:

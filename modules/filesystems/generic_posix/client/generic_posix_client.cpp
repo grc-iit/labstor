@@ -12,10 +12,10 @@ void labstor::GenericPosix::Client::Initialize() {
     //Retreive the namespace ID from the server
     if(lock_.try_lock()) {
         if(!is_initialized_) {
-            TRACEPOINT("HERE", (size_t)this)
             ipc_manager_->Connect();
             labstor::Registrar::Client registrar;
             ns_id_ = registrar.GetNamespaceID(GENERIC_POSIX_MODULE_ID);
+            TRACEPOINT("Found generic posix namespace ID", ns_id_)
             is_initialized_ = true;
             fd_min_ = LABSTOR_FD_MIN; //TODO: Should be queried from the server
         }
@@ -38,16 +38,17 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
 
     //Create CLIENT -> SERVER message
     client_rq = ipc_manager_->AllocRequest<generic_posix_open_request>(qp);
-    client_rq->Start(ns_id_, path, oflag);
+    client_rq->ClientInit(ns_id_, path, oflag, fd);
 
     //Complete CLIENT -> SERVER interaction
     qp->Enqueue<generic_posix_open_request>(client_rq, qtok);
     client_rq = ipc_manager_->Wait<generic_posix_open_request>(qtok);
-    fd = client_rq->GetFD();
+    if(client_rq->GetCode() == LABSTOR_GENERIC_FS_PATH_NOT_FOUND) {
+        fd = LABSTOR_GENERIC_FS_PATH_NOT_FOUND;
+    }
 
     //Free requests
     ipc_manager_->FreeRequest<generic_posix_open_request>(qtok, client_rq);
-
     return fd;
 }
 

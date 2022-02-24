@@ -51,6 +51,7 @@ namespace labstor {
     const Error FAILED_TO_ASSIGN_QUEUE(509, "Failed to assign queue {} to worker {}");
     const Error INVALID_QP_FLAGS(510, "Attempted to find QP with invalid flags set: {}");
     const Error INVALID_QP_CNT(511, "Attempted to find QP with invalid index: {}");
+    const Error FAILED_TO_SET_NAMESPACE_KEY(512, "Failed to insert {} into the namespace");
 
     const Error FAILED_TO_ENQUEUE(508, "Failed to enqueue a request");
     const Error FAILED_TO_DEQUEUE(509, "Failed to enqueue a request");

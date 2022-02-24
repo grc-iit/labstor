@@ -11,6 +11,7 @@ void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair *qp, la
             register_request *rq = reinterpret_cast<register_request *>(request);
             labstor::Module *module = module_manager_->GetModuleConstructor(rq->module_id_)();
             module->Initialize(request);
+            TRACEPOINT("Adding key to namespace", rq->key_.key, strlen(rq->key_.key));
             rq->ConstructModuleEnd(namespace_->AddKey(rq->key_, module));
             printf("Registered module %s: %d\n", rq->key_.key, rq->GetNamespaceID());
             qp->Complete<register_request>(rq);
@@ -18,8 +19,14 @@ void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair *qp, la
         }
         case Ops::kGetNamespaceId : {
             namespace_id_request *rq = reinterpret_cast<namespace_id_request *>(request);
-            uint32_t ns_id = namespace_->Get(labstor::ipc::string(rq->key_));
-            rq->GetNamespaceIDEnd(ns_id);
+            TRACEPOINT("Finding key in namespace", rq->key_.key);
+            uint32_t ns_id = namespace_->Get(labstor::ipc::string(rq->key_.key));
+            TRACEPOINT("Key_id", ns_id);
+            if(ns_id == -1) {
+                rq->GetNamespaceIDEnd(ns_id, LABSTOR_REQUEST_FAILED);
+            } else {
+                rq->GetNamespaceIDEnd(ns_id, LABSTOR_REQUEST_SUCCESS);
+            }
             qp->Complete<namespace_id_request>(rq);
             break;
         }
