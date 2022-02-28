@@ -17,7 +17,7 @@ typedef struct labstor_qid_t {
     uint32_t pid_;
 #ifdef __cplusplus
     labstor_qid_t() = default;
-    labstor_qid_t(uint32_t qid) : flags_(0), pid_(0), cnt_(qid) {}
+    labstor_qid_t(uint32_t qid) : flags_(0), cnt_(qid), pid_(0) {}
     uint64_t Hash() {
         uint64_t num = 0;
         num += flags_;

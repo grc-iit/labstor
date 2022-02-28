@@ -129,12 +129,14 @@ sudo scripts/pkgdep.sh --all
 ./configure --prefix=`scspkg pkg-root spdk` --with-fio=`scspkg pkg-src fio`
 make -j8
 make install
+export SPDK_ROOT=`scspkg pkg-src spdk`/spdk
 ```
 
 ```
 cd `scspkg pkg-src spdk`/spdk
 #Allocate huge pages & unbind NVMes
 sudo HUGEMEM=8192 scripts/setup.sh
+sudo HUGEMEM=100 scripts/setup.sh
 #Rebind NVMes
 sudo scripts/setup.sh reset
 ```

@@ -27,3 +27,5 @@ void labstor::LabFS::Client::Init(uint32_t ns_id, char *iosched_mount) {
     //Free requests
     ipc_manager_->FreeRequest<init_request>(qtok, client_rq);
 }
+
+LABSTOR_MODULE_CONSTRUCT()

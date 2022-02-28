@@ -3,6 +3,8 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(WITH_SPDK "Include SPDK tests" OFF)
+
 include_directories(include kernel filesystems iosched)
 
 ##MODULES WITH KERNEL COMPONENT
@@ -27,3 +29,9 @@ add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_subdirectory(filesystems/generic_posix)
 #add_subdirectory(filesystems/labstor_fs)
+
+message("Are we with SPDK?")
+message(${WITH_SPDK})
+if(${WITH_SPDK})
+add_subdirectory(iosched/spdk)
+endif()
