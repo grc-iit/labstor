@@ -226,6 +226,10 @@ public:
         CreateQueuePairs(0);
     }
 
+    QueuePair* GetQueuePair(int i) {
+        return &qps_[i];
+    }
+
     void _AddDevice(Device &&dev) {
         devs_.emplace_back(dev);
     }

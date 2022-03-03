@@ -28,18 +28,18 @@ work_orchestrator:
     - {worker_id: 1, cpu_id: 3}
 ipc_manager:
   client:
-    max_region_size_kb: 64
+    max_region_size_kb: 1024
     num_queues: 4
-    queue_depth: 100
-    request_unit_bytes: 64
-    min_request_region_kb: 32
+    queue_depth: 512
+    request_unit_bytes: 128
+    min_request_region_kb: 512
 
   kernel:
     max_region_size_kb: 1024
     num_queues: 1
     queue_depth: 1024
     request_unit_bytes: 64
-    min_request_region_kb: 500
+    min_request_region_kb: 512
 
   private:
     max_region_size_kb: 1024

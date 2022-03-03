@@ -3,42 +3,37 @@
 //
 
 #include <labstor/constants/debug.h>
-#include <modules/registrar/registrar.h>
 #include "spdk_client.h"
 
-void labstor::iosched::SPDK::Client::Register(const std::string &ns_key, const std::string &dev_name) {
-    AUTO_TRACE("")
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(SPDK_MODULE_ID, ns_key);
-    TRACEPOINT(ns_id_)
+void labstor::iosched::SPDK::Client::Init(const std::string &traddr, int nvme_ns_id) {
+    context_.Init();
+    context_.Probe();
+    context_.SelectDevice(traddr, nvme_ns_id);
+    context_.CreateQueuePairs(0);
 }
 
-int labstor::iosched::SPDK::Client::GetNamespaceID() {
-    auto registrar = labstor::Registrar::Client();
-    if(ns_id_ == 0) {
-        ns_id_ = registrar.GetNamespaceID(MQ_DRIVER_MODULE_ID);
-    }
-    return ns_id_;
+void* labstor::iosched::SPDK::Client::Alloc(size_t size) {
+    return context_->Alloc(size);
 }
 
-labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-    AUTO_TRACE(dev_id, buf_size);
-    labstor_mq_driver_request *client_rq;
+void labstor::iosched::SPDK::Client::Free(void *mem) {
+    context_->Free(mem);
+}
+
+labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector) {
     labstor::ipc::queue_pair *qp;
+    spdk_poll_request *rq;
     labstor::ipc::qtok_t qtok;
-
-    //Get SERVER QP
-    ipc_manager_->GetQueuePair(qp,
-                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
-
-    //Create CLIENT -> SERVER message
-    TRACEPOINT("Submit", "dev_id", dev_id)
-    client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
-
-    //Enqueue the request
-    qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
-    return qtok;
+    ipc_manager_->GetQueuePair(qp, LABSTOR_QP_PRIVATE | LABSTOR_QP_LOW_LATENCY);
+    rq = ipc_manager_->AllocRequest<spdk_poll_request>(qp);
+    rq->qp_ = qp;
+    qp->Enqueue(rq, qtok);
+    qp->Dequeue(rq);
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::iosched::SPDK::Client, MQ_DRIVER_MODULE_ID);
+void labstor::iosched::SPDK::Client::IOComplete(void *arg, const struct spdk_nvme_cpl *completion) {
+    spdk_poll_request *rq = reinterpret_cast<spdk_poll_request*>(arg);
+    rq->qp_->Complete(rq);
+}
+
+LABSTOR_MODULE_CONSTRUCT(labstor::iosched::SPDK::Client, SPDK_MODULE_ID);
