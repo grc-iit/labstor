@@ -25,7 +25,7 @@ void labstor::GenericPosix::Client::Initialize() {
 int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     AUTO_TRACE("")
     generic_posix_open_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     int fd;
 
@@ -55,7 +55,7 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
 int labstor::GenericPosix::Client::Close(int fd) {
     AUTO_TRACE("")
     generic_posix_close_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     int code;
     //Get SERVER QP
@@ -83,7 +83,7 @@ int labstor::GenericPosix::Client::Close(int fd) {
 labstor::ipc::qtok_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
     AUTO_TRACE("")
     generic_posix_io_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     ssize_t ret;
 
@@ -103,7 +103,7 @@ labstor::ipc::qtok_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Op
 ssize_t labstor::GenericPosix::Client::IOSync(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
     AUTO_TRACE("")
     generic_posix_io_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     ssize_t ret;
     qtok = IO(op, fd, buf, size);

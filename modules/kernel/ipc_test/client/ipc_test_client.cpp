@@ -1,6 +1,8 @@
 //
 // Created by lukemartinlogan on 12/3/21.
 //
+
+#define LABSTOR_DEBUG
 #include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
@@ -23,24 +25,28 @@ int labstor::IPCTest::Client::GetNamespaceID() {
 }
 
 int labstor::IPCTest::Client::Start(int batch_size) {
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtoks[batch_size];
     labstor_ipc_test_request *client_rq;
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    printf("[tid=%d] QP: %lu\n", labstor::ThreadLocal::GetTid(), qp->GetQid().Hash());
+    TRACEPOINT("tid", labstor::ThreadLocal::GetTid(), "qid", qp->GetQID().Hash());
     for(int i = 0; i < batch_size; ++i) {
         client_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(qp);
+        TRACEPOINT("Allocated request")
         client_rq->IPCClientStart(ns_id_, 24);
         qp->Enqueue<labstor_ipc_test_request>(client_rq, qtoks[i]);
+        TRACEPOINT("Enqueued request")
     }
 
     int ret = ipc_manager_->Wait<labstor_ipc_test_request>(qtoks, batch_size);
+    TRACEPOINT("Finished wait")
     if (ret != LABSTOR_REQUEST_SUCCESS) {
         printf("IPC test failed: return code %d\n", ret);
         exit(1);
     }
+    TRACEPOINT("Finished")
     return dev_id;
 }
 LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Client, IPC_TEST_MODULE_ID)

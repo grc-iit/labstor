@@ -8,7 +8,7 @@
 #include "mq_driver.h"
 #include "no_op_server.h"
 
-void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::MQDriver::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE(request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kGetNumHWQueues: {
@@ -35,11 +35,11 @@ void labstor::MQDriver::Server::ProcessRequest(labstor::ipc::queue_pair *qp, lab
     }
 }
 
-void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *client_rq, labstor::credentials *creds) {
+void labstor::MQDriver::Server::IOStart(labstor::queue_pair *qp, labstor_mq_driver_request *client_rq, labstor::credentials *creds) {
     AUTO_TRACE(client_rq->dev_id_);
     labstor_mq_driver_poll_request *poll_rq;
     labstor_mq_driver_request *kern_rq;
-    labstor::ipc::queue_pair *kern_qp, *private_qp;
+    labstor::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
     //printf("IOStart\n");
@@ -66,9 +66,9 @@ void labstor::MQDriver::Server::IOStart(labstor::ipc::queue_pair *qp, labstor_mq
     private_qp->Enqueue<labstor_mq_driver_poll_request>(poll_rq, qtok);
 }
 
-void labstor::MQDriver::Server::IOSubmitComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+void labstor::MQDriver::Server::IOSubmitComplete(labstor::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
     AUTO_TRACE(poll_rq->op_);
-    labstor::ipc::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
+    labstor::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
     labstor_mq_driver_request *kern_rq;
     labstor_mq_driver_request *client_rq;
     labstor::ipc::qtok_t qtok;
@@ -108,9 +108,9 @@ void labstor::MQDriver::Server::IOSubmitComplete(labstor::ipc::queue_pair *priva
     }
 }
 
-void labstor::MQDriver::Server::IOPollComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+void labstor::MQDriver::Server::IOPollComplete(labstor::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
     AUTO_TRACE(poll_rq->op_);
-    labstor::ipc::queue_pair *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
+    labstor::queue_pair *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
     labstor_mq_driver_request *kern_rq;
     labstor_mq_driver_request *client_rq;
     labstor::ipc::qtok_t qtok;
@@ -148,9 +148,9 @@ void labstor::MQDriver::Server::IOPollComplete(labstor::ipc::queue_pair *private
     IOComplete(kern_qp, kern_rq, private_qp, poll_rq);
 }
 
-void labstor::MQDriver::Server::IOInterruptComplete(labstor::ipc::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
+void labstor::MQDriver::Server::IOInterruptComplete(labstor::queue_pair *private_qp, labstor_mq_driver_poll_request *poll_rq) {
     AUTO_TRACE(poll_rq->op_);
-    labstor::ipc::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
+    labstor::queue_pair *client_qp, *kern_qp, *kern_resubmit_qp, *private_resubmit_qp;
     labstor_mq_driver_request *kern_rq;
     labstor_mq_driver_request *client_rq;
     labstor::ipc::qtok_t qtok;
@@ -172,12 +172,12 @@ void labstor::MQDriver::Server::IOInterruptComplete(labstor::ipc::queue_pair *pr
 }
 
 void labstor::MQDriver::Server::IOComplete(
-        labstor::ipc::queue_pair *kern_qp,
+        labstor::queue_pair *kern_qp,
         labstor_mq_driver_request *kern_rq,
-        labstor::ipc::queue_pair *private_qp,
+        labstor::queue_pair *private_qp,
         labstor_mq_driver_poll_request *poll_rq) {
 
-    labstor::ipc::queue_pair *client_qp;
+    labstor::queue_pair *client_qp;
     labstor_mq_driver_request *client_rq;
 
     //printf("I/O completed\n");
@@ -193,10 +193,10 @@ void labstor::MQDriver::Server::IOComplete(
     ipc_manager_->FreeRequest<labstor_mq_driver_poll_request>(private_qp, poll_rq);
 }
 
-void labstor::MQDriver::Server::GetStatistics(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *client_rq, labstor::credentials *creds) {
+void labstor::MQDriver::Server::GetStatistics(labstor::queue_pair *qp, labstor_mq_driver_request *client_rq, labstor::credentials *creds) {
     AUTO_TRACE(client_rq->dev_id_);
     labstor_mq_driver_request *kern_rq;
-    labstor::ipc::queue_pair *kern_qp, *private_qp;
+    labstor::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
     //Get KERNEL QP

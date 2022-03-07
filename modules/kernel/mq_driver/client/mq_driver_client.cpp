@@ -26,7 +26,7 @@ int labstor::MQDriver::Client::GetNamespaceID() {
 void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
     AUTO_TRACE(dev_id, buf_size);
     labstor_mq_driver_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
 
     //Get SERVER QP
@@ -51,7 +51,7 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
 labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
     AUTO_TRACE(dev_id, buf_size);
     labstor_mq_driver_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
 
     //Get SERVER QP
@@ -70,7 +70,7 @@ labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, int dev_id, void *us
 int labstor::MQDriver::Client::GetNumHWQueues(int dev_id) {
     AUTO_TRACE("");
     labstor_mq_driver_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     int num_hw_queues = 0;
 

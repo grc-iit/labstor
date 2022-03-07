@@ -39,7 +39,7 @@ public:
     virtual size_t EstRequestIOTime(
             labstor::ipc::request *request){ return 0; };
     virtual void ProcessRequest(
-            labstor::ipc::queue_pair *qp,
+            labstor::queue_pair *qp,
             labstor::ipc::request *request,
             labstor::credentials *creds) {};
     virtual void StateUpdate(labstor::Module *prior) {}

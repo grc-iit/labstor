@@ -75,7 +75,7 @@ struct labstor_blkdev_table_register_request {
 
 #ifdef __cplusplus
 struct labstor_poll_blkdev_table_register : public labstor::ipc::poll_request_single<labstor_blkdev_table_register_request>{
-    void Init(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
+    void Init(labstor::queue_pair *qp, labstor_blkdev_table_register_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
         int op = static_cast<int>(labstor::BlkdevTable::Ops::kRegisterBdevComplete);
         labstor::ipc::poll_request_single<labstor_blkdev_table_register_request>::Init(qp, reply_rq, poll_qtok, op);
     }

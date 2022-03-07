@@ -52,7 +52,7 @@ struct labstor_ipc_test_request {
 
 #ifdef __cplusplus
 struct labstor_poll_ipc_test_request : public labstor::ipc::poll_request_single<labstor_ipc_test_request> {
-    void Init(labstor::ipc::queue_pair *qp, labstor_ipc_test_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
+    void Init(labstor::queue_pair *qp, labstor_ipc_test_request *reply_rq, labstor::ipc::qtok_t &poll_qtok) {
         int op = static_cast<int>(labstor::IPCTest::Ops::kCompleteIPCTest);
         labstor::ipc::poll_request_single<labstor_ipc_test_request>::Init(qp, reply_rq, poll_qtok, op);
     }

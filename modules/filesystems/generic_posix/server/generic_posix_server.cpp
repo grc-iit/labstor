@@ -8,7 +8,7 @@
 
 #define PID_FD(pid, fd) (((uint64_t)pid<<32) + fd)
 
-void labstor::GenericPosix::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::GenericPosix::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE("")
     switch(static_cast<Ops>(request->GetOp())) {
         case Ops::kOpen: {
@@ -39,7 +39,7 @@ int labstor::GenericPosix::Server::PriorSlash(char *path, int len) {
     return 0;
 }
 
-void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
+void labstor::GenericPosix::Server::Open(labstor::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
     AUTO_TRACE("")
     char *path = client_rq->path_;
     int len = strlen(path);
@@ -62,7 +62,7 @@ void labstor::GenericPosix::Server::Open(labstor::ipc::queue_pair *qp, generic_p
     qp->Complete(client_rq);
 }
 
-void labstor::GenericPosix::Server::Close(labstor::ipc::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
+void labstor::GenericPosix::Server::Close(labstor::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
     labstor::Module *module;
     uint64_t pid_fd = PID_FD(creds->pid_, client_rq->GetFD());
     uint32_t ns_id;
@@ -78,7 +78,7 @@ void labstor::GenericPosix::Server::Close(labstor::ipc::queue_pair *qp, generic_
     qp->Complete(client_rq);
 }
 
-void labstor::GenericPosix::Server::Passthrough(labstor::ipc::queue_pair *qp, generic_posix_passthrough_request *client_rq, labstor::credentials *creds) {
+void labstor::GenericPosix::Server::Passthrough(labstor::queue_pair *qp, generic_posix_passthrough_request *client_rq, labstor::credentials *creds) {
     labstor::Module *module;
     uint64_t pid_fd = PID_FD(creds->pid_, client_rq->GetFD());
     uint32_t ns_id;

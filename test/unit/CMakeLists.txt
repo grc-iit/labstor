@@ -103,9 +103,11 @@ add_executable(test_proc_partition proc_partition/test.cpp)
 add_executable(test_fs_preload filesystem/test.cpp)
 
 #######SPDK
-add_executable(test_spdk_lib spdk/test.cpp)
-add_dependencies(test_spdk_lib spdk_lib)
-target_link_libraries(test_spdk_lib ${SPDK_DYN_LIBS} spdk_nvme_lib spdk_nvme)
+if(${WITH_SPDK})
+    add_executable(test_spdk_lib spdk/test.cpp)
+    add_dependencies(test_spdk_lib spdk_lib)
+    target_link_libraries(test_spdk_lib ${SPDK_DYN_LIBS} spdk_nvme_lib spdk_nvme)
+endif()
 
 ######CLEAN ALL TESTS
 add_custom_target(clean_tests COMMAND

@@ -21,7 +21,7 @@ void labstor::iosched::SPDK::Client::Free(void *mem) {
 }
 
 labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector) {
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     spdk_poll_request *rq;
     labstor::ipc::qtok_t qtok;
     ipc_manager_->GetQueuePair(qp, LABSTOR_QP_PRIVATE | LABSTOR_QP_LOW_LATENCY);
@@ -31,9 +31,6 @@ labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf,
     qp->Dequeue(rq);
 }
 
-void labstor::iosched::SPDK::Client::IOComplete(void *arg, const struct spdk_nvme_cpl *completion) {
-    spdk_poll_request *rq = reinterpret_cast<spdk_poll_request*>(arg);
-    rq->qp_->Complete(rq);
-}
+
 
 LABSTOR_MODULE_CONSTRUCT(labstor::iosched::SPDK::Client, SPDK_MODULE_ID);

@@ -41,7 +41,7 @@ void labstor::kernel::netlink::WorkerClient::AssignQueuePairs(std::vector<labsto
     rq_vec->header_.op_ = LABSTOR_ASSIGN_QP;
     rq_vec->count_ = assign_qp_vec.size();
     for(int i = 0; i < assign_qp_vec.size(); ++i) {
-        rq_vec->rqs_[i].worker_id_ = assign_qp_vec[i].qp_->GetQid().Hash() % num_workers_;
+        rq_vec->rqs_[i].worker_id_ = assign_qp_vec[i].qp_->GetQID().Hash() % num_workers_;
         rq_vec->rqs_[i].qp_ptr_ = assign_qp_vec[i].qp_ptr_;
     }
     kernel_client_->SendMSG(rq_vec, size);

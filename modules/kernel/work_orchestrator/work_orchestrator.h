@@ -33,8 +33,8 @@ struct labstor_assign_qp_request {
     uint32_t worker_id_;
 #ifdef __cplusplus
     labstor_assign_qp_request() = default;
-    labstor_assign_qp_request(labstor::ipc::queue_pair *qp, labstor::ipc::queue_pair_ptr &ptr) {
-        qp_ = qp;
+    labstor_assign_qp_request(labstor::ipc::shmem_queue_pair *qp, labstor::ipc::queue_pair_ptr &ptr) {
+        qp_ = static_cast<labstor_queue_pair*>(qp);
         qp_ptr_ = ptr;
     }
 #endif

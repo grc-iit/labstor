@@ -5,7 +5,7 @@
 #include <modules/registrar/registrar.h>
 #include "registrar_server.h"
 
-void labstor::Registrar::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::Registrar::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kRegister : {
             register_request *rq = reinterpret_cast<register_request *>(request);

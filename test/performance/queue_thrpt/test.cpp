@@ -12,7 +12,7 @@
 #include <aio.h>
 
 void test_throughput(int total_reqs) {
-    labstor::ipc::queue_pair q;
+    labstor::ipc::shmem_queue_pair q;
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
     size_t sq_size, cq_size;

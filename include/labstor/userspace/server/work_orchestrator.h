@@ -31,7 +31,7 @@ public:
     inline int GetPid() { return pid_; }
     inline int GetNumCPU() { return n_cpu_; }
     void CreateWorkers();
-    void AssignQueuePair(labstor::ipc::queue_pair *qp, int worker_id=-1);
+    void AssignQueuePair(labstor::ipc::shmem_queue_pair *qp, int worker_id=-1);
 };
 
 }

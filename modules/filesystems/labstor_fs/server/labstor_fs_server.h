@@ -27,12 +27,12 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
-    inline void Init(labstor::ipc::queue_pair *qp, init_request *client_rq, labstor::credentials *creds);
-    inline void Open(labstor::ipc::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds);
-    inline void Close(labstor::ipc::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds);
-    inline void IOStart(labstor::ipc::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds);
-    inline void IOComplete(labstor::ipc::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds);
+    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
+    inline void Init(labstor::queue_pair *qp, init_request *client_rq, labstor::credentials *creds);
+    inline void Open(labstor::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds);
+    inline void Close(labstor::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds);
+    inline void IOStart(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds);
+    inline void IOComplete(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds);
 };
 }
 

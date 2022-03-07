@@ -2,50 +2,48 @@
 // Created by lukemartinlogan on 3/3/22.
 //
 
-#ifndef LABSTOR_QUEUE_PAIR_H
-#define LABSTOR_QUEUE_PAIR_H
+#ifndef LABSTOR_QUEUE_PAIR2_H
+#define LABSTOR_QUEUE_PAIR2_H
 
 #include "shmem_qtok.h"
+#include "shmem_request.h"
+#include "labstor/constants/busy_wait.h"
+
+#ifdef __cplusplus
 
 namespace labstor {
 class queue_pair {
-private:
-    labstor::ipc::qid_t qid_;
 public:
-    labstor::ipc::qid_t GetQID() {
-        return qid_;
+    int GetPID() {
+        return GetQID().pid_;
     }
 
-    virtual uint32_t GetDepth() = 0;
-    virtual int GetPID() = 0;
+    inline virtual labstor::ipc::qid_t& GetQID() = 0;
+    inline virtual uint32_t GetDepth() = 0;
 
     template<typename T>
     inline bool Enqueue(T *rq, labstor::ipc::qtok_t &qtok) {
-        return _Enqueue(reinterpret_cast<void*>(rq), qtok);
+        return _Enqueue(reinterpret_cast<labstor::ipc::request*>(rq), qtok);
     }
     template<typename T>
     inline bool Dequeue(T *&rq) {
-        bool did_dequeue;
-        rq = reinterpret_cast<T*>(_Dequeue(did_dequeue));
-        return did_dequeue;
+        return _Dequeue(reinterpret_cast<labstor::ipc::request**>(&rq));
     }
     template<typename S, typename T=S>
     inline void Complete(S *old_rq, T *new_rq) {
-        _Complete(reinterpret_cast<void*>(old_rq), reinterpret_cast<void*>(new_rq));
+        _Complete(old_rq, new_rq);
     }
     template<typename T>
     inline void Complete(T *rq) {
-        _Complete(reinterpret_cast<void*>(rq));
+        _Complete(reinterpret_cast<labstor::ipc::request*>(rq));
     }
     template<typename T>
     inline void Complete(labstor::ipc::qtok_t &qtok, T *rq) {
-        _Complete(qtok, reinterpret_cast<void*>(rq));
+        _Complete(qtok, reinterpret_cast<labstor::ipc::request*>(rq));
     }
     template<typename T>
     inline bool IsComplete(labstor::ipc::qtok_t &qtok, T *&rq) {
-        bool did_dequeue;
-        rq = reinterpret_cast<T*>(_IsComplete(did_dequeue));
-        return did_dequeue;
+        return _IsComplete(qtok, reinterpret_cast<labstor::ipc::request**>(&rq));
     }
     template<typename T>
     inline T* Wait(uint32_t req_id) {
@@ -64,22 +62,84 @@ public:
         return reinterpret_cast<T*>(_Wait(qtok, max_ms));
     }
 
+    static labstor_qid_t GetQID(labstor_qid_type_t type, labstor_qid_flags_t flags, uint32_t hash, uint32_t num_qps, int pid) {
+        labstor_qid_t qid;
+        qid.type_ = type;
+        qid.cnt_ = hash % num_qps;
+        qid.pid_ = pid;
+        qid.flags_ = flags;
+        return qid;
+    }
+    static labstor_qid_t GetQID(labstor_qid_type_t type, labstor_qid_flags_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
+        uint32_t hash = 0;
+        for(size_t i = 0; i < str.size(); ++i) {
+            hash += str[i] << 4*(i%4);
+        }
+        hash *= ns_id;
+        return GetQID(type, flags, hash, num_qps, pid);
+    }
+    static uint32_t GetQIDOff(labstor_qid_type_t type, labstor_qid_flags_t flags, uint32_t hash, uint32_t num_qps, int pid) {
+        return GetQID(type, flags, hash, num_qps, pid).cnt_;
+    }
+    static uint32_t GetQIDOff(labstor_qid_type_t type, labstor_qid_flags_t flags, const std::string &str, uint32_t ns_id, uint32_t num_qps, int pid) {
+        return GetQID(type, flags, str, ns_id, num_qps, pid).cnt_;
+    }
+
 private:
-    inline virtual bool _Enqueue(void *rq, labstor::ipc::qtok_t &qtok) = 0;
-    inline virtual void* _Dequeue(bool did_dequeue) = 0;
-    inline virtual void _Complete(void *old_rq, void *new_rq) = 0;
-    inline virtual void _Complete(void *rq) = 0;
-    inline virtual void _Complete(labstor::ipc::qtok_t &qtok, void *rq) = 0;
-    inline virtual bool _IsComplete(labstor::ipc::qtok_t &qtok, void *&rq) = 0;
-    inline virtual void* _Wait(uint32_t req_id) = 0;
-    inline virtual void* _Wait(uint32_t req_id, uint32_t max_ms) = 0;
-    inline void* _Wait(labstor::ipc::qtok_t &qtok) {
+    inline virtual bool _Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) = 0;
+    inline virtual bool _Dequeue(labstor::ipc::request **rq) = 0;
+    inline virtual void _Complete(labstor_req_id_t req_id, labstor::ipc::request *rq) = 0;
+    inline virtual bool _IsComplete(labstor_req_id_t req_id, labstor::ipc::request **rq) = 0;
+
+    inline void _Complete(labstor::ipc::request *old_rq, labstor::ipc::request *new_rq) {
+        _Complete(old_rq->req_id_, new_rq);
+    }
+    inline void _Complete(labstor::ipc::request *rq) {
+        _Complete(rq->req_id_, rq);
+    }
+    inline void _Complete(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
+        _Complete(qtok.req_id_, rq);
+    }
+    inline bool _IsComplete(labstor::ipc::qtok_t &qtok, labstor::ipc::request **rq) {
+        return _IsComplete(qtok.req_id_, rq);
+    }
+    inline labstor::ipc::request* _Wait(uint32_t req_id) {
+        LABSTOR_INF_SPINWAIT_PREAMBLE()
+        labstor::ipc::request *ret = NULL;
+        LABSTOR_INF_SPINWAIT_START()
+            if(_IsComplete(req_id, &ret)) {
+                return ret;
+            }
+        LABSTOR_INF_SPINWAIT_END()
+    }
+    inline labstor::ipc::request* _Wait(uint32_t req_id, uint32_t max_ms) {
+        LABSTOR_TIMED_SPINWAIT_PREAMBLE()
+        labstor::ipc::request *ret = NULL;
+        LABSTOR_TIMED_SPINWAIT_START(max_ms)
+            if(_IsComplete(req_id, &ret)) {
+                return ret;
+            }
+        LABSTOR_TIMED_SPINWAIT_END(max_ms)
+        return NULL;
+    }
+    inline labstor::ipc::request* _Wait(labstor::ipc::qtok_t &qtok) {
         return _Wait(qtok.req_id_);
     }
-    inline void* _Wait(labstor::ipc::qtok_t &qtok, uint32_t max_ms) {
+    inline labstor::ipc::request* _Wait(labstor::ipc::qtok_t &qtok, uint32_t max_ms) {
         return _Wait(qtok.req_id_, max_ms);
     }
 };
+
+class user_queue_pair : public queue_pair {
+private:
+    labstor::ipc::qid_t qid_;
+public:
+    inline labstor::ipc::qid_t& GetQID() {
+        return qid_;
+    }
+};
 }
+
+#endif
 
 #endif //LABSTOR_QUEUE_PAIR_H

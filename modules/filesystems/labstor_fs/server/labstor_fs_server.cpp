@@ -6,7 +6,7 @@
 #include <labstor_fs/server/labstor_fs_server.h>
 #include <generic_posix/generic_posix.h>
 
-void labstor::LabFS::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::LabFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch(static_cast<labstor::GenericPosix::Ops>(request->GetOp())) {
         case labstor::GenericPosix::Ops::kInit: {
             Init(qp, reinterpret_cast<init_request*>(request), creds);
@@ -31,7 +31,7 @@ void labstor::LabFS::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labsto
         }
     }
 }
-inline void labstor::LabFS::Server::Init(labstor::ipc::queue_pair *qp, init_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::Init(labstor::queue_pair *qp, init_request *client_rq, labstor::credentials *creds) {
     AUTO_TRACE(client_rq->iosched_mount_)
     labstor::Module *module;
     uint32_t ns_id;
@@ -51,17 +51,17 @@ inline void labstor::LabFS::Server::Init(labstor::ipc::queue_pair *qp, init_requ
     //Finish request
     qp->Complete(client_rq);
 }
-inline void labstor::LabFS::Server::Open(labstor::ipc::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::Open(labstor::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
     //Determine if INODE exists
     //Complete the I/O request
 }
-inline void labstor::LabFS::Server::Close(labstor::ipc::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::Close(labstor::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
     //Unmark inode as busy
     //Complete the I/O request
 }
-inline void labstor::LabFS::Server::IOStart(labstor::ipc::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::IOStart(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
     //Allocate free blocks on the device (per-core ring buffer of 4KB pages)
     //Store the mappings
 }
-inline void labstor::LabFS::Server::IOComplete(labstor::ipc::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::IOComplete(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
 }

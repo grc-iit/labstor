@@ -8,7 +8,7 @@
 
 void labstor::LabFS::Client::Init(uint32_t ns_id, char *iosched_mount) {
     init_request *client_rq;
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     int fd;
 

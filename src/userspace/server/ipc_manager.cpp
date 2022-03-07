@@ -25,7 +25,7 @@ void labstor::Server::IPCManager::LoadMemoryConfig(std::string pid_type, MemoryC
     memconf.min_request_region = labstor_config_->config_["ipc_manager"][pid_type]["min_request_region_kb"].as<uint32_t>() * SizeType::KB;
     memconf.queue_depth = labstor_config_->config_["ipc_manager"][pid_type]["queue_depth"].as<uint32_t>();
     memconf.num_queues = labstor_config_->config_["ipc_manager"][pid_type]["num_queues"].as<uint32_t>();
-    memconf.queue_region_size = memconf.num_queues * labstor::ipc::queue_pair::GetSize(memconf.queue_depth);
+    memconf.queue_region_size = memconf.num_queues * labstor::ipc::shmem_queue_pair::GetSize(memconf.queue_depth);
     memconf.request_region_size = memconf.region_size - memconf.queue_region_size;
     if(memconf.queue_region_size >= memconf.region_size) {
         throw NOT_ENOUGH_REQUEST_MEMORY.format(pid_type,
@@ -65,7 +65,7 @@ void labstor::Server::IPCManager::InitializeKernelIPCManager() {
     labstor::ipc::shmem_allocator *kernel_alloc;
     kernel_alloc = new labstor::ipc::shmem_allocator();
     kernel_alloc->Init(region, region, memconf.request_region_size, memconf.request_unit);
-    client_ipc->alloc_ = kernel_alloc;
+    client_ipc->SetShmemAlloc(kernel_alloc);
     TRACEPOINT("Kernel request allocator created")
 
     //Create kernel IPC manager
@@ -74,11 +74,11 @@ void labstor::Server::IPCManager::InitializeKernelIPCManager() {
 
     //Initialize kernel queue allocator (returns userspace addresses)
     TRACEPOINT("Kernel queue allocator created", (size_t)kern_base_region_)
-    client_ipc->qp_alloc_ = new labstor::segment_allocator();
-    client_ipc->qp_alloc_->Init(
+    labstor::segment_allocator *qp_alloc = new labstor::segment_allocator();
+    qp_alloc->Init(
             LABSTOR_REGION_ADD(memconf.request_region_size, client_ipc->GetRegion()), //Back of the SHMEM region
-            memconf.queue_region_size
-    );
+            memconf.queue_region_size);
+    client_ipc->SetQueueAlloc(qp_alloc);
 }
 
 void labstor::Server::IPCManager::CreateKernelQueues() {
@@ -94,24 +94,27 @@ void labstor::Server::IPCManager::CreateKernelQueues() {
 
     //Allocate & register SHMEM queues for the kernel
     LABSTOR_KERNEL_WORK_ORCHESTRATOR_T kernel_work_orchestrator = LABSTOR_KERNEL_WORK_ORCHESTRATOR;
+    labstor_qid_flags_t flags = LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY;
+    client_ipc->ReserveQueues(0, flags, memconf.num_queues);
     for(int i = 0; i < memconf.num_queues; ++i) {
         //Initialize kernel QP (userspace address)
-        labstor::ipc::queue_pair *remote_qp = client_ipc->qp_alloc_->Alloc<labstor::ipc::queue_pair>(sizeof(labstor::ipc::queue_pair));
-        labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
+        labstor_queue_pair *remote_qp = client_ipc->AllocShmemQueue<labstor_queue_pair>(sizeof(labstor_queue_pair));
+        labstor::ipc::qid_t qid = labstor::queue_pair::GetQID(
+                0,
                 LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
                 memconf.num_queues,
                 KERNEL_PID);
-        void *sq_region = client_ipc->qp_alloc_->Alloc(memconf.request_queue_size);
-        void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
-        remote_qp->Init(qid, client_ipc->alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
-        TRACEPOINT("qid", remote_qp->GetQid().Hash(), "depth", remote_qp->GetDepth(),
+        void *sq_region = client_ipc->AllocShmemQueue(memconf.request_queue_size);
+        void *cq_region = client_ipc->AllocShmemQueue(memconf.request_map_size);
+        remote_qp->Init(qid, client_ipc->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
+        TRACEPOINT("qid", remote_qp->GetQID().Hash(), "depth", remote_qp->GetDepth(),
                    "offset2", LABSTOR_REGION_SUB(remote_qp->cq_.GetRegion(), client_ipc->GetRegion()));
-        remote_qp->GetPointer(ptr, client_ipc->alloc_->GetRegion());
+        remote_qp->GetPointer(ptr, client_ipc->GetRegion());
 
         //Make a new QP that holds userspace addresses & store internally
-        labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
-        qp->Attach(ptr, client_ipc->alloc_->GetRegion());
+        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
+        qp->Attach(ptr, client_ipc->GetRegion());
         if(!RegisterQueuePair(qp)) {
             throw IPC_MANAGER_CANT_REGISTER_QP.format();
         }
@@ -140,30 +143,34 @@ void labstor::Server::IPCManager::CreatePrivateQueues() {
     labstor::ipc::shmem_allocator *private_alloc;
     private_alloc = new labstor::ipc::shmem_allocator();
     private_alloc->Init(private_mem_, private_mem_, memconf.request_region_size, memconf.request_unit);
-    client_ipc->alloc_ = private_alloc;
+    client_ipc->SetShmemAlloc(private_alloc);
+    client_ipc->SetPrivateAlloc(private_alloc);
     private_alloc_ = private_alloc;
     TRACEPOINT("Private allocator", (size_t)private_alloc_)
 
     //Initialize queue allocator
-    client_ipc->qp_alloc_ = new labstor::segment_allocator();
-    client_ipc->qp_alloc_->Init(LABSTOR_REGION_ADD(memconf.request_region_size, client_ipc->GetRegion()),
-                                memconf.queue_region_size);
+    labstor::segment_allocator *qp_alloc = new labstor::segment_allocator();
+    qp_alloc->Init(LABSTOR_REGION_ADD(memconf.request_region_size, client_ipc->GetRegion()),
+                    memconf.queue_region_size);
+    client_ipc->SetQueueAlloc(qp_alloc);
 
     //Allocate & register PRIVATE intermediate streaming queues for modules to communicate internally
-    labstor::ipc::queue_pair *qp;
+    labstor_qid_flags_t flags = LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY;
+    client_ipc->ReserveQueues(0, flags, memconf.num_queues);
     for(int i = 0; i < memconf.num_queues; ++i) {
         //Initialize QP
-        labstor::ipc::queue_pair *qp = client_ipc->qp_alloc_->Alloc<labstor::ipc::queue_pair>(sizeof(labstor::ipc::queue_pair));
-        labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
-                LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
+        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
+        labstor::ipc::qid_t qid = labstor::queue_pair::GetQID(
+                0,
+                flags,
                 i,
                 memconf.num_queues,
                 pid_);
-        void *sq_region = client_ipc->qp_alloc_->Alloc(memconf.request_queue_size);
-        void *cq_region = client_ipc->qp_alloc_->Alloc(memconf.request_map_size);
+        void *sq_region = client_ipc->AllocShmemQueue(memconf.request_queue_size);
+        void *cq_region = client_ipc->AllocShmemQueue(memconf.request_map_size);
         qp->Init(qid, private_alloc_->GetRegion(), sq_region, memconf.request_queue_size, cq_region, memconf.request_map_size);
-        TRACEPOINT("qid", qp->GetQid().Hash(), "depth", qp->GetDepth(),
-                   "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
+        TRACEPOINT("pid", qid.pid_, "pid", qid.type_, "flags", qid.flags_, "cnt", qid.cnt_)
+        TRACEPOINT("pid", qp->GetQID().pid_, "pid", qp->GetQID().type_, "flags", qp->GetQID().flags_, "cnt", qp->GetQID().cnt_)
 
         //Store QP internally
         if(!RegisterQueuePair(qp)) {
@@ -227,14 +234,17 @@ void labstor::Server::IPCManager::RegisterClientQP(PerProcessIPC *client_ipc, vo
     //Attach request allocator
     labstor::ipc::shmem_allocator *alloc = new labstor::ipc::shmem_allocator();
     alloc->Attach(region, region);
-    client_ipc->alloc_ = alloc;
+    client_ipc->SetShmemAlloc(alloc);
 
     //Schedule QP with the work orchestrator
     for(int i = 0; i < request.count_; ++i) {
-        labstor::ipc::queue_pair *qp = new labstor::ipc::queue_pair();
+        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
         qp->Attach(ptrs[i], client_ipc->GetRegion());
-        TRACEPOINT("qid", qp->GetQid().Hash(), "depth", qp->GetDepth(),
-                   "offset2", LABSTOR_REGION_SUB(qp->cq_.GetRegion(), client_ipc->GetRegion()))
+        if(i == 0) {
+            labstor_qid_flags_t flags = qp->GetQID().flags_;
+            client_ipc->ReserveQueues(0, flags, request.count_);
+        }
+        TRACEPOINT("pid", qp->GetQID().pid_, "pid", qp->GetQID().type_, "flags", qp->GetQID().flags_, "cnt", qp->GetQID().cnt_)
         if(!RegisterQueuePair(qp)) {
             free(ptrs);
             throw IPC_MANAGER_CANT_REGISTER_QP.format();

@@ -5,7 +5,7 @@
 #include "blkdev_table_server.h"
 #include <labstor/constants/constants.h>
 
-void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::BlkdevTable::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE(request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kRegisterBdev: {
@@ -23,11 +23,11 @@ void labstor::BlkdevTable::Server::ProcessRequest(labstor::ipc::queue_pair *qp, 
     }
 }
 
-void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *client_rq, labstor::credentials *creds) {
-    AUTO_TRACE("qp_ptr", (size_t)qp, "qp_id", qp->GetQid().Hash(), "path", client_rq->path_);
+void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::queue_pair *qp, labstor_blkdev_table_register_request *client_rq, labstor::credentials *creds) {
+    AUTO_TRACE("qp_ptr", (size_t)qp, "qp_id", qp->GetQID().Hash(), "path", client_rq->path_);
     labstor_poll_blkdev_table_register *poll_rq;
     labstor_blkdev_table_register_request *kern_rq;
-    labstor::ipc::queue_pair *kern_qp, *private_qp;
+    labstor::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
     //Get KERNEL & PRIVATE QP
@@ -47,15 +47,15 @@ void labstor::BlkdevTable::Server::RegisterBlkdev(labstor::ipc::queue_pair *qp, 
     kern_qp->Enqueue<labstor_blkdev_table_register_request>(kern_rq, qtok);
 
     //Poll SERVER -> KERNEL interaction
-    TRACEPOINT("Allocating Poll RQ", "private_qp_id", private_qp->GetQid().Hash())
+    TRACEPOINT("Allocating Poll RQ", "private_qp_id", private_qp->GetQID().Hash())
     poll_rq = ipc_manager_->AllocRequest<labstor_poll_blkdev_table_register>(private_qp);
     poll_rq->Init(qp, client_rq, qtok);
     private_qp->Enqueue<labstor_poll_blkdev_table_register>(poll_rq, qtok);
 }
 
-void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pair *private_qp, labstor_poll_blkdev_table_register *poll_rq) {
+void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::queue_pair *private_qp, labstor_poll_blkdev_table_register *poll_rq) {
     AUTO_TRACE("");
-    labstor::ipc::queue_pair *qp, *kern_qp;
+    labstor::queue_pair *qp, *kern_qp;
     labstor_blkdev_table_register_request *kern_rq;
     labstor_blkdev_table_register_request *client_rq;
     labstor::ipc::qtok_t qtok;
@@ -83,7 +83,7 @@ void labstor::BlkdevTable::Server::RegisterBlkdevComplete(labstor::ipc::queue_pa
     ipc_manager_->FreeRequest<labstor_poll_blkdev_table_register>(private_qp, poll_rq);
 }
 
-void labstor::BlkdevTable::Server::UnregisterBlkdev(labstor::ipc::queue_pair *qp, labstor_blkdev_table_register_request *client_rq) {
+void labstor::BlkdevTable::Server::UnregisterBlkdev(labstor::queue_pair *qp, labstor_blkdev_table_register_request *client_rq) {
     AUTO_TRACE("")
 }
 

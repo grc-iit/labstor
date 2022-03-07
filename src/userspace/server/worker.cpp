@@ -14,7 +14,8 @@ void labstor::Server::Worker::DoWork() {
     work_queue_depth = work_queue_.GetDepth();
     LABSTOR_ERROR_HANDLE_TRY {
         for (uint32_t i = 0; i < work_queue_depth; ++i) {
-            if (!work_queue_.Peek(qp, creds, i)) { break; }
+            if (!work_queue_.Peek(qp_struct, creds, i)) { break; }
+            ipc_manager_->GetQueuePair(qp, qp_struct->GetQID());
             qp_depth = qp->GetDepth();
             for (uint32_t j = 0; j < qp_depth; ++j) {
                 if (!qp->Dequeue(rq)) { break; }

@@ -5,7 +5,7 @@
 #include "ipc_test_server.h"
 #include <labstor/constants/constants.h>
 
-void labstor::IPCTest::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+void labstor::IPCTest::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch (static_cast<Ops>(request->op_)) {
         case Ops::kStartIPCTest: {
             Start(qp, reinterpret_cast<labstor_ipc_test_request *>(request));
@@ -18,11 +18,11 @@ void labstor::IPCTest::Server::ProcessRequest(labstor::ipc::queue_pair *qp, labs
     }
 }
 
-void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_ipc_test_request *client_rq) {
+void labstor::IPCTest::Server::Start(labstor::queue_pair *qp, labstor_ipc_test_request *client_rq) {
     AUTO_TRACE("labstor::IPCTest::Server::Start");
     labstor_poll_ipc_test_request *poll_rq;
     labstor_ipc_test_request *kern_rq;
-    labstor::ipc::queue_pair *kern_qp, *private_qp;
+    labstor::queue_pair *kern_qp, *private_qp;
     labstor::ipc::qtok_t qtok;
 
     //Get KERNEL & PRIVATE QP
@@ -44,8 +44,8 @@ void labstor::IPCTest::Server::Start(labstor::ipc::queue_pair *qp, labstor_ipc_t
     private_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
 }
 
-void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor_poll_ipc_test_request *poll_rq) {
-    labstor::ipc::queue_pair *qp, *kern_qp, *resubmit_qp;
+void labstor::IPCTest::Server::End(labstor::queue_pair *private_qp, labstor_poll_ipc_test_request *poll_rq) {
+    labstor::queue_pair *qp, *kern_qp, *resubmit_qp;
     labstor_ipc_test_request *kern_rq, *client_rq;
     labstor::ipc::qtok_t qtok;
 
@@ -76,6 +76,7 @@ void labstor::IPCTest::Server::End(labstor::ipc::queue_pair *private_qp, labstor
                client_rq->GetReturnCode());
     ipc_manager_->FreeRequest<labstor_ipc_test_request>(kern_qp, kern_rq);
     ipc_manager_->FreeRequest<labstor_poll_ipc_test_request>(private_qp, poll_rq);
+    TRACEPOINT("Completion")
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::IPCTest::Server, IPC_TEST_MODULE_ID)

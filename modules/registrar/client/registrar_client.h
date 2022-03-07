@@ -25,7 +25,7 @@ public:
 
     template<typename register_request_t, typename ...Args>
     uint32_t RegisterInstance(std::string module_id, std::string key, Args ...args) {
-        labstor::ipc::queue_pair *qp;
+        labstor::queue_pair *qp;
         labstor::ipc::qtok_t qtok;
         register_request_t *rq;
 

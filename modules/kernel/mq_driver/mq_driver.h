@@ -139,7 +139,7 @@ struct labstor_mq_driver_request {
 #ifdef __cplusplus
 struct labstor_mq_driver_poll_request : public labstor::ipc::poll_request_single<labstor_mq_driver_request> {
     labstor_mq_driver_request *poll_rq_;
-    void IOSubmitInit(labstor::ipc::queue_pair *qp, labstor_mq_driver_request *reply_rq, labstor::ipc::qtok_t poll_qtok, labstor_mq_driver_request *poll_rq) {
+    void IOSubmitInit(labstor::queue_pair *qp, labstor_mq_driver_request *reply_rq, labstor::ipc::qtok_t poll_qtok, labstor_mq_driver_request *poll_rq) {
         int op = static_cast<int>(labstor::MQDriver::Ops::kIOSubmitComplete);
         poll_rq_ = poll_rq;
         labstor::ipc::poll_request_single<labstor_mq_driver_request>::Init(qp, reply_rq, poll_qtok, op);

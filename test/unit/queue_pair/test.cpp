@@ -29,7 +29,7 @@ int GetNumCompleted(std::vector<int> &was_dequeued) {
 }
 
 void produce_and_consume(bool consume, int total_reqs, int num_producers, int num_consumers, int queue_depth) {
-    labstor::ipc::queue_pair q;
+    labstor::queue_pair q;
     labstor::ipc::request *rq;
     labstor::ipc::request *req_region;
     std::vector<int> being_queued, was_queued, was_dequeued, being_completed, was_completed, was_acked;

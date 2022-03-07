@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     int n_batches = n_msgs / batch_size;
     n_msgs = n_batches * batch_size;
 
+
     labstor::HighResMonotonicTimer t;
     printf("Server throughput test starting (%d clients)\n", n_clients);
 
@@ -51,6 +52,8 @@ int main(int argc, char **argv) {
             t.Resume();
         }
         for (int i = 0; i < n_batches; ++i) {
+            TRACEPOINT("BATCH", i)
+            printf("[tid=%d] BATCH: %d\n", rank, i);
             client.Start(batch_size);
         }
         #pragma omp barrier

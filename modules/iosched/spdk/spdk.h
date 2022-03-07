@@ -30,7 +30,7 @@ struct spdk_init_request : labstor::Registrar::register_request {
 };
 
 struct spdk_poll_request : labstor::ipc::request {
-    labstor::ipc::queue_pair *qp_;
+    labstor::queue_pair *qp_;
 };
 }
 

@@ -23,7 +23,8 @@ private:
     uint32_t id_;
     labstor::ipc::work_queue_secure work_queue_;
 
-    labstor::ipc::queue_pair *qp;
+    labstor_queue_pair *qp_struct;
+    labstor::queue_pair *qp;
     labstor::ipc::request *rq;
     labstor::credentials *creds;
     labstor::Module *module;
@@ -37,9 +38,9 @@ public:
         region_ = malloc(region_size);
         work_queue_.Init(region_, region_size, depth);
     }
-    void AssignQP(labstor::ipc::queue_pair *qp, labstor::credentials *creds) {
+    void AssignQP(labstor_queue_pair *qp, labstor::credentials *creds) {
         if(!work_queue_.Enqueue(qp, creds)) {
-            throw FAILED_TO_ASSIGN_QUEUE.format(qp->GetQid().pid_, id_);
+            throw FAILED_TO_ASSIGN_QUEUE.format(qp->GetQID().pid_, id_);
         }
     }
     uint32_t GetQueueDepth() {

@@ -71,20 +71,21 @@ void labstor::Client::IPCManager::Connect() {
     labstor::ipc::shmem_allocator *shmem_alloc;
     shmem_alloc = new labstor::ipc::shmem_allocator();
     shmem_alloc->Init(region, region, reply.request_region_size_, reply.request_unit_, n_cpu_);
-    shmem_alloc_ = shmem_alloc;
+    SetShmemAlloc(shmem_alloc);
     TRACEPOINT("SHMEM allocator", (size_t)shmem_alloc->GetRegion())
 
     //Initialize SHMEM queue allocator
-    qp_alloc_ = new labstor::segment_allocator();
-    qp_alloc_->Attach(
+    labstor::segment_allocator *qp_alloc = new labstor::segment_allocator();
+    qp_alloc->Attach(
             LABSTOR_REGION_ADD(reply.request_region_size_, region), reply.queue_region_size_);
+    SetQueueAlloc(qp_alloc);
 
     //Initialize internal allocator
     TRACEPOINT("Initialize internal allocator")
     labstor::ipc::shmem_allocator *private_alloc;
     private_alloc = new labstor::ipc::shmem_allocator();
     private_alloc->Init(region=malloc(reply.region_size_), region, reply.region_size_, reply.request_unit_, n_cpu_);
-    private_alloc_ = private_alloc;
+    SetPrivateAlloc(private_alloc);
     TRACEPOINT("Internal allocator", (size_t)private_alloc->GetRegion())
 
     //Create the SHMEM queues
@@ -105,19 +106,22 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
     uint32_t request_map_size = labstor::ipc::request_map::GetSize(depth);
 
     //Allocate SHMEM queues for the client
+    ReserveQueues(0, LABSTOR_QP_SHMEM, num_queues);
     for(int i = 0; i < num_queues; ++i) {
-        labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
+        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
+        labstor::ipc::qid_t qid = labstor::queue_pair::GetQID(
+                0,
                 LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
                 num_queues,
                 pid_);
-        void *sq_region = qp_alloc_->Alloc(request_queue_size);
-        void *cq_region = qp_alloc_->Alloc(request_map_size);
+        void *sq_region = AllocShmemQueue(request_queue_size);
+        void *cq_region = AllocShmemQueue(request_map_size);
         TRACEPOINT("Creating queue", i, qid.Hash());
-        shmem_qps_.emplace_back(
-                new labstor::ipc::queue_pair(qid, shmem_alloc_->GetRegion(), sq_region, request_queue_size, cq_region, request_map_size));
+        qp->Init(qid, GetRegion(LABSTOR_QP_SHMEM), sq_region, request_queue_size, cq_region, request_map_size);
+        RegisterQueuePair(qp);
         TRACEPOINT("Created queue", i, qid.Hash());
-        qps[i].Init(qid, sq_region, cq_region, shmem_alloc_->GetRegion());
+        qps[i].Init(qid, sq_region, cq_region, GetRegion(LABSTOR_QP_SHMEM));
     }
 
     //Send an IPC request to the server
@@ -132,14 +136,17 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
 void labstor::Client::IPCManager::CreatePrivateQueues(int num_queues, int queue_size) {
     AUTO_TRACE("")
     for(int i = 0; i < num_queues; ++i) {
-        labstor::ipc::qid_t qid = labstor::ipc::queue_pair::GetStreamQueuePairID(
+        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
+        labstor::ipc::qid_t qid = labstor::queue_pair::GetQID(
+                0,
                 LABSTOR_QP_PRIVATE | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY,
                 i,
                 num_queues,
                 pid_);
-        void *sq_region = private_alloc_->Alloc(queue_size);
-        void *cq_region = private_alloc_->Alloc(queue_size);
-        private_qps_.emplace_back(new labstor::ipc::queue_pair(qid,private_alloc_->GetRegion(), sq_region, queue_size, cq_region, queue_size));
+        void *sq_region = AllocPrivateQueue(queue_size);
+        void *cq_region = AllocPrivateQueue(queue_size);
+        qp->Init(qid, GetRegion(LABSTOR_QP_PRIVATE), sq_region, queue_size, cq_region, queue_size);
+        RegisterQueuePair(qp);
     }
 }
 

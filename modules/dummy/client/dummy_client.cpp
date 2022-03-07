@@ -25,7 +25,7 @@ int labstor::test::Dummy::Client::GetNamespaceID() {
 
 void labstor::test::Dummy::Client::GetValue() {
     AUTO_TRACE(ns_id_)
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     dummy_request *rq;
     labstor::HighResCpuTimer t;

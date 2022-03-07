@@ -11,9 +11,12 @@
 
 #define LABSTOR_QTOK_INVALID(qtok) (qtok.req_id==-1 || qtok.qid==-1)
 
+typedef uint8_t labstor_qid_flags_t;
+typedef uint8_t labstor_qid_type_t;
+
 typedef struct labstor_qid_t {
     uint8_t flags_;
-    uint8_t qtype_;
+    uint8_t type_;
     uint16_t cnt_;
     uint32_t pid_;
 #ifdef __cplusplus
@@ -23,7 +26,7 @@ typedef struct labstor_qid_t {
         uint64_t num = 0;
         num += flags_;
         num <<= 8;
-        num += qtype_;
+        num += type_;
         num <<= 8;
         num += pid_ % (1<<16);
         num <<= 16;

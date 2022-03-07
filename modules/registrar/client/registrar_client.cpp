@@ -7,7 +7,7 @@
 #include "registrar_client.h"
 
 uint32_t labstor::Registrar::Client::GetNamespaceID(std::string key) {
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     labstor::Registrar::namespace_id_request *rq;
     uint32_t ns_id;
@@ -26,7 +26,7 @@ void labstor::Registrar::Client::PushUpgrade(std::string key) {
 }
 
 void labstor::Registrar::Client::TerminateServer() {
-    labstor::ipc::queue_pair *qp;
+    labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
     labstor::Registrar::terminate_request *rq;
 

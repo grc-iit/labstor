@@ -81,7 +81,7 @@ void labstor::Server::WorkOrchestrator::CreateWorkers() {
     }
 }
 
-void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::queue_pair *qp, int worker_id) {
+void labstor::Server::WorkOrchestrator::AssignQueuePair(labstor::ipc::shmem_queue_pair *qp, int worker_id) {
     AUTO_TRACE("")
     LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
     labstor::credentials *creds;

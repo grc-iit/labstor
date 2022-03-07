@@ -27,7 +27,7 @@ public:
         namespace_ = LABSTOR_NAMESPACE;
     }
     void Initialize(labstor::ipc::request *rq) {}
-    void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
 
 }

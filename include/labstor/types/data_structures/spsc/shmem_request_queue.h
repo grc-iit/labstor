@@ -31,7 +31,7 @@ struct labstor_request_queue {
     inline void Init(void *base_region, void *region, uint32_t region_size, uint32_t depth, labstor::ipc::qid_t qid);
     inline void Init(void *base_region, void *region, uint32_t region_size, labstor::ipc::qid_t qid);
     inline void Attach(void *base_region, void *region);
-    inline labstor::ipc::qid_t GetQid();
+    inline labstor::ipc::qid_t& GetQID();
     inline bool Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok);
     inline bool Dequeue(labstor::ipc::request *&rq);
     inline uint32_t GetDepth();
@@ -90,8 +90,8 @@ static inline void labstor_request_queue_RemoteAttach(struct labstor_request_que
     labstor_request_ring_buffer_RemoteAttach(&lrq->queue_, lrq->header_ + 1);
 }
 
-static inline labstor_qid_t labstor_request_queue_GetQid(struct labstor_request_queue *lrq) {
-    return lrq->header_->qid_;
+static inline labstor_qid_t* labstor_request_queue_GetQID(struct labstor_request_queue *lrq) {
+    return &lrq->header_->qid_;
 }
 
 static inline bool labstor_request_queue_Enqueue(struct labstor_request_queue *lrq, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
@@ -168,8 +168,8 @@ void labstor_request_queue::Init(void *base_region, void *region, uint32_t regio
 void labstor_request_queue::Attach(void *base_region, void *region) {
     return labstor_request_queue_Attach(this, base_region, region);
 }
-labstor::ipc::qid_t labstor_request_queue::GetQid() {
-    return labstor_request_queue_GetQid(this);
+labstor::ipc::qid_t& labstor_request_queue::GetQID() {
+    return *labstor_request_queue_GetQID(this);
 }
 bool labstor_request_queue::Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) {
     return labstor_request_queue_Enqueue(this, rq, &qtok);

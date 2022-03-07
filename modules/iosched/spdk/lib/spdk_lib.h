@@ -7,6 +7,10 @@
 
 #include <labstor/userspace/util/errors.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
+#include "labstor/types/data_structures/queue_pair.h"
+#include "labstor/types/data_structures/spsc/shmem_queue_pair.h"
+#include "labstor/types/data_structures/async_queue_pair.h"
+
 #include <vector>
 #include <list>
 #include <cstdio>
@@ -64,12 +68,23 @@ struct Device {
     }
 };
 
-struct QueuePair {
+struct spdk_poll_request : labstor::async_request {
+    void *buf_;
+    size_t buf_size_bytes_;
+    size_t sector_;
+    spdk_poll_request(labstor::SPDK::IOType io_type, void *buf, size_t buf_size_bytes, size_t sector) {
+        op_ = static_cast<int>(io_type);
+        buf_size_bytes_ = buf_size_bytes;
+        sector_ = sector;
+    }
+};
+
+struct queue_pair : labstor::async_queue_pair {
     struct spdk_nvme_qpair* qp_;
     Device *dev_;
     bool zone_complete_;
 
-    QueuePair(Device *dev, int qp_id, int n) {
+    queue_pair(Device *dev, int qp_id, int n) {
         //Create QP
         dev_ = dev;
         qp_ = spdk_nvme_ctrlr_alloc_io_qpair(dev->ctrlr_, NULL, 0);
@@ -93,46 +108,45 @@ struct QueuePair {
         }
     }
 
-    ~QueuePair() {
+    ~queue_pair() {
         spdk_nvme_ctrlr_free_io_qpair(qp_);
     }
 
-    int Enqueue(labstor::SPDK::IOType io_type, void *buf, size_t buf_size_bytes, size_t sector, spdk_nvme_cmd_cb cb_fn, void *cb_arg) {
+    bool _Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) {
         int ret = -1;
-        switch(io_type) {
+        spdk_poll_request *spdk_rq = reinterpret_cast<spdk_poll_request*>(rq);
+        switch(static_cast<IOType>(spdk_rq->op_)) {
             case labstor::SPDK::IOType::kWrite: {
                 ret = spdk_nvme_ns_cmd_write(
                         dev_->nvme_ns_,
                         qp_,
-                        buf,
-                        sector, /* LBA start */
-                        buf_size_bytes / dev_->sector_size_, /* number of LBAs */
-                        cb_fn, cb_arg, 0);
+                        spdk_rq->buf_,
+                        spdk_rq->sector_, /* LBA start */
+                        spdk_rq->buf_size_bytes_ / dev_->sector_size_, /* number of LBAs */
+                        _IOComplete, spdk_rq, 0);
                 break;
             }
             case labstor::SPDK::IOType::kRead: {
                 ret = spdk_nvme_ns_cmd_read(
                         dev_->nvme_ns_,
                         qp_,
-                        buf,
-                        sector, /* LBA start */
-                        buf_size_bytes / dev_->sector_size_, /* number of LBAs */
-                        cb_fn, cb_arg, 0);
+                        spdk_rq->buf_,
+                        spdk_rq->sector_, /* LBA start */
+                        spdk_rq->buf_size_bytes_ / dev_->sector_size_, /* number of LBAs */
+                        _IOComplete, spdk_rq, 0);
+                break;
             }
         }
-        return ret;
+        return ret==0;
     }
 
-    bool PollCompletions() {
-        int ret = spdk_nvme_qpair_process_completions(qp_, 0);
-        if(ret < 0) {
-            return false;
-        }
-        return true;
+    inline bool _IsComplete(uint32_t req_id, labstor::ipc::request **rq) {
+        _PollCompletions();
+        //TODO: Finish this
     }
 private:
     static void reset_zone_complete(void *arg, const struct spdk_nvme_cpl *completion) {
-        QueuePair *lib_qp = reinterpret_cast<QueuePair*>(arg);
+        queue_pair *lib_qp = reinterpret_cast<queue_pair*>(arg);
         lib_qp->zone_complete_ = true;
         if (spdk_nvme_cpl_is_error(completion)) {
             spdk_nvme_qpair_print_completion(lib_qp->qp_, (struct spdk_nvme_cpl *)completion);
@@ -142,14 +156,25 @@ private:
         }
     }
 
-    //static void io_complete(void *arg, const struct spdk_nvme_cpl *completion) {}
+    bool _PollCompletions() {
+        int ret = spdk_nvme_qpair_process_completions(qp_, 0);
+        if(ret < 0) {
+            return false;
+        }
+        return true;
+    }
+
+    static void _IOComplete(void *arg, const struct spdk_nvme_cpl *completion) {
+        spdk_poll_request *spdk_rq = reinterpret_cast<spdk_poll_request*>(arg);
+        spdk_rq->is_complete_ = true;
+    }
 };
 
 class Context {
 private:
     Device dev_;
     std::list<Device> devs_;
-    std::vector<QueuePair> qps_;
+    std::vector<queue_pair> qps_;
     bool init_;
 public:
     Context() : init_(false) {}
@@ -226,7 +251,7 @@ public:
         CreateQueuePairs(0);
     }
 
-    QueuePair* GetQueuePair(int i) {
+    queue_pair* Getqueue_pair(int i) {
         return &qps_[i];
     }
 

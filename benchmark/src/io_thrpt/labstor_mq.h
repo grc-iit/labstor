@@ -15,13 +15,13 @@ namespace labstor {
 
 struct LabStorMQThread {
     void *buf_;
-    labstor::ipc::qtok_set qtoks_;
+    labstor::ipc::qtok_t *qtoks_;
     int hctx_;
     LabStorMQThread(int ops_per_batch, size_t block_size) {
         int nonce = 12;
         buf_ = aligned_alloc(4096, block_size);
         memset(buf_, nonce, block_size);
-        qtoks_.Reserve(ops_per_batch);
+        qtoks_ = new labstor::ipc::qtok_t[ops_per_batch];
         hctx_ = -1;
     }
 };
@@ -67,14 +67,14 @@ public:
         }
         int hctx = thread.hctx_;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(mq_driver_.AWrite(
+            thread.qtoks_[i] = (mq_driver_.AWrite(
                     dev_id_,
                     thread.buf_,
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
         }
-        ipc_manager_->Wait(thread.qtoks_);
+        ipc_manager_->Wait(thread.qtoks_, GetOpsPerBatch());
     }
 
     void Read() {
@@ -85,14 +85,14 @@ public:
         }
         int hctx = thread.hctx_;
         for(size_t i = 0; i < GetOpsPerBatch(); ++i) {
-            thread.qtoks_.Enqueue(mq_driver_.ARead(
+            thread.qtoks_[i] = (mq_driver_.ARead(
                     dev_id_,
                     thread.buf_,
                     GetBlockSizeBytes(),
                     GetOffsetUnits(tid),
                     hctx));
         }
-        ipc_manager_->Wait(thread.qtoks_);
+        ipc_manager_->Wait(thread.qtoks_, GetOpsPerBatch());
     }
 };
 

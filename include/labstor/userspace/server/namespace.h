@@ -96,7 +96,6 @@ public:
     }
     inline uint32_t Get(labstor::ipc::string key) {
         uint32_t ns_id;
-        printf("KEY: %s\n", key.c_str());
         if(key_to_ns_id_.Find(key, ns_id)) {
             return ns_id;
         }

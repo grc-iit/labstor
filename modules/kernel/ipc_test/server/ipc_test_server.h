@@ -24,10 +24,10 @@ public:
     Server() : labstor::Module(IPC_TEST_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void ProcessRequest(labstor::ipc::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
     void Initialize(labstor::ipc::request *rq) {}
-    void Start(labstor::ipc::queue_pair *qp, labstor_ipc_test_request *rq);
-    void End(labstor::ipc::queue_pair *qp, labstor_poll_ipc_test_request *rq);
+    void Start(labstor::queue_pair *qp, labstor_ipc_test_request *rq);
+    void End(labstor::queue_pair *qp, labstor_poll_ipc_test_request *rq);
 };
 
 }
