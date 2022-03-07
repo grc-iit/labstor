@@ -198,12 +198,12 @@ static inline uint32_t labstor_queue_pair_GetDepth(struct labstor_queue_pair *qp
     return labstor_request_queue_GetDepth(&qp->sq_);
 }
 
-static inline labstor_qid_t* labstor_queue_pair_GetQid(struct labstor_queue_pair *qp) {
+static inline labstor_qid_t* labstor_queue_pair_GetQID(struct labstor_queue_pair *qp) {
     return labstor_request_queue_GetQID(&qp->sq_);
 }
 
 static inline int labstor_queue_pair_GetPID(struct labstor_queue_pair *qp) {
-    return LABSTOR_GET_QP_IPC_ID(*labstor_queue_pair_GetQid(qp));
+    return LABSTOR_GET_QP_IPC_ID(*labstor_queue_pair_GetQID(qp));
 }
 
 #ifdef __cplusplus

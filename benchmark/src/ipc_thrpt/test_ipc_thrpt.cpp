@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         }
         for (int i = 0; i < n_batches; ++i) {
             TRACEPOINT("BATCH", i)
-            printf("[tid=%d] BATCH: %d\n", rank, i);
+            //printf("[tid=%d] BATCH: %d\n", rank, i);
             client.Start(batch_size);
         }
         #pragma omp barrier

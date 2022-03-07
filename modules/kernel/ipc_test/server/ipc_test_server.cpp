@@ -56,6 +56,7 @@ void labstor::IPCTest::Server::End(labstor::queue_pair *private_qp, labstor_poll
     //Check if the QTOK has been completed
     ipc_manager_->GetQueuePair(kern_qp, poll_rq->poll_qtok_);
     if(!kern_qp->IsComplete<labstor_ipc_test_request>(poll_rq->poll_qtok_, kern_rq)) {
+        //printf("POLLING CLIENT QP=%lu, CLIENT_RQ=%d, KERN_QP=%d, KERN_RQ=%d\n", poll_rq->reply_qtok_.qid_.Hash(), poll_rq->reply_qtok_.req_id_, poll_rq->poll_qtok_.qid_.cnt_, poll_rq->poll_qtok_.req_id_);
         resubmit_qp->Enqueue<labstor_poll_ipc_test_request>(poll_rq, qtok);
         return;
     }

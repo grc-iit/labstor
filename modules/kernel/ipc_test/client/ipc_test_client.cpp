@@ -2,7 +2,6 @@
 // Created by lukemartinlogan on 12/3/21.
 //
 
-#define LABSTOR_DEBUG
 #include <labstor/constants/debug.h>
 #include <modules/registrar/registrar.h>
 
@@ -31,7 +30,7 @@ int labstor::IPCTest::Client::Start(int batch_size) {
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    TRACEPOINT("tid", labstor::ThreadLocal::GetTid(), "qid", qp->GetQID().Hash());
+    //printf("[tid=%d] QID: %lu\n", labstor::ThreadLocal::GetTid(), qp->GetQID().Hash());
     for(int i = 0; i < batch_size; ++i) {
         client_rq = ipc_manager_->AllocRequest<labstor_ipc_test_request>(qp);
         TRACEPOINT("Allocated request")

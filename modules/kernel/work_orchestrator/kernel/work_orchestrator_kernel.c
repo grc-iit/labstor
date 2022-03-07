@@ -84,9 +84,9 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                 if(qp->sq_.base_region_ == NULL) {
                     pr_err("Invalid base region: %p (pid=%u,cnt=%u,flags=%X) %p %p\n",
                            qp,
-                           labstor_queue_pair_GetQid(qp)->pid_,
-                           labstor_queue_pair_GetQid(qp)->cnt_,
-                           labstor_queue_pair_GetQid(qp)->flags_,
+                           labstor_queue_pair_GetQID(qp)->pid_,
+                           labstor_queue_pair_GetQID(qp)->cnt_,
+                           labstor_queue_pair_GetQID(qp)->flags_,
                            qp->sq_.base_region_,
                            region);
                     return -1;
@@ -97,9 +97,9 @@ int worker_runtime(struct labstor_worker_struct *worker) {
                     pr_warn("An invalid module was requested: %d (req_id=%u, qid=(pid=%u, cnt=%u, flags=%X), rq_off=%u)\n",
                             rq->ns_id_,
                             rq->req_id_,
-                            labstor_queue_pair_GetQid(qp)->pid_,
-                            labstor_queue_pair_GetQid(qp)->cnt_,
-                            labstor_queue_pair_GetQid(qp)->flags_,
+                            labstor_queue_pair_GetQID(qp)->pid_,
+                            labstor_queue_pair_GetQID(qp)->cnt_,
+                            labstor_queue_pair_GetQID(qp)->flags_,
                             LABSTOR_REGION_SUB(rq, region));
                     complete_invalid_request(qp, rq);
                     continue;
@@ -176,9 +176,9 @@ bool register_qp(struct labstor_assign_qp_request_vec *rq_vec) {
         labstor_queue_pair_Attach(qp, &rq->qp_ptr_, region);
         pr_debug("Registered queue pair(a): %lu (pid=%u, cnt=%d, flags=%X) %lu %lu\n",
                  (size_t) qp,
-                 labstor_queue_pair_GetQid(qp)->pid_,
-                 labstor_queue_pair_GetQid(qp)->cnt_,
-                 labstor_queue_pair_GetQid(qp)->flags_,
+                 labstor_queue_pair_GetQID(qp)->pid_,
+                 labstor_queue_pair_GetQID(qp)->cnt_,
+                 labstor_queue_pair_GetQID(qp)->flags_,
                 (size_t) qp->sq_.base_region_, (size_t) qp->sq_.header_);
         labstor_work_queue_Enqueue(&worker->work_queue_, qp);
     }

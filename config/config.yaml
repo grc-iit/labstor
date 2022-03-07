@@ -36,14 +36,14 @@ ipc_manager:
 
   kernel:
     max_region_size_kb: 1024
-    num_queues: 1
+    num_queues: 4
     queue_depth: 1024
     request_unit_bytes: 64
     min_request_region_kb: 512
 
   private:
     max_region_size_kb: 1024
-    num_queues: 1
+    num_queues: 4
     queue_depth: 1024
     request_unit_bytes: 64
     min_request_region_kb: 500
