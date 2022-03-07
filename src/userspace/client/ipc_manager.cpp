@@ -121,7 +121,6 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
         qp->Init(qid, GetRegion(LABSTOR_QP_SHMEM), sq_region, request_queue_size, cq_region, request_map_size);
         RegisterQueuePair(qp);
         TRACEPOINT("Created queue", i, qid.Hash());
-        qps[i].Init(qid, sq_region, cq_region, GetRegion(LABSTOR_QP_SHMEM));
     }
 
     //Send an IPC request to the server
