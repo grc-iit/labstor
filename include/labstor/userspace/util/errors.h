@@ -52,7 +52,7 @@ namespace labstor {
     const Error INVALID_QP_FLAGS(510, "Attempted to find QP with invalid flags set: {}");
     const Error INVALID_QP_CNT(511, "Attempted to find QP with invalid index: {}");
     const Error FAILED_TO_SET_NAMESPACE_KEY(512, "Failed to insert {} into the namespace");
-    const Error SPDK_CANT_CREATE_QP(513, "Failed to allocate queue {}/{}");
+    const Error SPDK_CANT_CREATE_QP(513, "Failed to allocate queue {}");
     const Error SPDK_CANT_RESET_ZONE(513, "Failed to reset zone");
 
     const Error FAILED_TO_ENQUEUE(508, "Failed to enqueue a request");

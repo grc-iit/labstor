@@ -42,8 +42,12 @@ public:
         _Complete(qtok, reinterpret_cast<labstor::ipc::request*>(rq));
     }
     template<typename T>
+    inline bool IsComplete(int req_id, T *&rq) {
+        return _IsComplete(req_id, reinterpret_cast<labstor::ipc::request**>(&rq));
+    }
+    template<typename T>
     inline bool IsComplete(labstor::ipc::qtok_t &qtok, T *&rq) {
-        return _IsComplete(qtok, reinterpret_cast<labstor::ipc::request**>(&rq));
+        return _IsComplete(qtok.req_id_, reinterpret_cast<labstor::ipc::request**>(&rq));
     }
     template<typename T>
     inline T* Wait(uint32_t req_id) {
@@ -100,9 +104,6 @@ private:
     inline void _Complete(labstor::ipc::qtok_t &qtok, labstor::ipc::request *rq) {
         _Complete(qtok.req_id_, rq);
     }
-    inline bool _IsComplete(labstor::ipc::qtok_t &qtok, labstor::ipc::request **rq) {
-        return _IsComplete(qtok.req_id_, rq);
-    }
     inline labstor::ipc::request* _Wait(uint32_t req_id) {
         LABSTOR_INF_SPINWAIT_PREAMBLE()
         labstor::ipc::request *ret = NULL;
@@ -136,6 +137,10 @@ private:
 public:
     inline labstor::ipc::qid_t& GetQID() {
         return qid_;
+    }
+protected:
+    inline void SetQID(labstor::ipc::qid_t &qid) {
+        qid_ = qid;
     }
 };
 }

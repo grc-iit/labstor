@@ -20,10 +20,11 @@ public:
         RegisterQueuePairType("LabStor", LABSTOR_QP_ALL_FLAGS);
     }
 
-    inline void RegisterQueuePairType(const std::string &&qp_type, labstor_qid_flags_t possible_flags) {
+    inline int RegisterQueuePairType(const std::string &&qp_type, labstor_qid_flags_t possible_flags) {
         qp_type_to_id_.emplace(qp_type, qp_type_to_id_.size());
         qps_.emplace_back();
         qps_.back().resize(possible_flags);
+        return qp_type_to_id_[qp_type];
     }
     inline void ReserveQueues(int type, labstor_qid_flags_t flags, int n) {
         if(type >= qps_.size()) {

@@ -37,7 +37,7 @@ public:
     bool IsConnected() {
         return is_connected_;
     }
-    inline int GetPid() {
+    inline int GetPID() {
         return pid_;
     }
     inline int GetNumCPU() {

@@ -22,7 +22,7 @@ class ServerScalabilityTest(TestTracker):
         #Start LabStor server
         print("Starting LabStor server")
         self.labstor_server = LabStorTrustedServer(conf=labstor_conf.GetTemp()).RunAsync()
-        print(f"LabstorServer PID: {self.labstor_server.GetPid()}")
+        print(f"LabstorServer PID: {self.labstor_server.GetPID()}")
         if self.labstor_server.GetExitCode():
             print("It seems the LabStor server terminated")
             print(self.labstor_server.GetOutput())
@@ -38,7 +38,7 @@ class ServerScalabilityTest(TestTracker):
         #Partition the cores
         print("Dedicating cores")
         if dedicated_cores:
-            PartitionCores(self.labstor_server.GetPid(), labstor_conf.GetBothServerAffinitiesCmdline()).Run()
+            PartitionCores(self.labstor_server.GetPID(), labstor_conf.GetBothServerAffinitiesCmdline()).Run()
 
         #Start application
         print("Starting application")

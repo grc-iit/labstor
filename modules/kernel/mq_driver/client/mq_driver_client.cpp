@@ -36,7 +36,7 @@ void labstor::MQDriver::Client::IO(Ops op, int dev_id, void *user_buf, size_t bu
     //Create CLIENT -> SERVER message
     TRACEPOINT("Submit", "dev_id", dev_id)
     client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
+    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPID(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Complete CLIENT -> SERVER interaction
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);
@@ -61,7 +61,7 @@ labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, int dev_id, void *us
     //Create CLIENT -> SERVER message
     TRACEPOINT("Submit", "dev_id", dev_id)
     client_rq = ipc_manager_->AllocRequest<labstor_mq_driver_request>(qp);
-    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPid(), op, dev_id, user_buf, buf_size, sector, hctx);
+    client_rq->IOClientStart(ns_id_, ipc_manager_->GetPID(), op, dev_id, user_buf, buf_size, sector, hctx);
 
     //Enqueue the request
     qp->Enqueue<labstor_mq_driver_request>(client_rq, qtok);

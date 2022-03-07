@@ -6,6 +6,7 @@
 #define LABSTOR_SPDK_LIB_H
 
 #include <labstor/userspace/util/errors.h>
+#include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include "labstor/types/data_structures/queue_pair.h"
 #include "labstor/types/data_structures/spsc/shmem_queue_pair.h"
@@ -25,6 +26,8 @@
 
 namespace labstor::SPDK {
 
+struct queue_pair;
+
 enum class IOType {
     kWrite, kRead
 };
@@ -34,7 +37,7 @@ struct Device {
     struct spdk_nvme_ns	*nvme_ns_;
     struct spdk_nvme_transport_id transport_id_;
     int ns_id_;
-    int max_qps_, max_io_rqs, max_admin_rqs_;
+    int max_qps_, max_io_rqs_, max_admin_rqs_;
     int sector_size_, max_transfer_size_bytes_;
     const struct spdk_nvme_ctrlr_opts *opts_;
 
@@ -48,7 +51,7 @@ struct Device {
         max_transfer_size_bytes_ = spdk_nvme_ns_get_max_io_xfer_size(nvme_ns_);
         if(opts) {
             max_qps_ = opts->num_io_queues;
-            max_io_rqs = opts->io_queue_requests;
+            max_io_rqs_ = opts->io_queue_requests;
             max_admin_rqs_ = opts->admin_queue_size;
         }
     }
@@ -72,6 +75,7 @@ struct spdk_poll_request : labstor::async_request {
     void *buf_;
     size_t buf_size_bytes_;
     size_t sector_;
+    labstor::ipc::shmem_queue_pair *priv_qp_;
     spdk_poll_request(labstor::SPDK::IOType io_type, void *buf, size_t buf_size_bytes, size_t sector) {
         op_ = static_cast<int>(io_type);
         buf_size_bytes_ = buf_size_bytes;
@@ -83,13 +87,16 @@ struct queue_pair : labstor::async_queue_pair {
     struct spdk_nvme_qpair* qp_;
     Device *dev_;
     bool zone_complete_;
+    labstor::ipc::shmem_queue_pair *priv_qp_;
 
-    queue_pair(Device *dev, int qp_id, int n) {
+    queue_pair(labstor::ipc::shmem_queue_pair *priv_qp, labstor::ipc::qid_t &qid, Device *dev) {
         //Create QP
+        SetQID(qid);
+        priv_qp_ = priv_qp;
         dev_ = dev;
         qp_ = spdk_nvme_ctrlr_alloc_io_qpair(dev->ctrlr_, NULL, 0);
         if (qp_ == NULL) {
-            throw labstor::SPDK_CANT_CREATE_QP.format(qp_id, n);
+            throw labstor::SPDK_CANT_CREATE_QP.format(priv_qp->GetQID().cnt_);
         }
 
         //Initialize zoned namespace for writing
@@ -114,7 +121,10 @@ struct queue_pair : labstor::async_queue_pair {
 
     bool _Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) {
         int ret = -1;
+        priv_qp_->Enqueue(rq, qtok);
+        priv_qp_->Dequeue(rq);
         spdk_poll_request *spdk_rq = reinterpret_cast<spdk_poll_request*>(rq);
+        spdk_rq->priv_qp_ = priv_qp_;
         switch(static_cast<IOType>(spdk_rq->op_)) {
             case labstor::SPDK::IOType::kWrite: {
                 ret = spdk_nvme_ns_cmd_write(
@@ -142,7 +152,7 @@ struct queue_pair : labstor::async_queue_pair {
 
     inline bool _IsComplete(uint32_t req_id, labstor::ipc::request **rq) {
         _PollCompletions();
-        //TODO: Finish this
+        return priv_qp_->IsComplete(req_id, *rq);
     }
 private:
     static void reset_zone_complete(void *arg, const struct spdk_nvme_cpl *completion) {
@@ -166,7 +176,8 @@ private:
 
     static void _IOComplete(void *arg, const struct spdk_nvme_cpl *completion) {
         spdk_poll_request *spdk_rq = reinterpret_cast<spdk_poll_request*>(arg);
-        spdk_rq->is_complete_ = true;
+        spdk_rq->SetCode(LABSTOR_REQUEST_SUCCESS);
+        spdk_rq->priv_qp_->Complete(spdk_rq);
     }
 };
 
@@ -174,7 +185,6 @@ class Context {
 private:
     Device dev_;
     std::list<Device> devs_;
-    std::vector<queue_pair> qps_;
     bool init_;
 public:
     Context() : init_(false) {}
@@ -237,22 +247,16 @@ public:
         spdk_free(buffer);
     }
 
-    void CreateQueuePairs(int n) {
-        qps_.reserve(n);
-        if(n == 0) {
-            n = dev_.max_qps_;
-        }
-        for(int i = 0; i < n; ++i) {
-            qps_.emplace_back(&dev_, i, n);
-        }
+    Device* GetDevice() {
+        return dev_;
     }
 
-    void CreateQueuePairs() {
-        CreateQueuePairs(0);
+    int GetNumQueuePairs() {
+        return dev_->max_qps_;
     }
 
-    queue_pair* Getqueue_pair(int i) {
-        return &qps_[i];
+    int GetMaxQueueDepth() {
+        return dev_->max_io_rqs_;
     }
 
     void _AddDevice(Device &&dev) {

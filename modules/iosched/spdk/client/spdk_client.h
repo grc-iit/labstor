@@ -22,6 +22,7 @@ private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     uint32_t ns_id_;
     labstor::SPDK::Context context_;
+    int spdk_queue_type_id_;
 public:
     Client() : labstor::Module(SPDK_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
