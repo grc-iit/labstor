@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
                 printf("Failed to find device\n");
                 exit(1);
             }
-            lib.CreateQueuePairs(num_qps);
             break;
         }
 

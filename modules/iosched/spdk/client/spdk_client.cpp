@@ -12,23 +12,26 @@ void labstor::iosched::SPDK::Client::Init(const std::string &traddr, int nvme_ns
     spdk_queue_type_id_ = ipc_manager_->RegisterQueuePairType("SPDK", LABSTOR_QP_PRIVATE | LABSTOR_QP_SHMEM);
 
     //Create the SPDK queue for housing requests
+    TRACEPOINT("Reserving queues", context_.GetNumQueuePairs(), spdk_queue_type_id_)
     ipc_manager_->ReserveQueues(spdk_queue_type_id_, LABSTOR_QP_PRIVATE, context_.GetNumQueuePairs());
     ipc_manager_->ReserveQueues(spdk_queue_type_id_, LABSTOR_QP_SHMEM, context_.GetNumQueuePairs());
 
+    TRACEPOINT("Defining queues")
     for(int i = 0; i < context_.GetNumQueuePairs(); ++i) {
         //Create private queue
-        labstor::ipc::shmem_queue_pair *qp = new labstor::ipc::shmem_queue_pair();
+        labstor::ipc::shmem_queue_pair *priv_qp = new labstor::ipc::shmem_queue_pair();
         labstor::ipc::qid_t qid = labstor::queue_pair::GetQID(
                 spdk_queue_type_id_,
                 LABSTOR_QP_PRIVATE,
                 i,
                 context_.GetNumQueuePairs(),
                 ipc_manager_->GetPID());
-        int queue_size = labstor::ipc::request_queue::GetSize(context_->GetMaxQueueDepth());
+        int queue_size = labstor::ipc::request_queue::GetSize(context_.GetMaxQueueDepth());
         void *sq_region = ipc_manager_->AllocPrivateQueue(queue_size);
         void *cq_region = ipc_manager_->AllocPrivateQueue(queue_size);
-        qp->Init(qid, ipc_manager_->GetRegion(LABSTOR_QP_PRIVATE), sq_region, queue_size, cq_region, queue_size);
-        ipc_manager_->RegisterQueuePair(qp);
+        priv_qp->Init(qid, ipc_manager_->GetRegion(LABSTOR_QP_PRIVATE), sq_region, queue_size, cq_region, queue_size);
+        ipc_manager_->RegisterQueuePair(priv_qp);
+        TRACEPOINT("Registered Private Queue")
 
         //Create SPDK queue
         labstor::ipc::qid_t spdk_qid = labstor::queue_pair::GetQID(
@@ -37,17 +40,18 @@ void labstor::iosched::SPDK::Client::Init(const std::string &traddr, int nvme_ns
                 i,
                 context_.GetNumQueuePairs(),
                 ipc_manager_->GetPID());
-        labstor::SPDK::queue_pair *spdk_qp = new labstor::SPDK::queue_pair(qp, spdk_qid, context_->GetDevice());
+        labstor::SPDK::queue_pair *spdk_qp = new labstor::SPDK::queue_pair(priv_qp, spdk_qid, context_.GetDevice());
         ipc_manager_->RegisterQueuePair(spdk_qp);
+        TRACEPOINT("Registered SHMEM Queue")
     }
 }
 
 void* labstor::iosched::SPDK::Client::Alloc(size_t size) {
-    return context_->Alloc(size);
+    return context_.Alloc(size);
 }
 
 void labstor::iosched::SPDK::Client::Free(void *mem) {
-    context_->Free(mem);
+    context_.Free(mem);
 }
 
 labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector) {

@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(OpenMP)
 
 include_directories(include ${CMAKE_SOURCE_DIR}/modules/kernel)
-set(SPDK_DYN_LIBS -lnuma -ldl -pthread -lrt -luuid -lcrypto -lm -laio)
+set(SPDK_DEPS spdk_nvme_lib spdk_client)
+set(SPDK_LIBS -lnuma -ldl -pthread -lrt -luuid -lcrypto -lm -laio spdk_nvme_lib spdk_client)
 
 ######BASICS
 add_executable(test_strings strings/test.cpp)
@@ -105,8 +106,12 @@ add_executable(test_fs_preload filesystem/test.cpp)
 #######SPDK
 if(${WITH_SPDK})
     add_executable(test_spdk_lib spdk/test.cpp)
-    add_dependencies(test_spdk_lib spdk_lib)
-    target_link_libraries(test_spdk_lib ${SPDK_DYN_LIBS} spdk_nvme_lib spdk_nvme)
+    add_dependencies(test_spdk_lib ${SPDK_DEPS})
+    target_link_libraries(test_spdk_lib ${SPDK_LIBS})
+
+    add_executable(test_spdk_module spdk/module.cpp)
+    add_dependencies(test_spdk_module labstor_client_library ${SPDK_DEPS})
+    target_link_libraries(test_spdk_module labstor_client_library ${SPDK_LIBS})
 endif()
 
 ######CLEAN ALL TESTS

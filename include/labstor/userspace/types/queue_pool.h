@@ -23,18 +23,21 @@ public:
     inline int RegisterQueuePairType(const std::string &&qp_type, labstor_qid_flags_t possible_flags) {
         qp_type_to_id_.emplace(qp_type, qp_type_to_id_.size());
         qps_.emplace_back();
-        qps_.back().resize(possible_flags);
+        qps_.back().resize(possible_flags + 1);
         return qp_type_to_id_[qp_type];
     }
     inline void ReserveQueues(int type, labstor_qid_flags_t flags, int n) {
+        TRACEPOINT("Type", type, "Flags", flags, "n", n, "num_types", qps_.size())
         if(type >= qps_.size()) {
             throw INVALID_QP_QUERY.format();
         }
         auto &qps_type = qps_[type];
+        TRACEPOINT("Num Possible Flags for Type", qps_type.size())
         if(flags >= qps_type.size()) {
             throw INVALID_QP_QUERY.format();
         }
         auto &qps_flags = qps_type[flags];
+        TRACEPOINT("Num Queues of (type,flags)", qps_flags.size())
         qps_flags.reserve(n);
     }
     inline int GetQueuePairTypeID(const std::string &&qp_type) {

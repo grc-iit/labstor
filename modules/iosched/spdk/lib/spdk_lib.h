@@ -65,7 +65,7 @@ struct Device {
         printf("SECTOR SIZE (bytes): %d\n", sector_size_);
         printf("MAX TRANSFER SIZE (KiB): %d\n", max_transfer_size_bytes_/1024);
         printf("NUM I/O Queues: %d\n", max_qps_);
-        printf("MAX I/O Requests: %d\n", max_io_rqs);
+        printf("MAX I/O Requests: %d\n", max_io_rqs_);
         printf("MAX Admin Requests: %d\n", max_admin_rqs_);
         printf("-----------------------\n");
     }
@@ -234,7 +234,7 @@ public:
         return false;
     }
 
-    void* AllocateMemory(size_t size) {
+    void* Alloc(size_t size) {
         //Create buffer
         void *buf = spdk_malloc(size, 4096, NULL, SPDK_ENV_SOCKET_ID_ANY, SPDK_MALLOC_DMA);
         if (buf == NULL) {
@@ -243,20 +243,20 @@ public:
         return buf;
     }
 
-    void FreeMemory(void *buffer) {
+    void Free(void *buffer) {
         spdk_free(buffer);
     }
 
     Device* GetDevice() {
-        return dev_;
+        return &dev_;
     }
 
     int GetNumQueuePairs() {
-        return dev_->max_qps_;
+        return dev_.max_qps_;
     }
 
     int GetMaxQueueDepth() {
-        return dev_->max_io_rqs_;
+        return dev_.max_io_rqs_;
     }
 
     void _AddDevice(Device &&dev) {

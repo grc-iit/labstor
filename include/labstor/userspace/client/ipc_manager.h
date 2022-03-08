@@ -69,7 +69,27 @@ public:
         return rq;
     }
     template<typename T=labstor::ipc::request>
+    int WaitFree(labstor::ipc::qtok_t &qtok) {
+        AUTO_TRACE("")
+        int ret;
+        T *rq;
+        labstor::queue_pair *qp;
+        QueuePool::GetQueuePair(qp, qtok);
+        rq = qp->Wait<T>(qtok.req_id_);
+        ret = rq->GetCode();
+        FreeRequest<T>(qtok, rq);
+        return ret;
+    }
+    template<typename T=labstor::ipc::request>
     int Wait(labstor::ipc::qtok_t *qtoks, int num_qtoks) {
+        AUTO_TRACE("num_qtoks", num_qtoks)
+        for(int i = 0; i < num_qtoks; ++i) {
+            T *rq = Wait<T>(qtoks[i]);
+        }
+        return LABSTOR_REQUEST_SUCCESS;
+    }
+    template<typename T=labstor::ipc::request>
+    int WaitFree(labstor::ipc::qtok_t *qtoks, int num_qtoks) {
         AUTO_TRACE("num_qtoks", num_qtoks)
         for(int i = 0; i < num_qtoks; ++i) {
             T *rq = Wait<T>(qtoks[i]);

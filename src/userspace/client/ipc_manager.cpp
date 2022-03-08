@@ -120,6 +120,7 @@ void labstor::Client::IPCManager::CreateQueuesSHMEM(int num_queues, int depth) {
         TRACEPOINT("Creating queue", i, qid.Hash());
         qp->Init(qid, GetRegion(LABSTOR_QP_SHMEM), sq_region, request_queue_size, cq_region, request_map_size);
         RegisterQueuePair(qp);
+        qp->GetPointer(qps[i], GetRegion(LABSTOR_QP_SHMEM));
         TRACEPOINT("Created queue", i, qid.Hash());
     }
 

@@ -55,7 +55,7 @@ struct Namespace {
     void* GetSharedState(uint32_t ns_id) {
         if(is_decentralized_) {
             uint32_t off =  shared_state_[ns_id];
-            if(off == -1) {
+            if(off == (uint32_t)-1) {
                 return nullptr;
             }
             return LABSTOR_REGION_ADD(off, region_);

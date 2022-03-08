@@ -38,9 +38,8 @@ public:
         labstor::ArgPacker params(args...);
         char *buffer = (char *) calloc(8192, 1);
         size_t off = 0;
-        int arg = 0;
         for (auto &param : params) {
-            off += params[arg++].serialize(buffer + off);
+            off += param.serialize(buffer + off);
             buffer[off++] = ';';
         }
         base_text_ = std::string(buffer, off) + ";";
