@@ -15,7 +15,7 @@
 #include <labstor/userspace/client/namespace.h>
 #include <modules/iosched/spdk/lib/spdk_lib.h>
 
-namespace labstor::iosched::SPDK {
+namespace labstor::SPDK {
 
 class Client: public labstor::Module {
 private:

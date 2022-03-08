@@ -16,11 +16,12 @@ void verify_buf(char *buf, int size, int nonce, int test) {
             exit(1);
         }
     }
+    printf("SUCCESS (%d)!\n", test);
 }
 
 int main(int argc, char **argv) {
     labstor::ipc::qtok_t qtok;
-    labstor::iosched::SPDK::Client client;
+    labstor::SPDK::Client client;
     if(argc < 3) {
         printf("USAGE: ./test_spdk_module [traddr] [ns_id]\n");
         exit(1);
@@ -38,13 +39,15 @@ int main(int argc, char **argv) {
     memset(mem, 8, size);
 
     //Write 4KB of data
-    qtok = client.AIO(labstor::iosched::SPDK::Ops::kWrite, mem, size, 0);
+    qtok = client.AIO(labstor::SPDK::Ops::kWrite, mem, size, 0);
     LABSTOR_IPC_MANAGER->WaitFree(qtok);
-    verify_buf((char*)mem, size, 8, 0);
 
     //Read 4KB of data
-    qtok = client.AIO(labstor::iosched::SPDK::Ops::kRead, mem, size, 0);
+    memset(mem, 0, size);
+    qtok = client.AIO(labstor::SPDK::Ops::kRead, mem, size, 0);
     LABSTOR_IPC_MANAGER->WaitFree(qtok);
+
+    //Make sure buffer is filled with 8s
     verify_buf((char*)mem, size, 8, 1);
 
     //Free SHMEM

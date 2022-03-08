@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 2/25/22.
 //
 
-#include <spdk/lib/spdk_lib.h>
+#include <spdk/spdk.h>
 
 int main(int argc, char **argv) {
     labstor::SPDK::Context lib;

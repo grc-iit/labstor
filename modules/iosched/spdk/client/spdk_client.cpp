@@ -5,7 +5,7 @@
 #include <labstor/constants/debug.h>
 #include "spdk_client.h"
 
-void labstor::iosched::SPDK::Client::Init(const std::string &traddr, int nvme_ns_id) {
+void labstor::SPDK::Client::Init(const std::string &traddr, int nvme_ns_id) {
     context_.Init();
     context_.Probe();
     context_.SelectDevice(traddr, nvme_ns_id);
@@ -46,23 +46,24 @@ void labstor::iosched::SPDK::Client::Init(const std::string &traddr, int nvme_ns
     }
 }
 
-void* labstor::iosched::SPDK::Client::Alloc(size_t size) {
+void* labstor::SPDK::Client::Alloc(size_t size) {
     return context_.Alloc(size);
 }
 
-void labstor::iosched::SPDK::Client::Free(void *mem) {
+void labstor::SPDK::Client::Free(void *mem) {
     context_.Free(mem);
 }
 
-labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector) {
+labstor::ipc::qtok_t labstor::SPDK::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector) {
     labstor::queue_pair *qp;
     labstor::SPDK::queue_pair *spdk_qp;
-    spdk_poll_request *rq;
+    labstor::SPDK::io_request *rq;
     labstor::ipc::qtok_t qtok;
 
     ipc_manager_->GetQueuePair(qp, spdk_queue_type_id_, LABSTOR_QP_SHMEM);
     spdk_qp = static_cast<labstor::SPDK::queue_pair*>(qp);
-    rq = ipc_manager_->AllocRequest<spdk_poll_request>(qp);
+    rq = ipc_manager_->AllocRequest<labstor::SPDK::io_request>(qp);
+    rq->Init(op, user_buf, buf_size, sector);
     spdk_qp->Enqueue(rq, qtok);
 
     return qtok;
@@ -70,4 +71,4 @@ labstor::ipc::qtok_t labstor::iosched::SPDK::Client::AIO(Ops op, void *user_buf,
 
 
 
-LABSTOR_MODULE_CONSTRUCT(labstor::iosched::SPDK::Client, SPDK_MODULE_ID);
+LABSTOR_MODULE_CONSTRUCT(labstor::SPDK::Client, SPDK_MODULE_ID);
