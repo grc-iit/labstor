@@ -13,6 +13,7 @@
 #include <modules/registrar/client/registrar_client.h>
 
 labstor::id labstor::Client::ModuleManager::UpdateModule(std::string path) {
+    AUTO_TRACE(path)
     labstor::id module_id;
     labstor::ModuleHandle module_info;
     labstor::Module *old_instance, *new_instance;
@@ -27,7 +28,9 @@ labstor::id labstor::Client::ModuleManager::UpdateModule(std::string path) {
     //Process update
     LABSTOR_ERROR_HANDLE_TRY {
         module_info = OpenModule(path, module_id);
-        std::queue<labstor::Module*> &modules = namespace_->AllModuleInstances(module_id);
+        TRACEPOINT("MODULE_ID", module_id.key_)
+        /*std::queue<labstor::Module*> &modules = namespace_->AllModuleInstances(module_id);
+        TRACEPOINT("NAMESPACE KEYS", modules.size())
         for(int i = 0; i < modules.size(); ++i) {
             labstor::Module *old_instance = modules.front();
             modules.pop();
@@ -35,7 +38,7 @@ labstor::id labstor::Client::ModuleManager::UpdateModule(std::string path) {
             new_instance->StateUpdate(old_instance);
             modules.push(new_instance);
             delete old_instance;
-        }
+        }*/
         SetModuleConstructor(module_id, module_info);
         return module_id;
     } LABSTOR_ERROR_HANDLE_CATCH {

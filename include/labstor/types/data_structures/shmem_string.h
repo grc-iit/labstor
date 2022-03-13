@@ -75,6 +75,12 @@ struct string {
         data_ = (char*)(header_ + 1);
         length_ = header_->length_;
     }
+    std::string ToString() {
+        return std::string(c_str(), size());
+    }
+    inline uint32_t Hash() {
+        return hash(c_str(), size());
+    }
 
     inline char& operator [](int idx) const {
         return data_[idx];

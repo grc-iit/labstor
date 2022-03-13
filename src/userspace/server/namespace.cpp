@@ -44,6 +44,8 @@ labstor::Server::Namespace::Namespace() {
     max_entries_ = max_entries;
     TRACEPOINT("NamespaceTables")
 
+    TRACEPOINT("SIZES", ns_ids_.GetSize(), key_to_ns_id_.GetSize(), region_id_)
+
     //Create memory allocator on remaining memory for key names
     labstor::ipc::shmem_allocator *alloc;
     alloc = new labstor::ipc::shmem_allocator();

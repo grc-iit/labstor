@@ -53,7 +53,7 @@ public:
             ns_id = private_state_.size();
             private_state_.emplace_back(module);
         }
-        TRACEPOINT(key.data_, ns_id);
+        TRACEPOINT(key.ToString(), key.Hash(),  ns_id);
         if(!key_to_ns_id_.Set(key, ns_id)) {
             FAILED_TO_SET_NAMESPACE_KEY.format(ns_id)->print();
         }
@@ -79,10 +79,12 @@ public:
         AddKey(new_key, module);
     }
     inline bool GetIfExists(labstor::ipc::string key, uint32_t &ns_id) {
+        TRACEPOINT(key.ToString(), key.Hash())
         return key_to_ns_id_.Find(key, ns_id);
     }
     inline uint32_t Get(labstor::ipc::string key) {
         uint32_t ns_id;
+        TRACEPOINT(key.ToString(), key.Hash())
         if(key_to_ns_id_.Find(key, ns_id)) {
             return ns_id;
         }

@@ -69,7 +69,8 @@ namespace std {
     struct hash<labstor::id> {
         std::size_t operator()(const labstor::id &id) const {
             size_t sum = 0;
-            for (int i = 0; i < MODULE_KEY_SIZE; ++i) {
+            int len = strnlen(id.key_, MODULE_KEY_SIZE);
+            for (int i = 0; i < len; ++i) {
                 if (id.key_[i] == 0) { break; }
                 sum += id.key_[i] << (i % 8);
             }

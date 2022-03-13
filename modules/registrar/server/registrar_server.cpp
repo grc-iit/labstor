@@ -32,9 +32,10 @@ void labstor::Registrar::Server::ProcessRequest(labstor::queue_pair *qp, labstor
         }
         case Ops::kGetModulePath : {
             module_path_request *rq = reinterpret_cast<module_path_request *>(request);
-            TRACEPOINT("Finding module in ModuleManager", rq->ns_id_);
-            labstor::Module *module = namespace_->Get(rq->ns_id_);
+            TRACEPOINT("Finding module in ModuleManager", rq->module_ns_id_);
+            labstor::Module *module = namespace_->Get(rq->module_ns_id_);
             std::string path = module_manager_->GetModulePath(module->GetModuleID(), labstor::ModulePathType::kClient);
+            TRACEPOINT("PATH", path)
             rq->GetModulePathEnd(path, LABSTOR_REQUEST_SUCCESS);
             qp->Complete<module_path_request>(rq);
             break;

@@ -25,7 +25,7 @@ void labstor::GenericPosix::Client::Initialize() {
 }
 
 int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
-    AUTO_TRACE("")
+    AUTO_TRACE(path)
     int fd;
 
     //Determine if the path is a labstor path
@@ -34,12 +34,14 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     }
 
     //Determine the module belonging to the path
-    std::string path_str(path);
     int len = strlen(path);
     uint32_t ns_id;
     labstor::Posix::Client *module;
     while(len > 0) {
-        if(namespace_->GetIfExists(labstor::ipc::string(path_str), ns_id)) {
+        labstor::ipc::string path_str(std::string(path, len));
+        TRACEPOINT(std::string(path, len))
+        if(namespace_->GetIfExists(path_str, ns_id)) {
+            TRACEPOINT("FOUND IT!")
             module = namespace_->Get<labstor::Posix::Client>(ns_id);
             if(module == nullptr) {
                 module = namespace_->LoadClientModule<labstor::Posix::Client>(ns_id);
@@ -55,6 +57,7 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     //Allocate an fd & track which module the fd belongs to
     fd = AllocateFD();
     fd_to_ns_id_.emplace(fd, ns_id);
+    TRACEPOINT("FD", fd)
 
     //Call the client's implementation of open()
     fd = module->Open(fd, path, len, oflag);

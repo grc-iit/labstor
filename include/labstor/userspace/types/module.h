@@ -72,6 +72,7 @@ public:
     ModuleTable() = default;
 
     ModuleHandle OpenModule(std::string path, labstor::id &module_id) {
+        AUTO_TRACE("")
         ModuleHandle module_info;
         void *handle = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
         if(handle == NULL) {
@@ -92,12 +93,14 @@ public:
     }
 
     void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle &module_info) {
+        AUTO_TRACE("", (size_t)this)
         mutex_.lock();
-        TRACEPOINT("Adding module", module_id.key_, std::hash<labstor::id>()(module_id))
+        //TRACEPOINT("Adding module", module_id.key_, std::hash<labstor::id>()(module_id))
         if(pkg_pool_.find(module_id) != pkg_pool_.end()) {
             dlclose(pkg_pool_[module_id].handle_);
         }
-        pkg_pool_[module_id] = module_info;
+        TRACEPOINT("Here")
+        pkg_pool_.emplace(module_id, module_info);
         mutex_.unlock();
     }
 

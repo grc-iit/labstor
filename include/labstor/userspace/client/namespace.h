@@ -29,6 +29,7 @@ struct Namespace : public labstor::Namespace {
 
     Namespace() {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
+        module_manager_ = LABSTOR_MODULE_MANAGER;
     }
 
     void Attach(int region_id, uint32_t region_size) {
@@ -40,6 +41,8 @@ struct Namespace : public labstor::Namespace {
         key_to_ns_id_.Attach(region_, section);
         section = ns_ids_.GetNextSection();
 
+        TRACEPOINT("SIZES", ns_ids_.GetSize(), key_to_ns_id_.GetSize(), region_id_)
+
         labstor::ipc::shmem_allocator *alloc;
         alloc = new labstor::ipc::shmem_allocator();
         alloc->Attach(region_, section);
@@ -48,9 +51,12 @@ struct Namespace : public labstor::Namespace {
 
     template<typename T>
     T* LoadClientModule(uint32_t ns_id) {
+        AUTO_TRACE(ns_id)
         labstor::Registrar::Client client;
         std::string path = client.GetModulePath(ns_id);
+        TRACEPOINT("PATH", path)
         labstor::id module_id = module_manager_->UpdateModule(path);
+        TRACEPOINT("MODULE ID", module_id.key_)
         labstor::Module *module = module_manager_->GetModuleConstructor(module_id)();
         module->Initialize(ns_id);
         RegisterPrivateState(ns_id, module);
