@@ -28,47 +28,36 @@ enum class Ops {
     kWrite,
     kIOComplete
 };
-}
 
-struct generic_posix_open_request {
-    struct labstor_request header_;
+struct open_request : public labstor::ipc::request {
     int oflags_;
     int fd_;
     char path_[];
     inline void ClientInit(int ns_id, const char *path, int oflags, int fd) {
-        header_.SetNamespaceID(ns_id);
-        header_.SetOp(static_cast<int>(labstor::GenericPosix::Ops::kOpen));
+        SetNamespaceID(ns_id);
+        SetOp(static_cast<int>(labstor::GenericPosix::Ops::kOpen));
         oflags_ = oflags;
         fd_ = fd;
         strcpy(path_, path);
     }
     inline void Complete(int code) {
-        header_.SetCode(code);
-    }
-    inline void SetFD(int fd) {
-        fd_ = fd;
+        SetCode(code);
     }
     inline int GetFD() {
         return fd_;
     }
-    inline int GetCode() {
-        return header_.GetCode();
-    }
 };
 
-struct generic_posix_close_request {
-    struct labstor_request header_;
+struct close_request : public labstor::ipc::request{
+    int fs_ns_id_;
     int fd_;
     inline void Start(int ns_id, int fd) {
-        header_.SetNamespaceID(ns_id);
-        header_.SetOp(static_cast<int>(labstor::GenericPosix::Ops::kClose));
+        SetNamespaceID(ns_id);
+        SetOp(static_cast<int>(labstor::GenericPosix::Ops::kClose));
         fd_ = fd;
     }
     inline void Complete(int ret) {
-        header_.SetCode(ret);
-    }
-    inline int GetCode() {
-        return header_.GetCode();
+        SetCode(ret);
     }
     inline void SetFD(int fd) {
         fd_ = fd;
@@ -78,8 +67,8 @@ struct generic_posix_close_request {
     }
 };
 
-struct generic_posix_passthrough_request {
-    struct labstor_request header_;
+struct generic_posix_passthrough_request : public labstor::ipc::request {
+    uint32_t fs_ns_id_;
     int fd_;
     inline void SetFD(int fd) {
         fd_ = fd;
@@ -88,16 +77,16 @@ struct generic_posix_passthrough_request {
         return fd_;
     }
     inline void Complete(int code) {
-        header_.SetCode(code);
+        SetCode(code);
     }
 };
 
-struct generic_posix_io_request : generic_posix_passthrough_request {
+struct io_request : generic_posix_passthrough_request {
     void *buf_;
     ssize_t size_;
     inline void Start(int ns_id, labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) {
-        header_.SetNamespaceID(ns_id);
-        header_.SetOp(static_cast<int>(op));
+        SetNamespaceID(ns_id);
+        SetOp(static_cast<int>(op));
         fd_ = fd;
         buf_ = buf;
         size_ = size;
@@ -110,5 +99,17 @@ struct generic_posix_io_request : generic_posix_passthrough_request {
         return size_;
     }
 };
+
+int PriorSlash(const char *path, int len) {
+    int i = 0;
+    for(i = len - 1; i >= 0; --i) {
+        if(path[i] == '/') {
+            return i;
+        }
+    }
+    return 0;
+}
+
+}
 
 #endif //LABSTOR_GENERIC_POSIX_H

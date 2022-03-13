@@ -39,6 +39,7 @@ public:
         return ns_id;
     }
     uint32_t GetNamespaceID(std::string str);
+    std::string GetModulePath(int ns_id);
     void PushUpgrade(std::string key);
     void TerminateServer();
 };

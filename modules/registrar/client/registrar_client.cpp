@@ -25,6 +25,21 @@ uint32_t labstor::Registrar::Client::GetNamespaceID(std::string key) {
 void labstor::Registrar::Client::PushUpgrade(std::string key) {
 }
 
+std::string labstor::Registrar::Client::GetModulePath(int ns_id) {
+    labstor::queue_pair *qp;
+    labstor::ipc::qtok_t qtok;
+    labstor::Registrar::module_path_request *rq;
+
+    ipc_manager_->GetQueuePair(qp, 0);
+    rq = ipc_manager_->AllocRequest<module_path_request>(qp);
+    rq->GetModulePathStart(ns_id);
+    qp->Enqueue(rq, qtok);
+    rq = ipc_manager_->Wait<module_path_request>(qtok);
+    std::string path = rq->GetModulePath();
+    ipc_manager_->FreeRequest(qtok, rq);
+    return std::move(path);
+}
+
 void labstor::Registrar::Client::TerminateServer() {
     labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;

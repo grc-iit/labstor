@@ -18,6 +18,7 @@ namespace labstor::Registrar {
 
 enum class Ops {
     kRegister,
+    kGetModulePath,
     kGetNamespaceId,
     kPushUpgrade,
     kTerminate,
@@ -47,6 +48,23 @@ struct namespace_id_request : labstor::ipc::request {
     void GetNamespaceIDEnd(uint32_t ns_id, uint32_t code) {
         code_ = code;
         ns_id_ = ns_id;
+    }
+};
+
+struct module_path_request : labstor::ipc::request {
+    int module_ns_id_;
+    char module_path_[];
+    void GetModulePathStart(int ns_id) {
+        ns_id_ = LABSTOR_REGISTRAR_ID;
+        module_ns_id_ = ns_id;
+        op_ = static_cast<int>(Ops::kGetModulePath);
+    }
+    void GetModulePathEnd(const std::string &module_path, uint32_t code) {
+        code_ = code;
+        strcpy(module_path_, module_path.c_str());
+    }
+    std::string GetModulePath() {
+        return {module_path_};
     }
 };
 

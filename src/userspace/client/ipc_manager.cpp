@@ -13,6 +13,7 @@
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/userspace/client/ipc_manager.h>
+#include <labstor/userspace/client/namespace.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include <sys/sysinfo.h>
 
@@ -65,6 +66,9 @@ void labstor::Client::IPCManager::Connect() {
     serversock_.RecvMSG(&reply, sizeof(reply));
     TRACEPOINT("Receive reply", "region_id", reply.region_id_, "region_size", reply.region_size_, "queue_size", reply.queue_region_size_, "queue_depth", reply.queue_depth_)
     region = labstor::kernel::netlink::ShmemClient::MapShmem(reply.region_id_, reply.region_size_);
+
+    //Receive and initialize namespace
+    LABSTOR_NAMESPACE->Attach(reply.namespace_region_id_, reply.namespace_region_size_);
 
     //Initialize SHMEM request allocator
     TRACEPOINT("Attach SHMEM allocator")
@@ -151,6 +155,9 @@ void labstor::Client::IPCManager::CreatePrivateQueues(int num_queues, int queue_
 }
 
 void labstor::Client::IPCManager::PauseQueues() {
+}
+
+void labstor::Client::IPCManager::WaitForPause() {
 }
 
 void labstor::Client::IPCManager::ResumeQueues() {

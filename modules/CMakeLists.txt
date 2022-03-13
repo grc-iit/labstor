@@ -12,7 +12,7 @@ add_subdirectory(kernel/secure_shmem)
 add_subdirectory(kernel/ipc_manager)
 add_subdirectory(kernel/work_orchestrator)
 add_subdirectory(kernel/blkdev_table)
-add_subdirectory(kernel/mq_driver)
+add_subdirectory(storage_api/mq_driver)
 add_subdirectory(kernel/ipc_test)
 add_custom_target(clean_modules COMMAND
         cd ${CMAKE_BINARY_DIR} && make clean &&
@@ -28,10 +28,10 @@ add_custom_target(clean_modules COMMAND
 add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_subdirectory(filesystems/generic_posix)
-#add_subdirectory(filesystems/labstor_fs)
+add_subdirectory(filesystems/labstor_fs)
 
 message("Are we with SPDK?")
 message(${WITH_SPDK})
 if(${WITH_SPDK})
-add_subdirectory(iosched/spdk)
+add_subdirectory(storage_api/spdk)
 endif()

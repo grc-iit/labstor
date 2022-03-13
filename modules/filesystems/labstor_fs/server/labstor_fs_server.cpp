@@ -2,66 +2,49 @@
 // Created by lukemartinlogan on 8/20/21.
 //
 
-#include <labstor_fs.h>
-#include <labstor_fs/server/labstor_fs_server.h>
-#include <generic_posix/generic_posix.h>
+#include <modules/filesystems/generic_posix/generic_posix.h>
+#include <modules/filesystems/labstor_fs/labstor_fs.h>
+#include <modules/filesystems/labstor_fs/server/labstor_fs_server.h>
 
 void labstor::LabFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch(static_cast<labstor::GenericPosix::Ops>(request->GetOp())) {
-        case labstor::GenericPosix::Ops::kInit: {
-            Init(qp, reinterpret_cast<init_request*>(request), creds);
-            return;
-        }
         case labstor::GenericPosix::Ops::kOpen: {
-            Open(qp, reinterpret_cast<generic_posix_open_request*>(request), creds);
+            Open(qp, reinterpret_cast<labstor::GenericPosix::open_request*>(request), creds);
             return;
         }
         case labstor::GenericPosix::Ops::kClose: {
-            Close(qp, reinterpret_cast<generic_posix_close_request*>(request), creds);
+            Close(qp, reinterpret_cast<labstor::GenericPosix::close_request*>(request), creds);
             return;
         }
         case labstor::GenericPosix::Ops::kWrite:
         case labstor::GenericPosix::Ops::kRead: {
-            IOStart(qp, reinterpret_cast<generic_posix_io_request*>(request), creds);
+            IOStart(qp, reinterpret_cast<labstor::GenericPosix::io_request*>(request), creds);
             return;
         }
         case labstor::GenericPosix::Ops::kIOComplete: {
-            IOComplete(qp, reinterpret_cast<generic_posix_io_request*>(request), creds);
+            IOComplete(qp, reinterpret_cast<labstor::GenericPosix::io_request*>(request), creds);
             return;
         }
     }
 }
-inline void labstor::LabFS::Server::Init(labstor::queue_pair *qp, init_request *client_rq, labstor::credentials *creds) {
-    AUTO_TRACE(client_rq->iosched_mount_)
+inline void labstor::LabFS::Server::Initialize(labstor::ipc::request *rq) {
     labstor::Module *module;
-    uint32_t ns_id;
-    //TODO: Initialize inode cache
-        //INODE: 0/home -> ID: 1
-        //INODE: 1/luke -> ID: 2
-        //INODE: 2/hi.tx -> ID: 3
-    //TODO: Initialize block allocator
-    //Find the IOScheduler to send requests to
-    if(namespace_->GetIfExists(labstor::ipc::string(client_rq->iosched_mount_), ns_id)) {
-        module = namespace_->Get(ns_id);
-        module->ProcessRequest(qp, reinterpret_cast<labstor::ipc::request*>(client_rq), creds);
-        client_rq->Complete(LABSTOR_GENERIC_FS_SUCCESS);
-    } else {
-        client_rq->Complete(LABSTOR_GENERIC_FS_PATH_NOT_FOUND);
-    }
-    //Finish request
-    qp->Complete(client_rq);
+    register_request *reg_rq = reinterpret_cast<register_request*>(rq);
+    next_module_ = namespace_->Get(reg_rq->next_);
 }
-inline void labstor::LabFS::Server::Open(labstor::queue_pair *qp, generic_posix_open_request *client_rq, labstor::credentials *creds) {
-    //Determine if INODE exists
+inline void labstor::LabFS::Server::Open(labstor::queue_pair *qp, labstor::GenericPosix::open_request *client_rq, labstor::credentials *creds) {
+    //Get INODE by fd
     //Complete the I/O request
 }
-inline void labstor::LabFS::Server::Close(labstor::queue_pair *qp, generic_posix_close_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::Close(labstor::queue_pair *qp, labstor::GenericPosix::close_request *client_rq, labstor::credentials *creds) {
     //Unmark inode as busy
     //Complete the I/O request
 }
-inline void labstor::LabFS::Server::IOStart(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::IOStart(labstor::queue_pair *qp, labstor::GenericPosix::io_request *client_rq, labstor::credentials *creds) {
     //Allocate free blocks on the device (per-core ring buffer of 4KB pages)
     //Store the mappings
 }
-inline void labstor::LabFS::Server::IOComplete(labstor::queue_pair *qp, generic_posix_io_request *client_rq, labstor::credentials *creds) {
+inline void labstor::LabFS::Server::IOComplete(labstor::queue_pair *qp, labstor::GenericPosix::io_request *client_rq, labstor::credentials *creds) {
 }
+
+LABSTOR_MODULE_CONSTRUCT(labstor::LabFS::Server, LABFS_MODULE_ID)

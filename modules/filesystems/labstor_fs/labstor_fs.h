@@ -7,24 +7,18 @@
 
 #include <cstring>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <generic_posix/generic_posix.h>
+#include <modules/filesystems/generic_posix/generic_posix.h>
+#include <modules/registrar/registrar.h>
 
 #define LABFS_MODULE_ID "LabFS"
 
 namespace labstor::LabFS {
 
-struct init_request : public labstor_request {
-    char iosched_mount_[];
-    void Start(int ns_id, char *iosched_mount) {
-        SetNamespaceID(ns_id);
-        SetOp(static_cast<int>(labstor::GenericPosix::Ops::kInit));
-        strcpy(iosched_mount_, iosched_mount);
-    }
-    void Complete(int code) {
-        SetCode(code);
-    }
-    char* GetIOsched() {
-        return iosched_mount_;
+struct register_request : public labstor::Registrar::register_request {
+    labstor::id next_;
+    void ConstructModuleStart(const std::string &module_id, const std::string &key, char *next_module_) {
+        labstor::Registrar::register_request::ConstructModuleStart(module_id, key);
+        key_.copy(next_module_);
     }
 };
 

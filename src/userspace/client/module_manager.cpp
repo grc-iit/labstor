@@ -8,14 +8,38 @@
 #include <labstor/userspace/util/errors.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
+#include <labstor/userspace/client/namespace.h>
 #include <labstor/userspace/client/module_manager.h>
+#include <modules/registrar/client/registrar_client.h>
 
-void labstor::Client::ModuleManager::UpdateModule(std::string path) {
-    //Pause all per-process queues
-}
+labstor::id labstor::Client::ModuleManager::UpdateModule(std::string path) {
+    labstor::id module_id;
+    labstor::ModuleHandle module_info;
+    labstor::Module *old_instance, *new_instance;
+    labstor_runtime_id_t runtime_id;
+    LABSTOR_NAMESPACE_T namespace_ = LABSTOR_NAMESPACE;
+    LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
 
-std::string labstor::Client::ModuleManager::GetModulePath(labstor::id module_id) {
-    auto ipc_manager = LABSTOR_IPC_MANAGER;
-    //Send MODULE_PATH message to trusted server
-    return nullptr;
+    //Pause all queues & wait until there are no busy queues
+    ipc_manager_->PauseQueues();
+    ipc_manager_->WaitForPause();
+
+    //Process update
+    LABSTOR_ERROR_HANDLE_TRY {
+        module_info = OpenModule(path, module_id);
+        std::queue<labstor::Module*> &modules = namespace_->AllModuleInstances(module_id);
+        for(int i = 0; i < modules.size(); ++i) {
+            labstor::Module *old_instance = modules.front();
+            modules.pop();
+            new_instance = module_info.constructor_();
+            new_instance->StateUpdate(old_instance);
+            modules.push(new_instance);
+            delete old_instance;
+        }
+        SetModuleConstructor(module_id, module_info);
+        return module_id;
+    } LABSTOR_ERROR_HANDLE_CATCH {
+        ipc_manager_->ResumeQueues();
+        throw err;
+    }
 }

@@ -80,10 +80,10 @@ void labstor::Server::ModuleManager::AddModulePaths(labstor::id module_id, labst
 std::string labstor::Server::ModuleManager::GetModulePath(labstor::id module_id, ModulePathType type) {
     AUTO_TRACE("")
     switch(type) {
-        case ModulePathType::CLIENT: {
+        case ModulePathType::kClient: {
             return paths_[module_id].client;
         }
-        case ModulePathType::SERVER: {
+        case ModulePathType::kServer: {
             return paths_[module_id].server;
         }
     }

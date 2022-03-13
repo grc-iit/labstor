@@ -214,8 +214,10 @@ void labstor::Server::IPCManager::RegisterClient(int client_fd, labstor::credent
     reply.queue_region_size_ = memconf.queue_region_size;
     reply.queue_depth_ = memconf.queue_depth;
     reply.num_queues_ = memconf.num_queues;
+    LABSTOR_NAMESPACE->GetSharedRegion(reply.namespace_region_id_, reply.namespace_region_size_, reply.namespace_max_entries_);
     TRACEPOINT("Registering", reply.region_id_, reply.region_size_, reply.request_unit_)
     client_ipc->GetSocket().SendMSG(&reply, sizeof(reply));
+    labstor::kernel::netlink::ShmemClient().GrantPidShmem(creds.pid_, reply.namespace_region_id_);
 
     //Receive and register client QPs
     RegisterClientQP(client_ipc, region);

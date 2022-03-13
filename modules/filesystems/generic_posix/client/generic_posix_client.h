@@ -18,7 +18,9 @@
 
 //TODO: Make this configurable
 #define LABSTOR_FD_MIN 50000
+#define LABSTOR_PATH_PREFIX "lab::"
 #define LABSTOR_MAX_FDS_PER_THREAD 1000
+#define LABSTOR_INVALID_FD -1
 
 namespace labstor::GenericPosix {
 
@@ -58,7 +60,9 @@ private:
     std::mutex lock_;
     int ns_id_;
     int fd_min_;
+    std::string prefix_;
     std::vector<FDAllocator> fds_;
+    std::unordered_map<int, uint32_t> fd_to_ns_id_;
 public:
     Client() : labstor::Module(GENERIC_POSIX_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
@@ -89,19 +93,19 @@ public:
     void FreeFD(int fd) {
         return fds_[labstor::ThreadLocal::GetTid()].Free(fd);
     }
-    labstor::ipc::qtok_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
+    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
     labstor::ipc::qtok_t ARead(int fd, void *buf, size_t size) {
-        return IO(labstor::GenericPosix::Ops::kRead, fd, buf, size);
+        return AIO(labstor::GenericPosix::Ops::kRead, fd, buf, size);
     }
     labstor::ipc::qtok_t AWrite(int fd, void *buf, size_t size) {
-        return IO(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
+        return AIO(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
     }
-    ssize_t IOSync(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
+    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
     ssize_t Read(int fd, void *buf, size_t size) {
-        return IOSync(labstor::GenericPosix::Ops::kRead, fd, buf, size);
+        return IO(labstor::GenericPosix::Ops::kRead, fd, buf, size);
     }
     ssize_t Write(int fd, void *buf, size_t size) {
-        return IOSync(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
+        return IO(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
     }
 };
 }

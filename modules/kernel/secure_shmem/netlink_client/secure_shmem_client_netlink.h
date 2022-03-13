@@ -15,11 +15,11 @@ namespace labstor::kernel::netlink {
 class ShmemClient {
 private:
     LABSTOR_KERNEL_CLIENT_T kernel_client_;
-    int PAGE_SIZE;
+    int page_size_;
 public:
     ShmemClient() {
         kernel_client_ = LABSTOR_KERNEL_CLIENT;
-        PAGE_SIZE = getpagesize();
+        page_size_ = getpagesize();
     }
     int CreateShmem(size_t region_size, bool user_owned);
     int GrantPidShmem(int pid, int region_id);

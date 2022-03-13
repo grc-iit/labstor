@@ -46,14 +46,15 @@ struct string {
         data_ = str;
         length_ = length;
     }
-
+    inline string(labstor::id &id) {
+        data_ = id.key_;
+        length_ = strnlen(id.key_, MODULE_KEY_SIZE);
+    }
     inline string(const std::string &str) {
-        header_ = nullptr;
-        data_ = (char*)malloc(str.size());
-        memcpy(data_, str.c_str(), str.size());
+        data_ = reinterpret_cast<char*>(malloc(str.size()));
+        strncpy(data_, str.c_str(), str.size());
         length_ = str.size();
     }
-
     inline string(const string &old_str) {
         header_ = old_str.header_;
         data_ = old_str.data_;

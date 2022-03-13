@@ -6,14 +6,13 @@
 #define LABSTOR_SPDK_DRIVER_CLIENT_H
 
 #include <labstor/userspace/client/client.h>
-#include <modules/iosched/spdk/spdk.h>
+#include <modules/storage_api/spdk/spdk.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
-#include <modules/iosched/spdk/lib/spdk_lib.h>
 
 namespace labstor::SPDK {
 

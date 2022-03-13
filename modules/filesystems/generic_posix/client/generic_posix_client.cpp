@@ -5,6 +5,7 @@
 #include <registrar/client/registrar_client.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include "generic_posix_client.h"
+#include "lib/posix_client.h"
 #include <mutex>
 
 void labstor::GenericPosix::Client::Initialize() {
@@ -18,99 +19,72 @@ void labstor::GenericPosix::Client::Initialize() {
             TRACEPOINT("Found generic posix namespace ID", ns_id_)
             is_initialized_ = true;
             fd_min_ = LABSTOR_FD_MIN; //TODO: Should be queried from the server
+            prefix_ = LABSTOR_PATH_PREFIX;
         }
     }
 }
 
 int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     AUTO_TRACE("")
-    generic_posix_open_request *client_rq;
-    labstor::queue_pair *qp;
-    labstor::ipc::qtok_t qtok;
     int fd;
 
-    //Get SERVER QP
-    ipc_manager_->GetQueuePair(qp,
-                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
-
-    //Allocate an fd
-    fd = AllocateFD();
-
-    //Create CLIENT -> SERVER message
-    client_rq = ipc_manager_->AllocRequest<generic_posix_open_request>(qp);
-    client_rq->ClientInit(ns_id_, path, oflag, fd);
-
-    //Complete CLIENT -> SERVER interaction
-    qp->Enqueue<generic_posix_open_request>(client_rq, qtok);
-    client_rq = ipc_manager_->Wait<generic_posix_open_request>(qtok);
-    if(client_rq->GetCode() == LABSTOR_GENERIC_FS_PATH_NOT_FOUND) {
-        fd = LABSTOR_GENERIC_FS_PATH_NOT_FOUND;
+    //Determine if the path is a labstor path
+    if(strncmp(path, prefix_.c_str(), prefix_.size()) != 0) {
+        return LABSTOR_GENERIC_FS_PATH_NOT_FOUND;
     }
 
-    //Free requests
-    ipc_manager_->FreeRequest<generic_posix_open_request>(qtok, client_rq);
+    //Determine the module belonging to the path
+    std::string path_str(path);
+    int len = strlen(path);
+    uint32_t ns_id;
+    labstor::Posix::Client *module;
+    while(len > 0) {
+        if(namespace_->GetIfExists(labstor::ipc::string(path_str), ns_id)) {
+            module = namespace_->Get<labstor::Posix::Client>(ns_id);
+            if(module == nullptr) {
+                module = namespace_->LoadClientModule<labstor::Posix::Client>(ns_id);
+            }
+            break;
+        }
+        len = PriorSlash(path, len);
+    }
+    if(len == 0) {
+        return LABSTOR_GENERIC_FS_PATH_NOT_FOUND;
+    }
+
+    //Allocate an fd & track which module the fd belongs to
+    fd = AllocateFD();
+    fd_to_ns_id_.emplace(fd, ns_id);
+
+    //Call the client's implementation of open()
+    fd = module->Open(fd, path, len, oflag);
     return fd;
 }
 
 int labstor::GenericPosix::Client::Close(int fd) {
-    AUTO_TRACE("")
-    generic_posix_close_request *client_rq;
-    labstor::queue_pair *qp;
-    labstor::ipc::qtok_t qtok;
-    int code;
-    //Get SERVER QP
-    ipc_manager_->GetQueuePair(qp,
-                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
-
-    //Deallocate FD
+    if(fd < fd_min_) { return LABSTOR_INVALID_FD; }
+    int ns_id = fd_to_ns_id_[fd];
+    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    client->Close(fd);
+    fd_to_ns_id_.erase(fd);
     FreeFD(fd);
-
-    //Create CLIENT -> SERVER message
-    client_rq = ipc_manager_->AllocRequest<generic_posix_close_request>(qp);
-    client_rq->Start(ns_id_, fd);
-
-    //Complete CLIENT -> SERVER interaction
-    qp->Enqueue<generic_posix_close_request>(client_rq, qtok);
-    client_rq = ipc_manager_->Wait<generic_posix_close_request>(qtok);
-    code = client_rq->GetCode();
-
-    //Free requests
-    ipc_manager_->FreeRequest<generic_posix_close_request>(qtok, client_rq);
-
-    return code;
+    return 0;
 }
 
-labstor::ipc::qtok_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
+labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
     AUTO_TRACE("")
-    generic_posix_io_request *client_rq;
-    labstor::queue_pair *qp;
-    labstor::ipc::qtok_t qtok;
-    ssize_t ret;
-
-    //Get SERVER QP
-    ipc_manager_->GetQueuePair(qp,
-                               LABSTOR_QP_SHMEM | LABSTOR_QP_STREAM | LABSTOR_QP_PRIMARY | LABSTOR_QP_ORDERED | LABSTOR_QP_LOW_LATENCY);
-
-    //Create CLIENT -> SERVER message
-    client_rq = ipc_manager_->AllocRequest<generic_posix_io_request>(qp);
-    client_rq->Start(ns_id_, op, fd, buf, size);
-
-    //Enqueue the message
-    qp->Enqueue<generic_posix_io_request>(client_rq, qtok);
-    return qtok;
+    if(fd < fd_min_) { return labstor::ipc::qtok_t(); }
+    uint32_t ns_id = fd_to_ns_id_[fd];
+    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    return client->AIO(op, fd, buf, size);
 }
 
-ssize_t labstor::GenericPosix::Client::IOSync(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
+ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
     AUTO_TRACE("")
-    generic_posix_io_request *client_rq;
-    labstor::queue_pair *qp;
-    labstor::ipc::qtok_t qtok;
-    ssize_t ret;
-    qtok = IO(op, fd, buf, size);
-    client_rq = ipc_manager_->Wait<generic_posix_io_request>(qtok);
-    ret = client_rq->GetSize();
-    ipc_manager_->FreeRequest<generic_posix_io_request>(qtok, client_rq);
-    return ret;
+    if(fd < fd_min_) { return -1; }
+    uint32_t ns_id = fd_to_ns_id_[fd];
+    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    return client->IO(op, fd, buf, size);
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::GenericPosix::Client, GENERIC_POSIX_MODULE_ID);

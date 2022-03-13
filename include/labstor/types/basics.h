@@ -36,24 +36,24 @@ struct labstor_credentials {
 namespace labstor {
 
 struct id {
-    char key[MODULE_KEY_SIZE];
+    char key_[MODULE_KEY_SIZE];
     id() = default;
     ~id() = default;
     id(std::string key_str) {
-        strcpy(key, key_str.c_str());
+        strcpy(key_, key_str.c_str());
     }
     id(const char* key_str) {
-        strcpy(key, key_str);
+        strcpy(key_, key_str);
     }
     bool operator==(const id &other) const {
-        return strncmp(key, other.key, MODULE_KEY_SIZE) == 0;
+        return strncmp(key_, other.key_, MODULE_KEY_SIZE) == 0;
     }
     void copy(const std::string &str) {
-        memcpy(key, str.c_str(), str.size());
-        key[str.size()] = 0;
+        memcpy(key_, str.c_str(), str.size());
+        key_[str.size()] = 0;
     }
     const char& operator [](int i) {
-        return key[i];
+        return key_[i];
     }
 };
 
@@ -70,8 +70,8 @@ namespace std {
         std::size_t operator()(const labstor::id &id) const {
             size_t sum = 0;
             for (int i = 0; i < MODULE_KEY_SIZE; ++i) {
-                if (id.key[i] == 0) { break; }
-                sum += id.key[i] << (i % 8);
+                if (id.key_[i] == 0) { break; }
+                sum += id.key_[i] << (i % 8);
             }
             return sum;
         }

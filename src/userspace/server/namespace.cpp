@@ -33,8 +33,6 @@ labstor::Server::Namespace::Namespace() {
 
     //Initialize the namespace tables
     TRACEPOINT("NamespaceTables")
-    //labstor_segment_allocator seg_alloc;
-    //seg_alloc.Init(region_, shmem_size);
     uint32_t remainder = shmem_size;
     void *section = region_;
     ns_ids_.Init(section, labstor::ipc::mpmc::ring_buffer<uint32_t>::GetSize(max_entries));
@@ -43,12 +41,10 @@ labstor::Server::Namespace::Namespace() {
     key_to_ns_id_.Init(region_, section, labstor::ipc::mpmc::string_map::GetSize(max_entries), 0, 16);
     remainder -= key_to_ns_id_.GetSize();
     section = key_to_ns_id_.GetNextSection();
-    //shared_state_.Init(section, labstor::ipc::array_uint32_t::GetSize(max_entries));
-    //remainder -= shared_state_.GetSize();
-    //section = shared_state_.GetNextSection();
+    max_entries_ = max_entries;
     TRACEPOINT("NamespaceTables")
 
-    //Create memory allocator on remaining memory
+    //Create memory allocator on remaining memory for key names
     labstor::ipc::shmem_allocator *alloc;
     alloc = new labstor::ipc::shmem_allocator();
     alloc->Init(region_, section, remainder, request_unit);

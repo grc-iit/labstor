@@ -25,11 +25,13 @@ namespace labstor {
 class Module {
 protected:
     labstor::id module_id_;
+    uint64_t module_key_;
 public:
     Module(labstor::id module_id) : module_id_(module_id) {}
     inline labstor::id GetModuleID() { return module_id_; }
 
     virtual void Initialize(labstor::ipc::request *rq) = 0;
+    virtual void Initialize(int ns_id) {}
     virtual void ReinforceCpuTime(
             labstor::ipc::request *request, size_t time_measure_ns) {};
     virtual void ReinforceIOTime(
@@ -49,13 +51,12 @@ typedef labstor::id (*get_module_id_fn)(void);
 
 struct ModulePath {
     std::string client;
-    std::string trusted_client;
     std::string server;
 };
 
 enum class ModulePathType {
-    CLIENT,
-    SERVER
+    kClient,
+    kServer
 };
 
 struct ModuleHandle {
@@ -92,7 +93,7 @@ public:
 
     void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle &module_info) {
         mutex_.lock();
-        TRACEPOINT("Adding module", module_id.key, std::hash<labstor::id>()(module_id))
+        TRACEPOINT("Adding module", module_id.key_, std::hash<labstor::id>()(module_id))
         if(pkg_pool_.find(module_id) != pkg_pool_.end()) {
             dlclose(pkg_pool_[module_id].handle_);
         }
@@ -102,11 +103,11 @@ public:
 
     create_module_fn GetModuleConstructor(labstor::id module_id) {
         ModuleHandle module_info;
-        TRACEPOINT("GetModuleConstructor::GetModuleConstructor", module_id.key, std::hash<labstor::id>()(module_id))
+        TRACEPOINT("GetModuleConstructor::GetModuleConstructor", module_id.key_, std::hash<labstor::id>()(module_id))
         mutex_.lock();
         if(pkg_pool_.find(module_id) == pkg_pool_.end()) {
             mutex_.unlock();
-            throw labstor::INVALID_MODULE_ID.format(module_id.key);
+            throw labstor::INVALID_MODULE_ID.format(module_id.key_);
         }
         module_info = pkg_pool_[module_id];
         mutex_.unlock();

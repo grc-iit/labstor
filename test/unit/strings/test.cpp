@@ -9,8 +9,8 @@
 int main(){
     labstor::id name("Dummy");
     labstor::id name2("Dummy297428947284ry");
-    name2.key[5] = 0;
+    name2.key_[5] = 0;
 
-    printf("%s == %s: %d\n", name.key, name2.key, name == name2);
+    printf("%s == %s: %d\n", name.key_, name2.key_, name == name2);
     printf("%lu %lu\n", std::hash<labstor::id>()(name), std::hash<labstor::id>()(name2));
 }

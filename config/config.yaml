@@ -9,11 +9,14 @@ modules:
     client: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_server.so
   MQDriver:
-    client: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/kernel/mq_driver/libmq_driver_server.so
+    client: ${LABSTOR_BUILD_DIR}/modules/storage_api/mq_driver/libmq_driver_client.so
+    server: ${LABSTOR_BUILD_DIR}/modules/storage_api/mq_driver/libmq_driver_server.so
   GenericPosix:
     client: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_client.so
     server: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_server.so
+  LabFS:
+    client: ${LABSTOR_BUILD_DIR}/modules/filesystems/labstor_fs/liblabstor_fs_client.so
+    server: ${LABSTOR_BUILD_DIR}/modules/filesystems/labstor_fs/liblabstor_fs_server.so
 admin_thread: 0
 system_monitor: 1
 work_orchestrator:
