@@ -21,6 +21,7 @@ struct dummy_request : public labstor::ipc::request {
     void Start(uint32_t ns_id) {
         ns_id_ = ns_id;
         op_ = static_cast<int>(Ops::kGetValue);
+        code_ = 0;
     }
     void Complete(uint32_t value) {
         value_ = value;

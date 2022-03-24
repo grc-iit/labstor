@@ -8,8 +8,8 @@
 #include <labstor/types/daemon.h>
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
-#include <labstor/types/data_structures/spsc/shmem_work_queue.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
+#include "labstor/types/data_structures/c/shmem_work_queue.h"
 #include <modules/kernel/work_orchestrator/work_orchestrator.h>
 
 namespace labstor::kernel::netlink {

@@ -2,10 +2,10 @@
 #ifndef LABSTOR_UNORDERED_MAP_H
 #define LABSTOR_UNORDERED_MAP_H
 
-#include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/mpmc/bit2map.h>
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+#include "labstor/constants/macros.h"
+#include "labstor/types/data_structures/bit2map.h"
+#include "labstor/types/shmem_type.h"
+#include "labstor/userspace/util/errors.h"
 
 struct unordered_map_header {
     uint32_t num_buckets_;

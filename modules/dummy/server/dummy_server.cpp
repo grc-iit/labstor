@@ -4,7 +4,7 @@
 
 #include "dummy_server.h"
 
-void labstor::test::Dummy::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+bool labstor::test::Dummy::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE("")
     //AUTO_TRACE(request->op_, request->req_id_)
     switch(static_cast<Ops>(request->op_)) {
@@ -12,9 +12,10 @@ void labstor::test::Dummy::Server::ProcessRequest(labstor::queue_pair *qp, labst
             dummy_request *rq = reinterpret_cast<dummy_request*>(request);
             rq->Complete(5543);
             qp->Complete(rq);
-            break;
+            return true;
         }
     }
+    return true;
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::test::Dummy::Server, LABSTOR_DUMMY_MODULE_ID)

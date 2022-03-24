@@ -13,7 +13,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>
 
-#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
+#include "labstor/types/data_structures/shmem_ring_buffer.h"
 
 namespace labstor::IPCTest {
 
@@ -24,10 +24,9 @@ public:
     Server() : labstor::Module(IPC_TEST_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
     void Initialize(labstor::ipc::request *rq) {}
-    void Start(labstor::queue_pair *qp, labstor_ipc_test_request *rq);
-    void End(labstor::queue_pair *qp, labstor_poll_ipc_test_request *rq);
+    bool IPC(labstor::queue_pair *qp, ipc_test_request *rq);
 };
 
 }

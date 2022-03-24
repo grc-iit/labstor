@@ -9,6 +9,7 @@
 int main(int argc, char **argv) {
     if(argc < 3) {
         printf("USAGE: ./partitions [PID] [core1] ... [coreN]\n");
+        printf("PID: either an integer indicating the pid to affine, or the string \"all\" indicating to affine all processes\n");
         exit(1);
     }
     int pid;

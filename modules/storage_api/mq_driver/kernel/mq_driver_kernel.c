@@ -28,7 +28,7 @@
 #include <linux/sched.h>
 
 #include <labstor/constants/constants.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include <labstor/types/data_structures/c/shmem_queue_pair.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 
@@ -363,14 +363,12 @@ static blk_status_t __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx,
             break;
         case BLK_STS_RESOURCE:
         case BLK_STS_DEV_RESOURCE:
-            printk("request_layer_km: NEEDS REQUEUE\n");
-            blk_mq_update_dispatch_busy(hctx, false);
-            *cookie = BLK_QC_T_NONE;
+            blk_mq_update_dispatch_busy(hctx, true);
+            //__blk_mq_requeue_request(rq);
             break;
         default:
             blk_mq_update_dispatch_busy(hctx, false);
             *cookie = BLK_QC_T_NONE;
-            printk("request_layer_km: FAILED\n");
             break;
     }
 
@@ -385,50 +383,79 @@ static blk_status_t __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
     struct request_queue *q = rq->q;
     bool run_queue = true;
 
+    /*
+     * RCU or SRCU read lock is needed before checking quiesced flag.
+     *
+     * When queue is stopped or quiesced, ignore 'bypass_insert' from
+     * blk_mq_request_issue_directly(), and return BLK_STS_OK to caller,
+     * and avoid driver to try to dispatch again.
+     */
     if (blk_mq_hctx_stopped(hctx) || blk_queue_quiesced(q)) {
-        return -1;
+        run_queue = false;
+        bypass_insert = false;
+        goto insert;
     }
 
     if (q->elevator && !bypass_insert)
-        return -1;
+        goto insert;
 
     if (!blk_mq_get_dispatch_budget(hctx))
-        return -1;
+        goto insert;
 
     if (!blk_mq_get_driver_tag(rq)) {
         blk_mq_put_dispatch_budget(hctx);
-        return -1;
+        goto insert;
     }
 
-    pr_debug("GET DRIVER TAG: %d\n", rq->tag);
     return __blk_mq_issue_directly(hctx, rq, cookie, last);
+    insert:
+    if (bypass_insert)
+        return BLK_STS_RESOURCE;
+    return BLK_STS_OK;
 }
 
 static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
 {
     blk_status_t ret;
     int srcu_idx;
-    struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
     int success = LABSTOR_MQ_OK;
+    struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
 
     might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 
     hctx_lock(hctx, &srcu_idx);
 
-    ret = __blk_mq_try_issue_directly(hctx, rq, cookie, true, true); //TODO: May not be last...
+    ret = __blk_mq_try_issue_directly(hctx, rq, cookie, false, true);
     if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE) {
-        blk_mq_end_request(rq, ret); //TODO: theoretically requeue
         success = LABSTOR_MQ_DEVICE_BUSY;
+        blk_mq_end_request(rq, ret);
     }
     else if (ret != BLK_STS_OK) {
-        blk_mq_end_request(rq, ret);
         success = LABSTOR_MQ_NOT_OK;
+        blk_mq_end_request(rq, ret);
     }
 
     hctx_unlock(hctx, srcu_idx);
 
     return success;
 }
+
+blk_status_t blk_mq_request_issue_directly(struct request *rq, bool last)
+{
+    blk_status_t ret;
+    int srcu_idx;
+    blk_qc_t unused_cookie;
+    struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
+
+    hctx_lock(hctx, &srcu_idx);
+    ret = __blk_mq_try_issue_directly(hctx, rq, &unused_cookie, true, last);
+    hctx_unlock(hctx, srcu_idx);
+
+    return ret;
+}
+
+
+
 
 /**
  * I/O REQUEST FUNCTIONS
@@ -437,6 +464,7 @@ static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
 static void io_complete(struct bio *bio) {
     int code = 0;
     struct labstor_mq_driver_request *rq;
+    pr_err("IN I/O COMPLETE!!!");
     if(!bio || IS_ERR(bio)) {
         pr_err("io_complete was passed NULL bio");
         return;
@@ -446,7 +474,7 @@ static void io_complete(struct bio *bio) {
         pr_err("io_complete request is NULL\n");
         return;
     }
-    pr_debug("Begin Complete: %d\n", rq->cookie_);
+    pr_info("Begin Complete: %d\n", rq->cookie_);
     if(bio->bi_status != BLK_STS_OK) {
         code = bio->bi_status;
         pr_debug("Request did not complete: %d\n", code);
@@ -493,9 +521,7 @@ static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struc
         return NULL;
     }
     bio_set_dev(bio, bdev);
-    //bio_set_op_attrs(bio, op, 0);
-    //bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC | REQ_HIPRI | REQ_NOMERGE_FLAGS | REQ_FAILFAST_MASK | REQ_IDLE;
-    bio->bi_opf = op | REQ_NOWAIT | REQ_SYNC;
+    bio_set_op_attrs(bio, op, REQ_NOWAIT | REQ_SYNC | REQ_HIPRI | REQ_NOMERGE_FLAGS | REQ_FAILFAST_MASK | REQ_IDLE);
     bio_set_flag(bio, BIO_USER_MAPPED);
     bio->bi_iter.bi_sector = sector;
     for(i = 0; i < num_pages; ++i) {
@@ -507,15 +533,15 @@ static inline struct bio *create_bio(struct labstor_mq_driver_request *rq, struc
     bio->bi_status = BLK_STS_OK;
     bio->bi_ioprio = 0;
     bio->bi_write_hint = 0;
+    bio->bi_next = NULL;
 
     bio_integrity_prep(bio);
     return bio;
 }
 
 struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio, unsigned int nr_segs) {
-    int op = bio->bi_opf;
+    int op = bio->bi_opf, code;
     struct request *rq = blk_mq_alloc_request_hctx(q, op, BLK_MQ_REQ_NOWAIT, hctx_idx);
-    pr_debug("Request: %p\n", rq);
     if(IS_ERR(rq)) {
         switch (PTR_ERR(rq)) {
             case -EINVAL: {
@@ -540,13 +566,12 @@ struct request *bio_to_rq(struct request_queue *q, int hctx_idx, struct bio *bio
             }
         }
     }
-    //pr_info("CMDFLAGS: %X\n", rq->cmd_flags);
-    rq->bio = rq->biotail = NULL;
-    rq->rq_disk = bio->bi_disk;
+    code = blk_rq_append_bio(rq, &bio);
     rq->__sector = bio->bi_iter.bi_sector;
     rq->write_hint = bio->bi_write_hint;
-    blk_rq_bio_prep(rq, bio, nr_segs);
-    blk_mq_get_driver_tag(rq);
+    //blk_rq_bio_prep(rq, bio, nr_segs);
+    pr_info("Request: ctx=%p hctx=%p q=%p disk=%p part=%p end_io=%p end_io_data=%p bio=%p code=%d einval=%d elv=%p\n",
+            rq->mq_ctx, rq->mq_hctx, rq->q, rq->rq_disk, rq->part, rq->end_io, rq->end_io_data, rq->bio, code, -EINVAL, q->elevator);
     return rq;
 }
 
@@ -561,7 +586,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     static int cnt = 0;
     success = LABSTOR_MQ_OK;
 
-    pr_debug("Received %s request [%p]\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq);
+    pr_info("Received %s request [%p], %d\n", (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? "REQ_OP_WRITE" : "REQ_OP_READ", rq, rq->dev_id_);
 
     pr_debug("Starting I/O submission");
 
@@ -584,11 +609,11 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     //Get request queue associated with device
     q = bdev->bd_disk->queue;
     //Disable stats
-    clear_bit(QUEUE_FLAG_STATS, &q->queue_flags);
+    q->queue_flags &= ~QUEUE_FLAG_STATS;
     //Enable polled I/O if possible
     if(test_bit(QUEUE_FLAG_POLL, &q->queue_flags)) {
         rq->flags_ |= LABSTOR_MQ_POLLED_IO;
-        pr_err("Poll enabled?\n");
+        pr_info("Poll enabled?\n");
     }
     //Create bio
     bio = create_bio(rq, bdev, pages, num_pages, rq->sector_, (rq->header_.op_ == LABSTOR_MQ_DRIVER_WRITE) ? REQ_OP_WRITE : REQ_OP_READ);
@@ -599,8 +624,8 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
         goto err_complete;
     }
     //Submit BIO to MQ layer
-    if(q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
-        pr_err("HCTX: %d\n", rq->hctx_);
+    if(0 && q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
+        pr_err("HCTX: %d\n", rq->hctx_); //TODO: pr_info
         //Create request to hctx
         dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
         if(dev_rq == NULL) {
@@ -608,15 +633,17 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
             goto err_complete;
         }
         //Submit request to HCTX
-        success = blk_mq_try_issue_directly(dev_rq, &cookie);
+        //success = blk_mq_try_issue_directly(dev_rq, &cookie);
+        blk_execute_rq_nowait(q, dev_rq->rq_disk, dev_rq, true, NULL);
+        pr_info("Here5: sub\n");
+        goto err_complete;
     }
     //Submit BIO to BIO layer
     else {
         cookie = submit_bio(bio);
     }
     rq->cookie_ = cookie;
-    //pr_info("Driver Submission Status: %d, cookie=%d, count=%d, vs 1507562\n", success, cookie, cnt);
-    //++cnt;
+    pr_err("Driver Submission Status: %d, cookie=%d, count=%d, vs 1507562\n", success, cookie, cnt); //TODO: pr_info
 
     //I/O was not successfully submitted (after page cache)
     err_complete:
@@ -626,7 +653,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
     err_complete_before:
     rq->header_.code_ = success;
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
-    pr_err("I/O has been submitted: %d", rq->cookie_);
+    pr_err("I/O has been submitted: %d", rq->cookie_); //TODO: pr_info
 }
 
 inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
@@ -639,6 +666,8 @@ inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_
     /*
      * Whenever polling succeeds, no more requests can be processed.
      * */
+
+    pr_err("I'm polling???");
 
     bdev = labstor_get_bdev(rq->dev_id_);
     q = bdev->bd_disk->queue;

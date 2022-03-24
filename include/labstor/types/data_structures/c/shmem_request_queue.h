@@ -5,10 +5,10 @@
 #ifndef LABSTOR_REQUEST_QUEUE_H
 #define LABSTOR_REQUEST_QUEUE_H
 
-#include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/spsc/shmem_request_ring_buffer.h>
-#include <labstor/types/data_structures/shmem_qtok.h>
-#include <labstor/types/data_structures/shmem_request.h> 
+#include "labstor/constants/macros.h"
+#include "shmem_request_ring_buffer.h"
+#include "labstor/types/data_structures/shmem_qtok.h"
+#include "labstor/types/data_structures/shmem_request.h"
 
 struct labstor_request_queue_header {
     labstor_qid_t qid_;
@@ -116,6 +116,13 @@ static inline bool labstor_request_queue_EnqueueSimple(struct labstor_request_qu
     return false;
 }
 
+static inline bool labstor_request_queue_Peek(struct labstor_request_queue *lrq, struct labstor_request **rq, int i) {
+    labstor_off_t off;
+    if(!labstor_request_ring_buffer_Peek(&lrq->queue_, &off, i)) { return false; }
+    *rq = (struct labstor_request*)(LABSTOR_REGION_ADD(off, lrq->base_region_));
+    return true;
+}
+
 static inline bool labstor_request_queue_Dequeue(struct labstor_request_queue *lrq, struct labstor_request **rq) {
     labstor_off_t off;
     if(!labstor_request_ring_buffer_Dequeue(&lrq->queue_, &off)) { return false; }
@@ -143,8 +150,8 @@ static inline void labstor_request_queue_FinishWork(struct labstor_request_queue
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <labstor/constants/debug.h>
-#include <labstor/types/shmem_type.h>
+#include "labstor/constants/debug.h"
+#include "labstor/types/shmem_type.h"
 
 namespace labstor::ipc {
     typedef labstor_request_queue request_queue;

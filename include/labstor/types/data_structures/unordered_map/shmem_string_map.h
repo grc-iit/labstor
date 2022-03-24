@@ -5,10 +5,10 @@
 #ifndef LABSTOR_SHMEM_STRING_MAP_H
 #define LABSTOR_SHMEM_STRING_MAP_H
 
-#include <labstor/types/shmem_type.h>
-#include <labstor/constants/macros.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/constants.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_unordered_map.h>
+#include "labstor/types/shmem_type.h"
+#include "labstor/constants/macros.h"
+#include "constants.h"
+#include "shmem_unordered_map.h"
 #include "labstor/types/data_structures/shmem_string.h"
 
 namespace labstor::ipc::mpmc {

@@ -18,27 +18,23 @@ int labstor::BlkdevTable::Client::RegisterBlkdev(std::string path) {
     AUTO_TRACE(ns_id_)
     labstor::queue_pair *qp;
     labstor::ipc::qtok_t qtok;
-    labstor_blkdev_table_register_request *rq;
+    blkdev_table_register_request *rq;
     int dev_id;
 
     ipc_manager_->GetQueuePair(qp, 0);
-    rq = ipc_manager_->AllocRequest<labstor_blkdev_table_register_request>(qp,
-         labstor_blkdev_table_register_request::GetSize(path.size()));
-    rq->Start(ns_id_, path.c_str(), path.size(), -1);
+    rq = ipc_manager_->AllocRequest<blkdev_table_register_request>(qp,
+         blkdev_table_register_request::GetSize(path.size()));
+    rq->ClientStart(ns_id_, path.c_str(), path.size(), -1);
 
     TRACEPOINT("path", rq->path_, "qp_id", qp->GetQID().Hash());
-    qp->Enqueue<labstor_blkdev_table_register_request>(rq, qtok);
-    rq = ipc_manager_->Wait<labstor_blkdev_table_register_request>(qtok);
+    qp->Enqueue<blkdev_table_register_request>(rq, qtok);
+    rq = ipc_manager_->Wait<blkdev_table_register_request>(qtok);
     dev_id = rq->GetDeviceID();
     TRACEPOINT("Complete",
-               "return_code", rq->GetReturnCode(),
+               "return_code", rq->GetCode(),
                "device_id", rq->GetDeviceID());
-    ipc_manager_->FreeRequest<labstor_blkdev_table_register_request>(qtok, rq);
+    ipc_manager_->FreeRequest<blkdev_table_register_request>(qtok, rq);
     return dev_id;
-}
-
-void labstor::BlkdevTable::Client::UnregisterBlkdev(int dev_id) {
-    AUTO_TRACE(dev_id)
 }
 
 LABSTOR_MODULE_CONSTRUCT(labstor::BlkdevTable::Client, BLKDEV_TABLE_MODULE_ID)

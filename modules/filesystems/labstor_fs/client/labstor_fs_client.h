@@ -28,7 +28,7 @@ public:
         namespace_ = LABSTOR_NAMESPACE;
     }
     void Initialize(labstor::ipc::request *rq) {}
-    void Register(char *ns_key, char *next_module);
+    void Register(char *ns_key, char *next_module, bool has_fs);
     int Open(int fd, const char *path, int pathlen, int oflag);
     int Close(int fd);
     labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);

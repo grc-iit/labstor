@@ -6,7 +6,7 @@
 #include <labstor/kernel/client/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_int_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_int_map.h>
 #include <cstdio>
 
 int main(int argc, char **argv) {

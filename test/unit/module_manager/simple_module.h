@@ -16,7 +16,7 @@ public:
     void print1();
     void print2();
     void print3();
-    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
 };
 
 #endif //LABSTOR_SIMPLE_MODULE_H

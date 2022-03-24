@@ -7,7 +7,7 @@
 
 #include <cstring>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/shmem_poll.h>
+//#include <labstor/types/data_structures/shmem_poll.h>
 
 #define GENERIC_POSIX_MODULE_ID "GenericPosix"
 

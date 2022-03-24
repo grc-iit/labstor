@@ -15,10 +15,20 @@
 namespace labstor::LabFS {
 
 struct register_request : public labstor::Registrar::register_request {
+    bool has_fs_;
     labstor::id next_;
-    void ConstructModuleStart(const std::string &module_id, const std::string &key, char *next_module) {
+    void ConstructModuleStart(
+            const std::string &module_id, const std::string &key, char *next_module, bool has_fs_) {
         labstor::Registrar::register_request::ConstructModuleStart(module_id, key);
         next_.copy(next_module);
+        has_fs_ = has_fs_;
+    }
+};
+
+struct mkfs_request : public labstor::ipc::request {
+    size_t log_size_;
+    size_t num_small_blocks_;
+    void MkfsStart(size_t log_size, size_t num_small_blocks) {
     }
 };
 

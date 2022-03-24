@@ -12,7 +12,7 @@
 #include <labstor/userspace/types/socket.h>
 #include <labstor/constants/constants.h>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include "labstor/userspace/types/queue_pool.h"
 #include "labstor/userspace/types/memory_manager.h"
 #include <labstor/types/thread_local.h>

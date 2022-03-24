@@ -13,8 +13,8 @@
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/types/shared_namespace.h>
 #include <labstor/types/allocator/shmem_allocator.h>
-#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_string_map.h>
+#include "labstor/types/data_structures/shmem_ring_buffer.h"
+#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
 #include <labstor/types/data_structures/shmem_string.h>
 
 #include "macros.h"

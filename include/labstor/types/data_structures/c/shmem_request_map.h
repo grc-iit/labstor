@@ -12,8 +12,8 @@
  * A consumer thread will see that this value is not INVALID, copy, and then set the entry to INVALID again
  * */
 
-#include <labstor/types/data_structures/shmem_qtok.h>
-#include <labstor/constants/macros.h>
+#include "labstor/types/data_structures/shmem_qtok.h"
+#include "labstor/constants/macros.h"
 
 #define LABSTOR_INVALID_REQUEST_ID 0xFFFFFFFF
 

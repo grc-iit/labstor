@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include <labstor/userspace/util/errors.h>
 
 #define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME, MODULE_ID) \
@@ -40,10 +40,10 @@ public:
             labstor::ipc::request *request){ return 1; };
     virtual size_t EstRequestIOTime(
             labstor::ipc::request *request){ return 0; };
-    virtual void ProcessRequest(
+    virtual bool ProcessRequest(
             labstor::queue_pair *qp,
             labstor::ipc::request *request,
-            labstor::credentials *creds) {};
+            labstor::credentials *creds) { return true; };
     virtual void StateUpdate(labstor::Module *prior) {}
 };
 typedef labstor::Module* (*create_module_fn)(void);
@@ -95,7 +95,7 @@ public:
     void SetModuleConstructor(labstor::id module_id, labstor::ModuleHandle &module_info) {
         AUTO_TRACE("", (size_t)this)
         mutex_.lock();
-        //TRACEPOINT("Adding module", module_id.key_, std::hash<labstor::id>()(module_id))
+        TRACEPOINT("Adding module", module_id.key_, std::hash<labstor::id>()(module_id))
         if(pkg_pool_.find(module_id) != pkg_pool_.end()) {
             dlclose(pkg_pool_[module_id].handle_);
         }
@@ -106,7 +106,7 @@ public:
 
     create_module_fn GetModuleConstructor(labstor::id module_id) {
         ModuleHandle module_info;
-        TRACEPOINT("GetModuleConstructor::GetModuleConstructor", module_id.key_, std::hash<labstor::id>()(module_id))
+        TRACEPOINT(module_id.key_, std::hash<labstor::id>()(module_id))
         mutex_.lock();
         if(pkg_pool_.find(module_id) == pkg_pool_.end()) {
             mutex_.unlock();

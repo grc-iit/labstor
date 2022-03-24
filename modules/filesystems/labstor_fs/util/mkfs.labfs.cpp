@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
         LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
         auto labfs = labstor::LabFS::Client();
         ipc_manager_->Connect();
-        labfs.Register(argv[1], argv[2], true);
+        labfs.Register(argv[1], argv[2], false);
         printf("Mounted FS %s on %s with namespace ID?\n", LABFS_MODULE_ID, argv[1]);
     LABSTOR_ERROR_HANDLE_END()
 }

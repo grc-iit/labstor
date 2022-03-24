@@ -2,13 +2,13 @@
 #ifndef LABSTOR_SHMEM_QUEUE_PAIR1_H
 #define LABSTOR_SHMEM_QUEUE_PAIR1_H
 
-#include <labstor/types/basics.h>
-#include <labstor/types/data_structures/shmem_qtok.h>
-#include <labstor/types/data_structures/spsc/shmem_request_queue.h>
-#include <labstor/types/data_structures/spsc/shmem_request_map.h>
-#include <labstor/constants/debug.h>
-#include <labstor/userspace/util/errors.h>
-#include <labstor/types/data_structures/queue_pair.h>
+#include "labstor/types/basics.h"
+#include "labstor/types/data_structures/shmem_qtok.h"
+#include "shmem_request_queue.h"
+#include "shmem_request_map.h"
+#include "labstor/constants/debug.h"
+#include "labstor/userspace/util/errors.h"
+#include "labstor/types/data_structures/queue_pair.h"
 
 
 /*QUEUE FLAGS & ID*/
@@ -126,6 +126,10 @@ static inline void labstor_queue_pair_RemoteAttach(struct labstor_queue_pair *qp
 static inline bool labstor_queue_pair_Enqueue(struct labstor_queue_pair *qp, struct labstor_request *rq, struct labstor_qtok_t *qtok) {
     //AUTO_TRACE("")
     return labstor_request_queue_Enqueue(&qp->sq_, rq, qtok);
+}
+
+static inline bool labstor_queue_pair_Peek(struct labstor_queue_pair *qp, struct labstor_request** rq, int i) {
+    return labstor_request_queue_Peek(&qp->sq_, rq, i);
 }
 
 static inline bool labstor_queue_pair_Dequeue(struct labstor_queue_pair *qp, struct labstor_request** rq) {
@@ -255,6 +259,9 @@ struct shmem_queue_pair : public labstor::queue_pair, public labstor_queue_pair 
             throw labstor::FAILED_TO_ENQUEUE.format();
         }
         return true;
+    }
+    inline bool _Peek(labstor::ipc::request **rq, int i) {
+        return labstor_queue_pair_Peek(this, rq, i);
     }
     inline bool _Dequeue(labstor::ipc::request **rq) {
         return labstor_queue_pair_Dequeue(this, rq);

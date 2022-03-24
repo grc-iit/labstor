@@ -5,7 +5,7 @@
 #include <omp.h>
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/util/timer.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include <labstor/types/thread_local.h>
 #include <labstor/userspace/util/partitioner.h>
 

@@ -16,10 +16,10 @@
 #include <labstor/types/basics.h>
 #include <labstor/types/allocator/allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include "per_process_ipc.h"
 #include <labstor/types/thread_local.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_int_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_int_map.h>
 
 #include "macros.h"
 #include "server.h"

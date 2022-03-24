@@ -12,7 +12,7 @@
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/namespace.h>
 #include <labstor/types/daemon.h>
-#include <labstor/types/data_structures/spsc/shmem_work_queue_secure.h>
+#include "labstor/types/data_structures/c/shmem_work_queue_secure.h"
 
 namespace labstor::Server {
 

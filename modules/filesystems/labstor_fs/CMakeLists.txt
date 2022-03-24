@@ -42,6 +42,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
 endif()
 
 #BUILD UTIL
+add_executable(mkfs.labfs util/mkfs.labfs.cpp)
+add_dependencies(mkfs.labfs labstor_client_library ${MODULE_NAME}_client)
+target_link_libraries(mkfs.labfs labstor_client_library ${MODULE_NAME}_client)
+
 add_executable(mount.labfs util/mount.labfs.cpp)
 add_dependencies(mount.labfs labstor_client_library ${MODULE_NAME}_client)
 target_link_libraries(mount.labfs labstor_client_library ${MODULE_NAME}_client)

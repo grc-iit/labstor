@@ -3,7 +3,7 @@
 //
 
 #include <labstor/userspace/util/errors.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_string_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>

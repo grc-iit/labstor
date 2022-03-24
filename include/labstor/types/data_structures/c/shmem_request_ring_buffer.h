@@ -5,19 +5,32 @@
 #ifndef LABSTOR_RING_BUFFER_OFF_T_SPSC_H
 #define LABSTOR_RING_BUFFER_OFF_T_SPSC_H
 
-#include <labstor/constants/busy_wait.h>
-#include <labstor/types/basics.h>
-#include <labstor/types/data_structures/mpmc/bitmap.h>
+#include "labstor/constants/busy_wait.h"
+#include "labstor/types/basics.h"
+#include "labstor/types/data_structures/bitmap.h"
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+#include "labstor/types/shmem_type.h"
+#include "labstor/userspace/util/errors.h"
 #endif
 
-//labstor_off_t: The semantic name of the type
-//labstor_off_t: The type being buffered
+//WORKER:
+//Enqeued 3 reqs in a queue of size 3
+//0: Peek request and process. It returns, but waits for something else to complete.
+    //If ordered, go to next queue.
+    //If unordered, go to next req in queue
+    //Let's say it's unordered
+//1: Peek request and process. It returns, but doesn't get dequeued.
+//2: Peek request and process. It completes fully, freeing up an additional space to enqueue
+
+//CLIENT:
+//Enqueue request. If the head is currently occupied and there are free entries, find the next request.
+//
 
 struct LABSTOR_RING_BUFFER_OFF_T_SPSC_Header {
     uint32_t enqueued_, dequeued_;
+#ifdef ENABLE_LOCKING
+    uint16_t e_lock_, d_lock_;
+#endif
     uint32_t max_depth_;
 };
 
@@ -36,6 +49,7 @@ struct labstor_request_ring_buffer {
     inline void Attach(void *region);
     inline bool Enqueue(labstor_off_t data);
     inline bool Enqueue(labstor_off_t data, uint32_t &req_id);
+    inline bool Peek(labstor_off_t &data, int i);
     inline bool Dequeue(labstor_off_t &data);
     inline uint32_t GetDepth();
     inline uint32_t GetMaxDepth();
@@ -71,6 +85,10 @@ static inline bool labstor_request_ring_buffer_Init(struct labstor_request_ring_
     rbuf->header_ = (struct LABSTOR_RING_BUFFER_OFF_T_SPSC_Header*)region;
     rbuf->header_->enqueued_ = 0;
     rbuf->header_->dequeued_ = 0;
+#ifdef ENABLE_LOCKING
+    rbuf->header_->e_lock_ = 0;
+    rbuf->header_->d_lock_ = 0;
+#endif
     if(region_size < labstor_request_ring_buffer_GetSize_global(max_depth)) {
 #ifdef __cplusplus
         throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
@@ -107,14 +125,21 @@ static inline void labstor_request_ring_buffer_RemoteAttach(
 
 static inline bool labstor_request_ring_buffer_Enqueue(struct labstor_request_ring_buffer *rbuf, labstor_off_t data, uint32_t *req_id) {
     uint32_t entry;
-    if(rbuf->header_->enqueued_ - rbuf->header_->dequeued_ == rbuf->header_->max_depth_) {
-        return false;
+#ifdef ENABLE_LOCKING
+    if(LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->e_lock_)) {
+#endif
+        if (rbuf->header_->enqueued_ - rbuf->header_->dequeued_ == rbuf->header_->max_depth_) {
+            return false;
+        }
+        entry = rbuf->header_->enqueued_ % rbuf->header_->max_depth_;
+        *req_id = rbuf->header_->enqueued_;
+        rbuf->queue_[entry] = data;
+        ++rbuf->header_->enqueued_;
+        return true;
+#ifdef ENABLE_LOCKING
     }
-    entry = rbuf->header_->enqueued_ % rbuf->header_->max_depth_;
-    *req_id = rbuf->header_->enqueued_;
-    rbuf->queue_[entry] = data;
-    ++rbuf->header_->enqueued_;
-    return true;
+    return false;
+#endif
 }
 
 static inline bool labstor_request_ring_buffer_Enqueue_simple(struct labstor_request_ring_buffer *rbuf, labstor_off_t data) {
@@ -122,13 +147,35 @@ static inline bool labstor_request_ring_buffer_Enqueue_simple(struct labstor_req
     return labstor_request_ring_buffer_Enqueue(rbuf, data, &enqueued);
 }
 
+static inline bool labstor_request_ring_buffer_Peek(struct labstor_request_ring_buffer *rbuf, labstor_off_t *data, int i) {
+    uint32_t entry;
+#ifdef ENABLE_LOCKING
+    if(LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->d_lock_)) {
+#endif
+    if(rbuf->header_->enqueued_ == rbuf->header_->dequeued_) { return false; }
+    entry = (rbuf->header_->dequeued_ + i) % rbuf->header_->max_depth_;
+    *data = rbuf->queue_[entry];
+    return true;
+#ifdef ENABLE_LOCKING
+    }
+    return false;
+#endif
+}
+
 static inline bool labstor_request_ring_buffer_Dequeue(struct labstor_request_ring_buffer *rbuf, labstor_off_t *data) {
     uint32_t entry;
-    if(rbuf->header_->enqueued_ == rbuf->header_->dequeued_) { return false; }
-    entry = rbuf->header_->dequeued_ % rbuf->header_->max_depth_;
-    *data = rbuf->queue_[entry];
-    ++rbuf->header_->dequeued_;
-    return true;
+#ifdef ENABLE_LOCKING
+    if(LABSTOR_INF_LOCK_TRYLOCK(&rbuf->header_->d_lock_)) {
+#endif
+        if(rbuf->header_->enqueued_ == rbuf->header_->dequeued_) { return false; }
+        entry = rbuf->header_->dequeued_ % rbuf->header_->max_depth_;
+        *data = rbuf->queue_[entry];
+        ++rbuf->header_->dequeued_;
+        return true;
+#ifdef ENABLE_LOCKING
+    }
+    return false;
+#endif
 }
 
 
@@ -157,6 +204,9 @@ bool labstor_request_ring_buffer::Enqueue(labstor_off_t data) {
 }
 bool labstor_request_ring_buffer::Enqueue(labstor_off_t data, uint32_t &req_id) {
     return labstor_request_ring_buffer_Enqueue(this, data, &req_id);
+}
+bool labstor_request_ring_buffer::Peek(labstor_off_t &data, int i) {
+    return labstor_request_ring_buffer_Peek(this, &data, i);
 }
 bool labstor_request_ring_buffer::Dequeue(labstor_off_t &data) {
     return labstor_request_ring_buffer_Dequeue(this, &data);

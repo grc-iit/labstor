@@ -7,7 +7,7 @@
 
 #include <labstor/types/allocator/allocator.h>
 #include <labstor/types/allocator/segment_allocator.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 
 namespace labstor {
 

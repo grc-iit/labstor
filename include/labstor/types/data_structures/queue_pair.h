@@ -26,6 +26,10 @@ public:
         return _Enqueue(reinterpret_cast<labstor::ipc::request*>(rq), qtok);
     }
     template<typename T>
+    inline bool Peek(T *&rq, int i) {
+        return _Peek(reinterpret_cast<labstor::ipc::request**>(&rq), i);
+    }
+    template<typename T>
     inline bool Dequeue(T *&rq) {
         return _Dequeue(reinterpret_cast<labstor::ipc::request**>(&rq));
     }
@@ -91,6 +95,7 @@ public:
 
 private:
     inline virtual bool _Enqueue(labstor::ipc::request *rq, labstor::ipc::qtok_t &qtok) = 0;
+    inline virtual bool _Peek(labstor::ipc::request **rq, int i) = 0;
     inline virtual bool _Dequeue(labstor::ipc::request **rq) = 0;
     inline virtual void _Complete(labstor_req_id_t req_id, labstor::ipc::request *rq) = 0;
     inline virtual bool _IsComplete(labstor_req_id_t req_id, labstor::ipc::request **rq) = 0;

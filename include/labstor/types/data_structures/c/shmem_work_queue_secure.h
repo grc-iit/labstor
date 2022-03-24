@@ -5,13 +5,13 @@
 #ifndef labstor_work_queue_secure_H
 #define labstor_work_queue_secure_H
 
-#include <labstor/constants/busy_wait.h>
-#include <labstor/types/basics.h>
-#include <labstor/types/data_structures/mpmc/bitmap.h>
+#include "labstor/constants/busy_wait.h"
+#include "labstor/types/basics.h"
+#include "labstor/types/data_structures/bitmap.h"
 #ifdef __cplusplus
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
-#include <labstor/constants/debug.h>
+#include "labstor/types/shmem_type.h"
+#include "labstor/userspace/util/errors.h"
+#include "labstor/constants/debug.h"
 #endif
 
 struct labstor_work_queue_secure_header {

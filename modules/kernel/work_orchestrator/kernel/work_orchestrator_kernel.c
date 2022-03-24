@@ -20,8 +20,8 @@
 
 #include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
-#include <labstor/types/data_structures/spsc/shmem_work_queue.h>
+#include <labstor/types/data_structures/c/shmem_queue_pair.h>
+#include <labstor/types/data_structures/c/shmem_work_queue.h>
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 #include <work_orchestrator/work_orchestrator.h>

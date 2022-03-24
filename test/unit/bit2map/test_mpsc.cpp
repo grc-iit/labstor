@@ -6,7 +6,7 @@
 #include <labstor/userspace/client/client.h>
 #include <labstor/userspace/util/timer.h>
 #include <modules/kernel/ipc_test/client/ipc_test_client.h>
-#include <labstor/types/data_structures/mpmc/bit2map.h>
+#include "labstor/types/data_structures/bit2map.h"
 
 #include <unistd.h>
 

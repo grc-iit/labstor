@@ -14,8 +14,9 @@ void SimpleModule::print2() {
 void SimpleModule::print3() {
     printf("HELLO3\n");
 }
-void SimpleModule::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+bool SimpleModule::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     printf("HERE?");
+    return true;
 }
 
 LABSTOR_MODULE_CONSTRUCT(SimpleModule, LABSTOR_SIMPLE_MODULE_ID)

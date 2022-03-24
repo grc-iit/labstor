@@ -3,19 +3,18 @@
 //
 
 #include "labstor/userspace/client/client.h"
-#include "modules/kernel/blkdev_table/client/blkdev_table_client.h"
-#include <modules/storage_api/mq_driver/client/mq_driver_client.h>
+#include <modules/iosched/no_op/client/no_op_client.h>
 
 int main(int argc, char **argv) {
     LABSTOR_IPC_MANAGER_T ipc_manager_;
-    labstor::MQDriver::Client mq_driver_;
+    labstor::iosched::NoOp::Client client_;
     if(argc != 1) {
-        printf("USAGE: ./register\n");
+        printf("USAGE: ./register [ns_key] [dev]\n");
         exit(1);
     }
     LABSTOR_ERROR_HANDLE_START()
     ipc_manager_ = LABSTOR_IPC_MANAGER;
     ipc_manager_->Connect();
-    mq_driver_.Register();
+    client_.Register(argv[1], argv[2]);
     LABSTOR_ERROR_HANDLE_END()
 }

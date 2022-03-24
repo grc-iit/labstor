@@ -18,10 +18,11 @@ struct labstor_request {
     uint16_t op_;
 #ifdef __cplusplus
     inline labstor_request() = default;
-    inline void Start(uint32_t req_id, uint32_t ns_id, uint16_t op) {
+    inline void Start(uint32_t req_id, uint32_t ns_id, uint16_t op, uint32_t code) {
         req_id_ = req_id;
         ns_id_ = ns_id;
         op_ = op;
+        code_ = code;
     }
 
     inline uint32_t GetNamespaceID() { return ns_id_; }

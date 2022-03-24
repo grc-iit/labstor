@@ -7,12 +7,12 @@
 
 #include <labstor/constants/macros.h>
 #include <labstor/types/basics.h>
-#include <labstor/types/data_structures/spsc/shmem_request_ring_buffer.h>
+#include "labstor/types/data_structures/c/shmem_request_ring_buffer.h"
 #ifdef __cplusplus
 #include "allocator.h"
 #endif
 #include <labstor/constants/debug.h>
-#include <labstor/types/data_structures/spsc/shmem_request_ring_buffer.h>
+#include "labstor/types/data_structures/c/shmem_request_ring_buffer.h"
 
 struct labstor_private_shmem_allocator_entry {
     uint32_t stamp_;

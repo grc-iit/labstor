@@ -13,7 +13,7 @@
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>
 
-#include <labstor/types/data_structures/mpmc/shmem_ring_buffer.h>
+#include "labstor/types/data_structures/shmem_ring_buffer.h"
 
 namespace labstor::BlkdevTable {
 
@@ -31,11 +31,9 @@ public:
             dev_ids_.Enqueue(i);
         }
     }
-    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
     void Initialize(labstor::ipc::request *rq) {}
-    void RegisterBlkdev(labstor::queue_pair *qp, labstor_blkdev_table_register_request *rq, labstor::credentials *creds);
-    void RegisterBlkdevComplete(labstor::queue_pair *private_qp, labstor_poll_blkdev_table_register *poll_rq);
-    void UnregisterBlkdev(labstor::queue_pair *qp, labstor_blkdev_table_register_request *rq);
+    bool RegisterBlkdev(labstor::queue_pair *qp, blkdev_table_register_request *rq, labstor::credentials *creds);
 };
 
 }

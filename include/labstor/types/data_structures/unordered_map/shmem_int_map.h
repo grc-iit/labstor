@@ -5,10 +5,10 @@
 #ifndef LABSTOR_INT_MAP_H
 #define LABSTOR_INT_MAP_H
 
-#include <labstor/types/data_structures/mpmc/unordered_map/constants.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_unordered_map.h>
-#include <labstor/userspace/util/errors.h>
-#include <labstor/types/shmem_type.h>
+#include "constants.h"
+#include "shmem_unordered_map.h"
+#include "labstor/userspace/util/errors.h"
+#include "labstor/types/shmem_type.h"
 
 namespace labstor::ipc::mpmc {
 

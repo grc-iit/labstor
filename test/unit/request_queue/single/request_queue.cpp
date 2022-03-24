@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 9/21/21.
 //
 
-#include <labstor/types/data_structures/spsc/shmem_request_queue.h>
+#include "labstor/types/data_structures/c/shmem_request_queue.h"
 #include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 int main(int argc, char **argv) {

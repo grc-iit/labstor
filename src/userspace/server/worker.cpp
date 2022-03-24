@@ -18,7 +18,7 @@ void labstor::Server::Worker::DoWork() {
             ipc_manager_->GetQueuePair(qp, qp_struct->GetQID());
             qp_depth = qp->GetDepth();
             for (uint32_t j = 0; j < qp_depth; ++j) {
-                if (!qp->Dequeue(rq)) { break; }
+                if (!qp->Peek(rq, 0)) { break; }
                 module = namespace_->Get(rq->GetNamespaceID());
                 if (!module) {
                     rq->SetCode(-1);
@@ -26,7 +26,12 @@ void labstor::Server::Worker::DoWork() {
                     TRACEPOINT("Could not find module in namespace", rq->GetNamespaceID())
                     continue;
                 }
-                module->ProcessRequest(qp, rq, creds);
+                bool is_complete = module->ProcessRequest(qp, rq, creds);
+                if(is_complete) {
+                    qp->Dequeue(rq);
+                } else {
+                    break;
+                }
             }
         }
     }

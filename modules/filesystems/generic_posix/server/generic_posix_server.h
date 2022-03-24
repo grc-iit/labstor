@@ -12,7 +12,7 @@
 #include <labstor/userspace/server/module_manager.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/namespace.h>
-#include <labstor/types/data_structures/mpmc/unordered_map/shmem_int_map.h>
+#include <labstor/types/data_structures/unordered_map/shmem_int_map.h>
 
 namespace labstor::GenericPosix {
 class Server : public labstor::Module {
@@ -26,7 +26,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
+    bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
     void Initialize(labstor::ipc::request *rq) {}
 };
 }

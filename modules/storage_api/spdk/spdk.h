@@ -9,7 +9,7 @@
 #include <labstor/constants/constants.h>
 #include <labstor/types/data_structures/shmem_qtok.h>
 #include "labstor/types/data_structures/queue_pair.h"
-#include "labstor/types/data_structures/spsc/shmem_queue_pair.h"
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include "labstor/types/data_structures/async_queue_pair.h"
 
 #include <vector>
@@ -26,8 +26,8 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
-#include <labstor/types/data_structures/shmem_poll.h>
-#include <labstor/types/data_structures/spsc/shmem_queue_pair.h>
+//#include <labstor/types/data_structures/shmem_poll.h>
+#include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include <modules/registrar/registrar.h>
 
 #define SPDK_MODULE_ID "SPDK"

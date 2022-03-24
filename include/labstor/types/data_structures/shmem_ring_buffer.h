@@ -5,10 +5,10 @@
 #ifndef LABSTOR_RING_BUFFER_MPMC_H
 #define LABSTOR_RING_BUFFER_MPMC_H
 
-#include <labstor/constants/busy_wait.h>
-#include <labstor/types/basics.h>
-#include <labstor/types/shmem_type.h>
-#include <labstor/userspace/util/errors.h>
+#include "labstor/constants/busy_wait.h"
+#include "labstor/types/basics.h"
+#include "labstor/types/shmem_type.h"
+#include "labstor/userspace/util/errors.h"
 
 namespace labstor::ipc::mpmc {
 
@@ -76,11 +76,13 @@ struct ring_buffer : public labstor::shmem_type {
             throw labstor::INVALID_RING_BUFFER_SIZE.format(region_size, max_depth);
         }
         header_->max_depth_ = max_depth;
+        queue_ = reinterpret_cast<T*>(header_ + 1);
         return true;
     }
 
     inline void Attach(void *region) {
         header_ = (struct ring_buffer_header<T>*)region;
+        queue_ = reinterpret_cast<T*>(header_ + 1);
     }
 
     inline bool Enqueue(T data, uint32_t &req_id) {
