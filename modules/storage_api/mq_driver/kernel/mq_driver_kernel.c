@@ -363,12 +363,14 @@ static blk_status_t __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx,
             break;
         case BLK_STS_RESOURCE:
         case BLK_STS_DEV_RESOURCE:
-            blk_mq_update_dispatch_busy(hctx, true);
-            //__blk_mq_requeue_request(rq);
+            printk("request_layer_km: NEEDS REQUEUE\n");
+            blk_mq_update_dispatch_busy(hctx, false);
+            *cookie = BLK_QC_T_NONE;
             break;
         default:
             blk_mq_update_dispatch_busy(hctx, false);
             *cookie = BLK_QC_T_NONE;
+            printk("request_layer_km: FAILED\n");
             break;
     }
 
@@ -383,75 +385,49 @@ static blk_status_t __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
     struct request_queue *q = rq->q;
     bool run_queue = true;
 
-    /*
-     * RCU or SRCU read lock is needed before checking quiesced flag.
-     *
-     * When queue is stopped or quiesced, ignore 'bypass_insert' from
-     * blk_mq_request_issue_directly(), and return BLK_STS_OK to caller,
-     * and avoid driver to try to dispatch again.
-     */
     if (blk_mq_hctx_stopped(hctx) || blk_queue_quiesced(q)) {
-        run_queue = false;
-        bypass_insert = false;
-        goto insert;
+        return -1;
     }
 
     if (q->elevator && !bypass_insert)
-        goto insert;
+        return -1;
 
     if (!blk_mq_get_dispatch_budget(hctx))
-        goto insert;
+        return -1;
 
     if (!blk_mq_get_driver_tag(rq)) {
         blk_mq_put_dispatch_budget(hctx);
-        goto insert;
+        return -1;
     }
 
+    pr_debug("GET DRIVER TAG: %d\n", rq->tag);
     return __blk_mq_issue_directly(hctx, rq, cookie, last);
-    insert:
-    if (bypass_insert)
-        return BLK_STS_RESOURCE;
-    return BLK_STS_OK;
 }
 
 static int blk_mq_try_issue_directly(struct request *rq, blk_qc_t *cookie)
 {
     blk_status_t ret;
     int srcu_idx;
-    int success = LABSTOR_MQ_OK;
     struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
+    int success = LABSTOR_MQ_OK;
 
     might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 
     hctx_lock(hctx, &srcu_idx);
 
-    ret = __blk_mq_try_issue_directly(hctx, rq, cookie, false, true);
+    ret = __blk_mq_try_issue_directly(hctx, rq, cookie, true, true); //TODO: May not be last...
     if (ret == BLK_STS_RESOURCE || ret == BLK_STS_DEV_RESOURCE) {
+        blk_mq_end_request(rq, ret); //TODO: theoretically requeue
         success = LABSTOR_MQ_DEVICE_BUSY;
-        blk_mq_end_request(rq, ret);
     }
     else if (ret != BLK_STS_OK) {
-        success = LABSTOR_MQ_NOT_OK;
         blk_mq_end_request(rq, ret);
+        success = LABSTOR_MQ_NOT_OK;
     }
 
     hctx_unlock(hctx, srcu_idx);
 
     return success;
-}
-
-blk_status_t blk_mq_request_issue_directly(struct request *rq, bool last)
-{
-    blk_status_t ret;
-    int srcu_idx;
-    blk_qc_t unused_cookie;
-    struct blk_mq_hw_ctx *hctx = rq->mq_hctx;
-
-    hctx_lock(hctx, &srcu_idx);
-    ret = __blk_mq_try_issue_directly(hctx, rq, &unused_cookie, true, last);
-    hctx_unlock(hctx, srcu_idx);
-
-    return ret;
 }
 
 
@@ -624,7 +600,7 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
         goto err_complete;
     }
     //Submit BIO to MQ layer
-    if(0 && q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
+    if(q->mq_ops && q->mq_ops->queue_rq && rq->hctx_ >= 0) {
         pr_err("HCTX: %d\n", rq->hctx_); //TODO: pr_info
         //Create request to hctx
         dev_rq = bio_to_rq(q, rq->hctx_, bio, num_pages);
@@ -633,8 +609,8 @@ inline void submit_mq_driver_io(struct labstor_queue_pair *qp, struct labstor_mq
             goto err_complete;
         }
         //Submit request to HCTX
-        //success = blk_mq_try_issue_directly(dev_rq, &cookie);
-        blk_execute_rq_nowait(q, dev_rq->rq_disk, dev_rq, true, NULL);
+        success = blk_mq_try_issue_directly(dev_rq, &cookie);
+        //blk_execute_rq_nowait(q, dev_rq->rq_disk, dev_rq, true, NULL);
         pr_info("Here5: sub\n");
         goto err_complete;
     }
