@@ -4,7 +4,7 @@
 
 #include <omp.h>
 #include <labstor/userspace/client/client.h>
-#include <modules/dummy/client/dummy_client.h>
+#include <labmods/dummy/client/dummy_client.h>
 
 #include <unistd.h>
 

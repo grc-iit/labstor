@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules/registrar)
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/labmods/registrar)
 
 option(DEBUG OFF)
 
@@ -89,7 +89,7 @@ add_custom_target(start_trusted_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} 
 add_custom_target(insert_modules COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/install_server_modules.sh)
 add_custom_target(start_kernel_server_test COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server_test.sh)
 add_custom_target(stop_kernel_server_test COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/stop_kernel_server_test.sh)
-add_custom_target(terminate_server COMMAND ${CMAKE_BUILD_DIR}/modules/registrar/terminate_server_exec)
+add_custom_target(terminate_server COMMAND ${CMAKE_BUILD_DIR}/labmods/registrar/terminate_server_exec)
 
 add_executable(partitioner util/partitioner.cpp)
 
@@ -98,6 +98,6 @@ add_executable(partitioner util/partitioner.cpp)
 #target_link_libraries(mount labstor_client_library)
 
 ######MODULES & TESTS
-add_subdirectory(modules)
+add_subdirectory(labmods)
 add_subdirectory(test)
 add_subdirectory(benchmark)

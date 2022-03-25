@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(OpenMP)
 
-include_directories(include ${CMAKE_SOURCE_DIR}/modules/kernel)
+include_directories(include ${CMAKE_SOURCE_DIR}/labmods/kernel)
 set(SPDK_DEPS spdk_nvme_lib spdk_client)
 set(SPDK_LIBS -lnuma -ldl -pthread -lrt -luuid -lcrypto -lm -laio spdk_nvme_lib spdk_client)
 

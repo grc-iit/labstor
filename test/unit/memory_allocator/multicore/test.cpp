@@ -5,7 +5,7 @@
 #include <mpi.h>
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/allocator/private_shmem_allocator.h>
-#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 uint32_t ncores = 8;
 uint32_t page_size = 128;

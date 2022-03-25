@@ -14,8 +14,8 @@
 #include <labstor/userspace/util/partitioner.h>
 #include <labstor/kernel/client/kernel_client.h>
 
-#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
-#include <modules/kernel/work_orchestrator/netlink_client/work_orchestrator_client_netlink.h>
+#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/kernel/work_orchestrator/netlink_client/work_orchestrator_client_netlink.h>
 
 void labstor::Server::WorkOrchestrator::CreateWorkers() {
     AUTO_TRACE("")

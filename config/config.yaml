@@ -1,22 +1,22 @@
 modules:
   Dummy:
-    client: ${LABSTOR_BUILD_DIR}/modules/dummy/libdummy_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/dummy/libdummy_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/dummy/libdummy_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/dummy/libdummy_server.so
   IPCTest:
-    client: ${LABSTOR_BUILD_DIR}/modules/kernel/ipc_test/libipc_test_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/kernel/ipc_test/libipc_test_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/kernel/ipc_test/libipc_test_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/kernel/ipc_test/libipc_test_server.so
   BlkdevTable:
-    client: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/kernel/blkdev_table/libblkdev_table_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/kernel/blkdev_table/libblkdev_table_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/kernel/blkdev_table/libblkdev_table_server.so
   MQDriver:
-    client: ${LABSTOR_BUILD_DIR}/modules/storage_api/mq_driver/libmq_driver_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/storage_api/mq_driver/libmq_driver_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/storage_api/mq_driver/libmq_driver_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/storage_api/mq_driver/libmq_driver_server.so
   GenericPosix:
-    client: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/filesystems/generic_posix/libgeneric_posix_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_server.so
   LabFS:
-    client: ${LABSTOR_BUILD_DIR}/modules/filesystems/labstor_fs/liblabstor_fs_client.so
-    server: ${LABSTOR_BUILD_DIR}/modules/filesystems/labstor_fs/liblabstor_fs_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_server.so
 admin_thread: 0
 system_monitor: 1
 work_orchestrator:

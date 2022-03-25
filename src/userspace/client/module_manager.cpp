@@ -10,7 +10,7 @@
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
 #include <labstor/userspace/client/module_manager.h>
-#include <modules/registrar/client/registrar_client.h>
+#include <labmods/registrar/client/registrar_client.h>
 
 labstor::id labstor::Client::ModuleManager::UpdateModule(std::string path) {
     AUTO_TRACE(path)

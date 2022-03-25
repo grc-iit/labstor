@@ -40,7 +40,7 @@ class LabStorTrustedServer:
         return f'{os.environ["LABSTOR_BUILD_DIR"]}/labstor_trusted_server {self.conf}'
 
     def GetKillCommand(self):
-        return f'{os.environ["LABSTOR_BUILD_DIR"]}/modules/registrar/terminate'
+        return f'{os.environ["LABSTOR_BUILD_DIR"]}/labmods/registrar/terminate'
 
 class PartitionCores:
     def __init__(self, pid, affinity):

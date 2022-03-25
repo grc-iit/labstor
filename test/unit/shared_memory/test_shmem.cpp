@@ -5,7 +5,7 @@
 #include <labstor/userspace/server/macros.h>
 #include <labstor/kernel/client/kernel_client.h>
 #include <secure_shmem/secure_shmem.h>
-#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 int main() {
     int region_id;

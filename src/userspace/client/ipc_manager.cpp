@@ -14,7 +14,7 @@
 #include <labstor/types/allocator/segment_allocator.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
-#include <modules/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include <sys/sysinfo.h>
 
 void labstor::Client::IPCManager::Connect() {
