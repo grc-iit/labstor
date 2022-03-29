@@ -3,7 +3,7 @@ project(labstor)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(MODULE_NAME blockfs)
+set(MODULE_NAME block_fs)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/modules ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 
 #BUILD KERNEL MODULE
@@ -42,10 +42,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
 endif()
 
 #BUILD UTIL
-add_executable(mkfs.labfs util/mkfs.labfs.cpp)
-add_dependencies(mkfs.labfs labstor_client_library ${MODULE_NAME}_client)
-target_link_libraries(mkfs.labfs labstor_client_library ${MODULE_NAME}_client)
-
-add_executable(mount.labfs util/mount.blockfs.cpp)
-add_dependencies(mount.labfs labstor_client_library ${MODULE_NAME}_client)
-target_link_libraries(mount.labfs labstor_client_library ${MODULE_NAME}_client)
+add_executable(mount.blockfs util/mount.blockfs.cpp)
+add_dependencies(mount.blockfs labstor_client_library ${MODULE_NAME}_client)
+target_link_libraries(mount.blockfs labstor_client_library ${MODULE_NAME}_client)
