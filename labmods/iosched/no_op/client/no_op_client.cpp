@@ -13,4 +13,8 @@ void labstor::iosched::NoOp::Client::Register(const std::string &ns_key, const s
 int labstor::iosched::NoOp::Client::GetNamespaceID() {
 }
 
+labstor::ipc::qtok_t labstor::iosched::NoOp::Client::AIO(void *buf, size_t size, size_t off, labstor::GenericBlock::Ops op) {
+    return labstor::ipc::qtok_t();
+}
+
 LABSTOR_MODULE_CONSTRUCT(labstor::iosched::NoOp::Client, NO_OP_IOSCHED_MODULE_ID);

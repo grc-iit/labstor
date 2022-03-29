@@ -14,7 +14,6 @@
 #include <labstor/userspace/client/ipc_manager.h>
 
 #include "labstor/types/data_structures/c/shmem_queue_pair.h"
-#include <labstor/types/data_structures/shmem_array.h>
 #include "labstor/types/data_structures/shmem_ring_buffer.h"
 #include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
 #include <labstor/userspace/types/module.h>

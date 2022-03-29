@@ -6,9 +6,9 @@
 #include <labmods/filesystems/labstor_fs/labstor_fs.h>
 #include <labmods/filesystems/labstor_fs/client/labstor_fs_client.h>
 
-void labstor::LabFS::Client::Register(char *ns_key, char *next_module, bool has_fs) {
+void labstor::LabFS::Client::Register(char *ns_key, char *next_module) {
     auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<register_request>(LABFS_MODULE_ID, ns_key, next_module, has_fs);
+    ns_id_ = registrar.RegisterInstance<register_request>(LABFS_MODULE_ID, ns_key, next_module);
 }
 
 int labstor::LabFS::Client::Open(int fd, const char *path, int pathlen, int oflag) {

@@ -10,9 +10,9 @@
 #include <labmods/filesystems/generic_posix/generic_posix.h>
 #include <labmods/registrar/registrar.h>
 
-#define LABFS_MODULE_ID "LabFS"
+#define BLOCKFS_MODULE_ID "BlockFS"
 
-namespace labstor::LabFS {
+namespace labstor::BlockFS {
 
 struct register_request : public labstor::Registrar::register_request {
     labstor::id next_;

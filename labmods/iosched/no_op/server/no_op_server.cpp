@@ -14,4 +14,7 @@ void labstor::iosched::NoOp::Server::ProcessRequest(labstor::queue_pair *qp, lab
     }
 }
 
-LABSTOR_MODULE_CONSTRUCT(labstor::iosched::NoOp::Server, MQ_DRIVER_MODULE_ID);
+//Need to get number of HW queues
+//Key requests to kernel queues
+
+LABSTOR_MODULE_CONSTRUCT(labstor::iosched::NoOp::Server, NO_OP_IOSCHED_MODULE_ID);

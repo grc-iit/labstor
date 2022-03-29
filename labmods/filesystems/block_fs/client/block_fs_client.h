@@ -2,10 +2,9 @@
 // Created by lukemartinlogan on 12/30/21.
 //
 
-#ifndef LABSTOR_LABSTOR_FS_CLIENT_H
-#define LABSTOR_LABSTOR_FS_CLIENT_H
+#ifndef LABSTOR_BLOCK_FS_CLIENT_H
+#define LABSTOR_BLOCK_FS_CLIENT_H
 
-#include <labmods/filesystems/labstor_fs/labstor_fs.h>
 #include <labmods/filesystems/generic_posix/lib/posix_client.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
@@ -15,15 +14,16 @@
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
 
-namespace labstor::LabFS {
+namespace labstor::BlockFS {
 
 class Client : public labstor::Posix::Client {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
     uint32_t ns_id_;
+    std::unordered_map<int,labstor::GenericPosix::FILE*> fd_to_file_;
 public:
-    Client() : labstor::Posix::Client(LABFS_MODULE_ID) {
+    Client() : labstor::Posix::Client(BLOCKFS_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
@@ -37,4 +37,4 @@ public:
 
 };
 
-#endif //LABSTOR_LABSTOR_FS_CLIENT_H
+#endif //LABSTOR_BLOCK_FS_CLIENT_H

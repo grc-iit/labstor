@@ -28,7 +28,8 @@ add_custom_target(clean_modules COMMAND
 add_subdirectory(registrar)
 add_subdirectory(dummy)
 add_subdirectory(filesystems/generic_posix)
-add_subdirectory(filesystems/labstor_fs)
+add_subdirectory(filesystems/block_fs)
+#add_subdirectory(filesystems/labstor_fs)
 
 message("Are we with SPDK?")
 message(${WITH_SPDK})

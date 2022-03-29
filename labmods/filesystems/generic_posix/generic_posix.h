@@ -29,6 +29,10 @@ enum class Ops {
     kIOComplete
 };
 
+struct FILE {
+    int off_;
+};
+
 struct open_request : public labstor::ipc::request {
     int oflags_;
     int fd_;
@@ -84,12 +88,19 @@ struct generic_posix_passthrough_request : public labstor::ipc::request {
 struct io_request : generic_posix_passthrough_request {
     void *buf_;
     ssize_t size_;
+    int num_qtoks_, cur_qtok_;
+    labstor::ipc::qtok_t *qtoks_;
     inline void Start(int ns_id, labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) {
         SetNamespaceID(ns_id);
         SetOp(static_cast<int>(op));
         fd_ = fd;
         buf_ = buf;
         size_ = size;
+    }
+    inline void SetQtoks(int num_qtoks, labstor::ipc::qtok_t *qtoks) {
+        num_qtoks_ = num_qtoks;
+        qtoks_ = qtoks;
+        cur_qtok_ = 0;
     }
     inline void Complete(ssize_t size, int code) {
         size_ = size;

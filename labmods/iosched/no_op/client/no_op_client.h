@@ -13,17 +13,19 @@
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
+#include <labmods/block/client/block_client.h>
 
 namespace labstor::iosched::NoOp {
 
-class Client: public labstor::Module {
+class Client: public labstor::GenericBlock::Client {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     uint32_t ns_id_;
 public:
-    Client() : labstor::Module(NO_OP_IOSCHED_MODULE_ID) {
+    Client() : labstor::GenericBlock::Client(NO_OP_IOSCHED_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
+    labstor::ipc::qtok_t AIO(void *buf, size_t size, size_t off, labstor::GenericBlock::Ops op) override;
     void Register(const std::string &ns_key, const std::string &dev_name);
     void Initialize(labstor::ipc::request *rq) {}
     int GetNamespaceID();
