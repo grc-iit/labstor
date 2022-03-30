@@ -78,7 +78,7 @@ public:
         ModuleHandle module_info;
         void *handle = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
         if(handle == NULL) {
-            throw DLSYM_MODULE_NOT_FOUND.format(path);
+            throw DLSYM_MODULE_NOT_FOUND.format(path, dlerror());
         }
         labstor::create_module_fn create_module = (labstor::create_module_fn)dlsym(handle, "create_module");
         if(create_module == NULL) {
