@@ -27,8 +27,8 @@ public:
         namespace_ = LABSTOR_NAMESPACE;
     }
     void Initialize(labstor::ipc::request *rq) {}
-    int GetNamespaceID();
     void Register();
+    int Link();
     void GetValue();
 };
 

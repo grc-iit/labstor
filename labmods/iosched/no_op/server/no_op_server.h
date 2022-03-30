@@ -20,7 +20,7 @@ class Server : public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
-    int next_module_, num_hctx_;
+    int next_module_, num_hw_queues_, queue_depth_;
 public:
     Server() : labstor::Module(NO_OP_IOSCHED_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;

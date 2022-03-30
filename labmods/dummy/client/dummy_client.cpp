@@ -15,7 +15,7 @@ void labstor::test::Dummy::Client::Register() {
     TRACEPOINT(ns_id_)
 }
 
-int labstor::test::Dummy::Client::GetNamespaceID() {
+int labstor::test::Dummy::Client::Link() {
     auto registrar = labstor::Registrar::Client();
     if(ns_id_ == 0) {
         ns_id_ = registrar.GetNamespaceID(LABSTOR_DUMMY_MODULE_ID);

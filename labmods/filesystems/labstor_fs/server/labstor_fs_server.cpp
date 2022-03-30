@@ -35,7 +35,7 @@ inline void labstor::LabFS::Server::Initialize(labstor::ipc::request *rq) {
     LogCommit *commit;
     std::list<LogCommit*> log;
     Block block = log_.GetLogBlock();
-    ipc_manager_->GetQueuePair(priv_qp, LABSTOR_QP_PRIVATE | LABSTOR_QP_LOW_LATENCY);
+    ipc_manager_->GetQueuePair(priv_qp, LABSTOR_QP_PRIVATE | LABSTOR_QP_INTERMEDIATE | LABSTOR_QP_LOW_LATENCY);
     do {
         //Load log block from storage
         commit = reinterpret_cast<LogCommit*>(malloc(block.size_));

@@ -22,6 +22,6 @@ int main(int argc, char **argv) {
     blkdev_table.Register();
     int dev_id = blkdev_table.RegisterBlkdev(dev_path);
     mq_driver_.Register(ns_key, dev_id);
-    printf("MQDriver: Registered %s (%s) as device %d\n", dev_path, ns_key, dev_id);
+    printf("MQDriver: Registered %s (%s) as device %d (ns_id=%d)\n", dev_path, ns_key, dev_id, mq_driver_.GetNamespaceID());
     LABSTOR_ERROR_HANDLE_END()
 }

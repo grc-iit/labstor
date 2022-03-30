@@ -11,6 +11,9 @@ modules:
   MQDriver:
     client: ${LABSTOR_BUILD_DIR}/labmods/storage_api/mq_driver/libmq_driver_client.so
     server: ${LABSTOR_BUILD_DIR}/labmods/storage_api/mq_driver/libmq_driver_server.so
+  NoOp:
+    client: ${LABSTOR_BUILD_DIR}/labmods/iosched/no_op/libno_op_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/iosched/no_op/libno_op_server.so
   GenericPosix:
     client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_client.so
     server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_server.so
@@ -32,21 +35,21 @@ work_orchestrator:
 ipc_manager:
   client:
     max_region_size_kb: 1024
-    num_queues: 4
+    num_queues: 16
     queue_depth: 512
     request_unit_bytes: 256
     min_request_region_kb: 512
 
   kernel:
     max_region_size_kb: 1024
-    num_queues: 4
+    num_queues: 16
     queue_depth: 1024
     request_unit_bytes: 64
     min_request_region_kb: 512
 
   private:
     max_region_size_kb: 1024
-    num_queues: 4
+    num_queues: 16
     queue_depth: 1024
     request_unit_bytes: 64
     min_request_region_kb: 500

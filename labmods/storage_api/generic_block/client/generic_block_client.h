@@ -6,7 +6,7 @@
 #define LABSTOR_BLOCK_CLIENT_H
 
 #include "labstor/userspace/types/module.h"
-#include "labmods/storage_api/block/block.h"
+#include <labmods/storage_api/generic_block/generic_block.h>
 
 namespace labstor::GenericBlock {
 

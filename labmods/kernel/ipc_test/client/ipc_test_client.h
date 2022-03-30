@@ -25,7 +25,7 @@ public:
     }
     void Initialize(labstor::ipc::request *rq) {}
     void Register();
-    int GetNamespaceID();
+    int Link();
     int Start(int batch_size);
 };
 

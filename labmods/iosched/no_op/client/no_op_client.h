@@ -25,9 +25,8 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     labstor::ipc::qtok_t AIO(void *buf, size_t size, size_t off, labstor::GenericBlock::Ops op) override;
-    void Register(const std::string &ns_key, const std::string &dev_name);
+    void Register(const std::string &ns_key, const std::string &next_module);
     void Initialize(labstor::ipc::request *rq) {}
-    int GetNamespaceID();
 };
 
 }

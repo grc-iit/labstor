@@ -7,7 +7,7 @@
 #include <labmods/iosched/no_op/client/no_op_client.h>
 
 void labstor::iosched::NoOp::Client::Register(const std::string &ns_key, const std::string &next_module) {
-    AUTO_TRACE("")
+    AUTO_TRACE("ns_key", ns_key, "next_module", next_module)
     auto registrar = labstor::Registrar::Client();
     ns_id_ = registrar.RegisterInstance<register_request>(NO_OP_IOSCHED_MODULE_ID, ns_key, next_module);
 }

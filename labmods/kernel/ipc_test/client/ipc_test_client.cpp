@@ -14,7 +14,7 @@ void labstor::IPCTest::Client::Register() {
     ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
 }
 
-int labstor::IPCTest::Client::GetNamespaceID() {
+int labstor::IPCTest::Client::Link() {
     auto registrar = labstor::Registrar::Client();
     if(ns_id_ == 0) {
         ns_id_ = registrar.GetNamespaceID(IPC_TEST_MODULE_ID);
