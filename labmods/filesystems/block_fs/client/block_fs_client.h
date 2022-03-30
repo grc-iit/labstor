@@ -20,8 +20,7 @@ class Client : public labstor::Posix::Client {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
-    uint32_t ns_id_;
-    std::unordered_map<int,labstor::GenericPosix::FILE*> fd_to_file_;
+    std::unordered_map<int,labstor::GenericPosix::FILE> fd_to_file_;
 public:
     Client() : labstor::Posix::Client(BLOCKFS_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
@@ -31,8 +30,10 @@ public:
     void Register(char *ns_key, char *next_module);
     int Open(int fd, const char *path, int pathlen, int oflag);
     int Close(int fd);
-    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
-    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
+    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size);
+    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size);
+    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size);
+    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size);
 };
 
 };

@@ -74,7 +74,15 @@ int labstor::GenericPosix::Client::Close(int fd) {
     return 0;
 }
 
-labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
+labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size) {
+    AUTO_TRACE("")
+    if(fd < fd_min_) { return labstor::ipc::qtok_t(); }
+    uint32_t ns_id = fd_to_ns_id_[fd];
+    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    return client->AIO(op, fd, buf, off, size);
+}
+
+labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) {
     AUTO_TRACE("")
     if(fd < fd_min_) { return labstor::ipc::qtok_t(); }
     uint32_t ns_id = fd_to_ns_id_[fd];
@@ -82,7 +90,15 @@ labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::O
     return client->AIO(op, fd, buf, size);
 }
 
-ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) {
+ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size) {
+    AUTO_TRACE("")
+    if(fd < fd_min_) { return -1; }
+    uint32_t ns_id = fd_to_ns_id_[fd];
+    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    return client->IO(op, fd, buf, off, size);
+}
+
+ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) {
     AUTO_TRACE("")
     if(fd < fd_min_) { return -1; }
     uint32_t ns_id = fd_to_ns_id_[fd];

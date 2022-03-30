@@ -1,7 +1,7 @@
 
 # LabStor
 
-A high-performance, lightweight, hierarchical, modular storage stack for Linux-based systems.
+LabStor is a holistic platform for developing and managing I/O stacks in userspace.
 
 ## 1. Dependencies
 
@@ -11,6 +11,11 @@ cmake 3.10 or higher
 C++17 compiler  
 C11 compiler  
 yaml-cpp
+
+## 2. Installation
+
+We provide an installation script for those running a red-hat-based or ubuntu-based distro.
+We assume the kernel version is as provided.
 
 ### Linux Headers
 ```
@@ -114,6 +119,25 @@ sudo HUGEMEM=512 scripts/setup.sh
 sudo scripts/setup.sh reset
 ```
 
+### FxMark
+```bash
+https://www.usenix.org/system/files/conference/atc16/atc16_paper-min.pdf
+git clone https://github.com/sslab-gatech/fxmark.git
+cd fxmark
+make
+sudo bin/fxmark --type=MWCL --ncore=1 --duration=20 --root=/home/cc/hi
+```
+
+### Filebench
+```
+git clone https://github.com/filebench/filebench.git
+libtoolize
+aclocal
+autoheader
+automake --add-missing
+autoconf
+```
+
 ## 2. Building
 
 ```
@@ -164,4 +188,6 @@ echo "7" > /proc/sys/kernel/printk
 
 Decrease debugging level:
 echo "4" > /proc/sys/kernel/printk
+
+ssh cc@129.114.108.227
 ```

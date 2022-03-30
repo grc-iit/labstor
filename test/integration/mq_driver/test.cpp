@@ -72,17 +72,17 @@ int main(int argc, char **argv) {
 
         //Register MQ driver
         labstor::MQDriver::Client mq_driver;
-        mq_driver.Register();
+        mq_driver.Register(path, dev_id);
 
         //Write to device
         for(int i = 0; i < num_ios; ++i) {
             printf("CURRENT: %d\n", i);
             memset(user_buf, nonce, buf_size);
-            mq_driver.Write(dev_id, user_buf, buf_size, sector, hctx);
+            mq_driver.Write(user_buf, buf_size, sector, hctx);
             memset(user_buf, 0, buf_size);
 
             //Read from device
-            mq_driver.Read(dev_id, user_buf, buf_size, sector, hctx);
+            mq_driver.Read(user_buf, buf_size, sector, hctx);
 
             //Verify I/O completed
             if(!verify_buf(nonce, (char*)user_buf, buf_size, path)) {

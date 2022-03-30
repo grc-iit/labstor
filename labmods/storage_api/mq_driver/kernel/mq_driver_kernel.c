@@ -32,8 +32,9 @@
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 
-#include <mq_driver/kernel/mq_driver_kernel.h>
-#include <blkdev_table/kernel/blkdev_table_kernel.h>
+#include <labmods/storage_api/generic_queue/generic_queue.h>
+#include <labmods/storage_api/mq_driver/kernel/mq_driver_kernel.h>
+#include <labmods/kernel/blkdev_table/kernel/blkdev_table_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module that performs I/O with underlying storage devices");
@@ -659,12 +660,13 @@ inline void poll_io_completion(struct labstor_queue_pair *qp, struct labstor_mq_
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
 }
 
-inline void get_num_hw_queues(struct labstor_queue_pair *qp, struct labstor_mq_driver_request *rq) {
+inline void get_num_hw_queues(struct labstor_queue_pair *qp, struct labstor_queue_stats_request *rq) {
     struct block_device *bdev;
     struct request_queue *q;
     bdev = labstor_get_bdev(rq->dev_id_);
     q = bdev->bd_disk->queue;
     rq->num_hw_queues_ = q->nr_hw_queues;
+    rq->queue_depth_ = q->nr_requests;
     rq->header_.code_ = LABSTOR_REQUEST_SUCCESS;
     labstor_queue_pair_CompleteInf(qp, (struct labstor_request*)rq);
 }
@@ -678,7 +680,7 @@ void mq_process_request_fn(struct labstor_queue_pair *qp, struct labstor_request
             break;
         }
         case LABSTOR_MQ_NUM_HW_QUEUES: {
-            get_num_hw_queues(qp, (struct labstor_mq_driver_request*)rq);
+            get_num_hw_queues(qp, (struct labstor_queue_stats_request*)rq);
             break;
         }
         case LABSTOR_MQ_POLL_COMPLETION: {

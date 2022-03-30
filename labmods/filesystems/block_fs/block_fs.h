@@ -12,6 +12,9 @@
 
 #define BLOCKFS_MODULE_ID "BlockFS"
 
+#define SMALL_BLOCK_SIZE (4*(1<<10))
+#define LARGE_BLOCK_SIZE (128*(1<<10))
+
 namespace labstor::BlockFS {
 
 struct register_request : public labstor::Registrar::register_request {

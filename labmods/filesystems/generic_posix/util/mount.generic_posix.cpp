@@ -19,6 +19,6 @@ int main(int argc, char **argv) {
         auto registrar = labstor::Registrar::Client();
         ipc_manager_->Connect();
         int ns_id = registrar.RegisterInstance<labstor::Registrar::register_request>(GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID);
-        printf("Mounted FS %s on %s with namespace ID %d\n", GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID, ns_id);
+        printf("GenericPOSIX: Mounted (ns_id=%d)\n", GENERIC_POSIX_MODULE_ID, ns_id);
     LABSTOR_ERROR_HANDLE_END()
 }

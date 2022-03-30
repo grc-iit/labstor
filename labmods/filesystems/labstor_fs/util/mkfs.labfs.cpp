@@ -8,7 +8,7 @@
 #include <labstor/userspace/client/namespace.h>
 #include <labmods/registrar/registrar.h>
 #include <labmods/registrar/client/registrar_client.h>
-#include <labmods/block/block.h>
+#include <labmods/storage_api/generic_block/generic_block.h>
 #include <labmods/block/client/block_client.h>
 #include <labmods/filesystems/labstor_fs/lib/labstor_fs_log.h>
 #include <labmods/filesystems/labstor_fs/client/labstor_fs_client.h>

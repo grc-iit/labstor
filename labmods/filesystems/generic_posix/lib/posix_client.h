@@ -23,8 +23,10 @@ public:
     explicit Client(labstor::id &&module_id) : labstor::Module(module_id) {}
     virtual int Open(int fd, const char *path, int pathlen, int oflag) = 0;
     virtual int Close(int fd) = 0;
-    virtual labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) = 0;
-    virtual ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size) = 0;
+    virtual labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size) = 0;
+    virtual labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) = 0;
+    virtual ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size) = 0;
+    virtual ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) = 0;
 };
 
 }

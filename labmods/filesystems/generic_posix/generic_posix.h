@@ -31,6 +31,7 @@ enum class Ops {
 
 struct FILE {
     int off_;
+    FILE() : off_(0) {}
 };
 
 struct open_request : public labstor::ipc::request {
@@ -71,7 +72,7 @@ struct close_request : public labstor::ipc::request{
     }
 };
 
-struct generic_posix_passthrough_request : public labstor::ipc::request {
+struct passthrough_request : public labstor::ipc::request {
     uint32_t fs_ns_id_;
     int fd_;
     inline void SetFD(int fd) {
@@ -85,17 +86,19 @@ struct generic_posix_passthrough_request : public labstor::ipc::request {
     }
 };
 
-struct io_request : generic_posix_passthrough_request {
+struct io_request : passthrough_request {
     void *buf_;
+    size_t off_;
     ssize_t size_;
     int num_qtoks_, cur_qtok_;
     labstor::ipc::qtok_t *qtoks_;
-    inline void Start(int ns_id, labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size) {
+    inline void Start(int ns_id, labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size) {
         SetNamespaceID(ns_id);
         SetOp(static_cast<int>(op));
         fd_ = fd;
         buf_ = buf;
         size_ = size;
+        off_ = off;
     }
     inline void SetQtoks(int num_qtoks, labstor::ipc::qtok_t *qtoks) {
         num_qtoks_ = num_qtoks;
@@ -104,7 +107,7 @@ struct io_request : generic_posix_passthrough_request {
     }
     inline void Complete(ssize_t size, int code) {
         size_ = size;
-        generic_posix_passthrough_request::Complete(code);
+        passthrough_request::Complete(code);
     }
     inline ssize_t GetSize() {
         return size_;

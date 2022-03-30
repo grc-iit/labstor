@@ -5,7 +5,7 @@
 #include <labmods/filesystems/generic_posix/generic_posix.h>
 #include <labmods/filesystems/block_fs/block_fs.h>
 #include <labmods/filesystems/block_fs/server/block_fs_server.h>
-#include <labmods/block/block.h>
+#include <labmods/storage_api/generic_block/generic_block.h>
 #include <list>
 
 bool labstor::BlockFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
@@ -32,6 +32,7 @@ inline void labstor::BlockFS::Server::Initialize(labstor::ipc::request *rq) {
     next_module_ = namespace_->Get(reg_rq->next_);
 }
 inline bool labstor::BlockFS::Server::Open(labstor::queue_pair *qp, labstor::GenericPosix::open_request *client_rq, labstor::credentials *creds) {
+    return true;
 }
 inline bool labstor::BlockFS::Server::Close(labstor::queue_pair *qp, labstor::GenericPosix::close_request *client_rq, labstor::credentials *creds) {
     //sync all data & metadata back to storage

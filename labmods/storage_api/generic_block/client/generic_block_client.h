@@ -5,8 +5,8 @@
 #ifndef LABSTOR_BLOCK_CLIENT_H
 #define LABSTOR_BLOCK_CLIENT_H
 
-#include <labstor/userspace/types/module.h>
-#include <labmods/block/block.h>
+#include "labstor/userspace/types/module.h"
+#include "labmods/storage_api/block/block.h"
 
 namespace labstor::GenericBlock {
 

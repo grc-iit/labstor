@@ -19,31 +19,31 @@ namespace labstor::MQDriver {
 class Client: public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
-    uint32_t ns_id_;
+    int dev_id_;
 public:
     Client() : labstor::Module(MQ_DRIVER_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     void Initialize(labstor::ipc::request *rq) {}
-    void Register();
+    void Register(const std::string &dev_path, int dev_id);
     int GetNamespaceID();
-    void IO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx);
-    inline void Read(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        IO(Ops::kRead, dev_id, user_buf, buf_size, sector, hctx);
+    void IO(Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx);
+    inline void Read(void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        IO(Ops::kRead, user_buf, buf_size, sector, hctx);
     }
-    inline void Write(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        IO(Ops::kWrite, dev_id, user_buf, buf_size, sector, hctx);
-    }
-
-    labstor::ipc::qtok_t AIO(Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx);
-    inline labstor::ipc::qtok_t ARead(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        return AIO(Ops::kRead, dev_id, user_buf, buf_size, sector, hctx);
-    }
-    inline labstor::ipc::qtok_t AWrite(int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        return AIO(Ops::kWrite, dev_id, user_buf, buf_size, sector, hctx);
+    inline void Write(void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        IO(Ops::kWrite, user_buf, buf_size, sector, hctx);
     }
 
-    int GetNumHWQueues(int dev_id);
+    labstor::ipc::qtok_t AIO(Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx);
+    inline labstor::ipc::qtok_t ARead(void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        return AIO(Ops::kRead, user_buf, buf_size, sector, hctx);
+    }
+    inline labstor::ipc::qtok_t AWrite(void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        return AIO(Ops::kWrite, user_buf, buf_size, sector, hctx);
+    }
+
+    int GetNumHWQueues();
 };
 
 }

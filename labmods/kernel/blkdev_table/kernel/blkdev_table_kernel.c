@@ -32,7 +32,7 @@
 #include <labstor/kernel/server/module_manager.h>
 #include <labstor/kernel/server/kernel_server.h>
 
-#include <blkdev_table/kernel/blkdev_table_kernel.h>
+#include <labmods/kernel/blkdev_table/kernel/blkdev_table_kernel.h>
 
 MODULE_AUTHOR("Luke Logan <llogan@hawk.iit.edu>");
 MODULE_DESCRIPTION("A kernel module for storing block device pointers");

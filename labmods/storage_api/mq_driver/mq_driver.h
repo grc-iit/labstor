@@ -7,7 +7,6 @@
 
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
-//#include <labstor/types/data_structures/shmem_poll.h>
 #include "labstor/types/data_structures/c/shmem_queue_pair.h"
 
 #define MQ_DRIVER_MODULE_ID "MQ_DRIVER"
@@ -53,7 +52,7 @@ enum class Ops {
     kRead,
 };
 
-struct mq_driver_init_request : labstor::Registrar::register_request {
+struct register_request : labstor::Registrar::register_request {
     int dev_id_;
     void ConstructModuleStart(const std::string &module_id, const std::string &key, int dev_id) {
         labstor::Registrar::register_request::ConstructModuleStart(module_id, key);
@@ -61,30 +60,23 @@ struct mq_driver_init_request : labstor::Registrar::register_request {
     }
 };
 
-struct mq_driver_request : public labstor::ipc::request {
+struct io_request : public labstor::ipc::request {
     int dev_id_;
     void *user_buf_;
     size_t sector_;
     size_t buf_size_;
     int hctx_;
     int pid_;
-    int num_hw_queues_;
     blk_qc_t cookie_;
     int flags_;
     int lock_;
     struct labstor_qtok_t kern_qtok_;
     void *kern_rq_;
 
-    inline void IOClientStart(int ns_id, int pid, labstor::MQDriver::Ops op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
-        IOStart(ns_id, pid, static_cast<int>(op), dev_id, user_buf, buf_size, sector, hctx);
+    inline void IOClientStart(int ns_id, int pid, labstor::MQDriver::Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx) {
+        IOStart(ns_id, pid, static_cast<int>(op), 0, user_buf, buf_size, sector, hctx);
     }
-    inline void IOKernelStart(int ns_id, struct mq_driver_request *rq) {
-        IOStart(ns_id, rq->pid_, rq->op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
-    }
-    inline void IOStatsClientStart(int ns_id, int dev_id) {
-        IOStart(ns_id, 0, static_cast<int>(labstor::MQDriver::Ops::kGetNumHWQueues), dev_id, nullptr, 0, 0, 0);
-    }
-    inline void IOStatsKernelStart(int ns_id, struct mq_driver_request *rq) {
+    inline void IOKernelStart(int ns_id, io_request *rq) {
         IOStart(ns_id, rq->pid_, rq->op_, rq->dev_id_, rq->user_buf_, rq->buf_size_, rq->sector_, rq->hctx_);
     }
     inline void IOStart(int ns_id, int pid, int op, int dev_id, void *user_buf, size_t buf_size, size_t sector, int hctx) {
@@ -101,13 +93,6 @@ struct mq_driver_request : public labstor::ipc::request {
     }
     inline void PollStart() {
         op_ = static_cast<int>(Ops::kPollCompletion);
-    }
-    int GetNumHWQueues() {
-        return num_hw_queues_;
-    }
-    void Copy(mq_driver_request *rq) {
-        SetCode(rq->GetCode());
-        num_hw_queues_ = rq->num_hw_queues_;
     }
     bool IsSubmitted() {
         return __atomic_load_n(&flags_, __ATOMIC_RELAXED) & LABSTOR_MQ_IS_SUBMITTED;

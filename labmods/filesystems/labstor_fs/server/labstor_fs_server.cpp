@@ -5,7 +5,7 @@
 #include <labmods/filesystems/generic_posix/generic_posix.h>
 #include <labmods/filesystems/labstor_fs/labstor_fs.h>
 #include <labmods/filesystems/labstor_fs/server/labstor_fs_server.h>
-#include <labmods/block/block.h>
+#include <labmods/storage_api/generic_block/generic_block.h>
 #include <list>
 
 bool labstor::LabFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {

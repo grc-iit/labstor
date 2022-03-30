@@ -21,7 +21,6 @@ class Client : public labstor::Posix::Client {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
-    uint32_t ns_id_;
 public:
     Client() : labstor::Posix::Client(LABFS_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;

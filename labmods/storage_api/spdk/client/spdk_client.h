@@ -19,7 +19,6 @@ namespace labstor::SPDK {
 class Client: public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
-    uint32_t ns_id_;
     labstor::SPDK::Context context_;
     int spdk_queue_type_id_;
 public:

@@ -14,9 +14,9 @@ modules:
   GenericPosix:
     client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_client.so
     server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/generic_posix/libgeneric_posix_server.so
-  LabFS:
-    client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_client.so
-    server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_server.so
+#  LabFS:
+#    client: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_client.so
+#    server: ${LABSTOR_BUILD_DIR}/labmods/filesystems/labstor_fs/liblabstor_fs_server.so
 admin_thread: 0
 system_monitor: 1
 work_orchestrator:

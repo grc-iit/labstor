@@ -58,7 +58,6 @@ private:
     LABSTOR_NAMESPACE_T namespace_;
     bool is_initialized_;
     std::mutex lock_;
-    int ns_id_;
     int fd_min_;
     std::string prefix_;
     std::vector<FDAllocator> fds_;
@@ -93,18 +92,35 @@ public:
     void FreeFD(int fd) {
         return fds_[labstor::ThreadLocal::GetTid()].Free(fd);
     }
-    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
-    labstor::ipc::qtok_t ARead(int fd, void *buf, size_t size) {
+    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size);
+    labstor::ipc::qtok_t ARead(int fd, void *buf, size_t off, ssize_t size) {
+        return AIO(labstor::GenericPosix::Ops::kRead, fd, buf, off, size);
+    }
+    labstor::ipc::qtok_t AWrite(int fd, void *buf, size_t off, ssize_t size) {
+        return AIO(labstor::GenericPosix::Ops::kWrite, fd, buf, off, size);
+    }
+
+    labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size);
+    labstor::ipc::qtok_t ARead(int fd, void *buf, ssize_t size) {
         return AIO(labstor::GenericPosix::Ops::kRead, fd, buf, size);
     }
-    labstor::ipc::qtok_t AWrite(int fd, void *buf, size_t size) {
+    labstor::ipc::qtok_t AWrite(int fd, void *buf, ssize_t size) {
         return AIO(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
     }
-    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);
-    ssize_t Read(int fd, void *buf, size_t size) {
+
+    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t off, ssize_t size);
+    ssize_t Read(int fd, void *buf, size_t off, ssize_t size) {
+        return IO(labstor::GenericPosix::Ops::kRead, fd, buf, off, size);
+    }
+    ssize_t Write(int fd, void *buf, size_t off, ssize_t size) {
+        return IO(labstor::GenericPosix::Ops::kWrite, fd, buf, off, size);
+    }
+
+    ssize_t IO(labstor::GenericPosix::Ops op, int fd, void *buf, ssize_t size);
+    ssize_t Read(int fd, void *buf, ssize_t size) {
         return IO(labstor::GenericPosix::Ops::kRead, fd, buf, size);
     }
-    ssize_t Write(int fd, void *buf, size_t size) {
+    ssize_t Write(int fd, void *buf, ssize_t size) {
         return IO(labstor::GenericPosix::Ops::kWrite, fd, buf, size);
     }
 };

@@ -5,7 +5,7 @@
 #ifndef LABSTOR_BLOCK_H
 #define LABSTOR_BLOCK_H
 
-#include <labstor/types/data_structures/shmem_request.h>
+#include "labstor/types/data_structures/shmem_request.h"
 
 namespace labstor::GenericBlock {
 

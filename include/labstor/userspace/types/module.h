@@ -25,10 +25,12 @@ namespace labstor {
 class Module {
 protected:
     labstor::id module_id_;
-    uint64_t module_key_;
+    uint32_t ns_id_;
 public:
-    Module(labstor::id module_id) : module_id_(module_id) {}
+    Module(labstor::id module_id) : module_id_(module_id), ns_id_(0) {}
     inline labstor::id GetModuleID() { return module_id_; }
+    void SetNamespaceID(uint32_t ns_id) { ns_id_ = ns_id; }
+    uint32_t GetNamespaceID() { return ns_id_; }
 
     virtual void Initialize(labstor::ipc::request *rq) = 0;
     virtual void Initialize(int ns_id) {}

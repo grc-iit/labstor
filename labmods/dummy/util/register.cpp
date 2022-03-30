@@ -16,5 +16,6 @@ int main(int argc, char **argv) {
     ipc_manager_ = LABSTOR_IPC_MANAGER;
     ipc_manager_->Connect();
     client.Register();
+    printf("Dummy: registered (ns_id=%d)\n", client.GetNamespaceID());
     LABSTOR_ERROR_HANDLE_END()
 }

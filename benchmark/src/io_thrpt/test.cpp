@@ -6,8 +6,7 @@
 #include "generator/sequential.h"
 #include "posix.h"
 #include "posix_aio.h"
-#include "labstor_mq.h"
-//#include "labstor_bio.h"
+//#include "labstor_mq.h"
 #include "io_uring.h"
 #include "libaio.h"
 //#include "spdk.h"
@@ -104,12 +103,12 @@ int main(int argc, char **argv) {
     else if(io_method == "dax") {
     }
     else if(io_method == "mq") {
-        LABSTOR_ERROR_HANDLE_START()
+        /*LABSTOR_ERROR_HANDLE_START()
         labstor::LabStorMQ *test_impl = new labstor::LabStorMQ();
         generator->SetOffsetUnit(512);
         test_impl->Init(path, generator);
         test = test_impl;
-        LABSTOR_ERROR_HANDLE_END();
+        LABSTOR_ERROR_HANDLE_END();*/
     }
     else if(io_method == "labfs") {
     }

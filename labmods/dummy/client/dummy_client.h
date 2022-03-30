@@ -21,7 +21,6 @@ class Client: public labstor::Module {
 private:
     LABSTOR_IPC_MANAGER_T ipc_manager_;
     LABSTOR_NAMESPACE_T namespace_;
-    uint32_t ns_id_;
 public:
     Client() : labstor::Module(LABSTOR_DUMMY_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
