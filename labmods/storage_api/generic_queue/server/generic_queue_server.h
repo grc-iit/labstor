@@ -5,6 +5,7 @@
 #ifndef LABSTOR_GENERIC_QUEUE_SERVER_H
 #define LABSTOR_GENERIC_QUEUE_SERVER_H
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/types/module.h>
 #include <labmods/storage_api/generic_block/generic_block.h>
 #include "labmods/storage_api/generic_queue/generic_queue.h"

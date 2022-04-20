@@ -5,12 +5,12 @@
 #ifndef LABSTOR_IPC_TEST_CLIENT_H
 #define LABSTOR_IPC_TEST_CLIENT_H
 
+#include <labstor/userspace/client/client.h>
 #include <labmods/kernel/ipc_test/ipc_test.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
 #include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/macros.h>
-#include <labstor/userspace/client/client.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
 
@@ -23,7 +23,7 @@ public:
     Client() : labstor::Module(IPC_TEST_MODULE_ID)  {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(int ns_id) {}
     void Register();
     int Link();
     int Start(int batch_size);

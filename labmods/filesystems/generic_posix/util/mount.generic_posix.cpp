@@ -8,6 +8,7 @@
 #include <labmods/registrar/client/registrar_client.h>
 #include <labstor/userspace/util/error.h>
 #include <generic_posix.h>
+#include "client/generic_posix_client.h"
 
 int main(int argc, char **argv) {
     if(argc != 1) {
@@ -16,9 +17,9 @@ int main(int argc, char **argv) {
     }
     LABSTOR_ERROR_HANDLE_START()
         LABSTOR_IPC_MANAGER_T ipc_manager_ = LABSTOR_IPC_MANAGER;
-        auto registrar = labstor::Registrar::Client();
+        auto client = labstor::GenericPosix::Client();
         ipc_manager_->Connect();
-        int ns_id = registrar.RegisterInstance<labstor::Registrar::register_request>(GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID);
+        int ns_id = client.Register();
         printf("GenericPOSIX: Mounted (ns_id=%d)\n", GENERIC_POSIX_MODULE_ID, ns_id);
     LABSTOR_ERROR_HANDLE_END()
 }

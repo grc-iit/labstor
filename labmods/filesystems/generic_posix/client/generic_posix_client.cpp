@@ -8,7 +8,12 @@
 #include "lib/posix_client.h"
 #include <mutex>
 
-void labstor::GenericPosix::Client::Initialize() {
+int labstor::GenericPosix::Client::Register() {
+    AUTO_TRACE("")
+    return LABSTOR_REGISTRAR->RegisterInstance(GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID);
+}
+
+void labstor::GenericPosix::Client::Link() {
     AUTO_TRACE("")
     //Retreive the namespace ID from the server
     if(lock_.try_lock()) {

@@ -20,7 +20,6 @@ enum GENERIC_FS_RETURN_CODES {
 
 namespace labstor::GenericPosix {
 enum class Ops {
-    kRegister,
     kInit,
     kOpen,
     kClose,

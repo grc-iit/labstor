@@ -25,12 +25,11 @@ public:
     Client() : labstor::Module(SPDK_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(int ns_id) {}
     void Init(const std::string &traddr, int nvme_ns_id);
     void* Alloc(size_t size);
     void Free(void *mem);
     labstor::ipc::qtok_t AIO(Ops op, void *user_buf, size_t buf_size, size_t sector);
-    void IOComplete(void *arg, const struct spdk_nvme_cpl *completion);
 };
 
 }

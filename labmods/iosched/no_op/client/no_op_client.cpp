@@ -8,8 +8,8 @@
 
 void labstor::iosched::NoOp::Client::Register(const std::string &ns_key, const std::string &next_module) {
     AUTO_TRACE("ns_key", ns_key, "next_module", next_module)
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<register_request>(NO_OP_IOSCHED_MODULE_ID, ns_key, next_module);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(NO_OP_IOSCHED_MODULE_ID, ns_key);
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, next_module);
 }
 
 labstor::ipc::qtok_t labstor::iosched::NoOp::Client::AIO(void *buf, size_t size, size_t off, labstor::GenericBlock::Ops op) {

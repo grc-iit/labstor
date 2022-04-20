@@ -10,6 +10,9 @@
 
 bool labstor::LabFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch(static_cast<labstor::GenericPosix::Ops>(request->GetOp())) {
+        case labstor::GenericPosix::Ops::kInit: {
+            return Initialize(qp, request, creds);
+        }
         case labstor::GenericPosix::Ops::kOpen: {
             return Open(qp, reinterpret_cast<labstor::GenericPosix::open_request*>(request), creds);
         }
@@ -23,7 +26,7 @@ bool labstor::LabFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ip
     }
     return true;
 }
-inline void labstor::LabFS::Server::Initialize(labstor::ipc::request *rq) {
+inline bool labstor::LabFS::Server::Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     labstor::queue_pair *priv_qp;
     labstor::GenericBlock::io_request *block_rq;
     labstor::ipc::qtok_t qtok;

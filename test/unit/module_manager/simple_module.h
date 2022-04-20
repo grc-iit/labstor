@@ -12,7 +12,7 @@
 class SimpleModule : public labstor::Module {
 public:
     SimpleModule() : Module(LABSTOR_SIMPLE_MODULE_ID) {}
-    void Initialize(labstor::ipc::request *rq) {}
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) { return true; }
     void print1();
     void print2();
     void print3();

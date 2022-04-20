@@ -26,7 +26,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {}
     void Register(char *ns_key, char *next_module);
     int Open(int fd, const char *path, int pathlen, int oflag);
     int Close(int fd);

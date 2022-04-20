@@ -23,7 +23,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
-    void Initialize(labstor::ipc::request *rq);
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
     bool IO(labstor::queue_pair *qp, io_request *rq_submit, labstor::credentials *creds);
     bool GetStatistics(labstor::queue_pair *qp, labstor::GenericQueue::stats_request *rq_submit, labstor::credentials *creds);
 };

@@ -8,8 +8,8 @@
 #include <labmods/filesystems/generic_posix/generic_posix.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
-#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/client.h>
+#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>

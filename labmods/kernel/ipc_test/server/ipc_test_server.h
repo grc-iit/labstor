@@ -25,7 +25,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
-    void Initialize(labstor::ipc::request *rq) {}
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) { return true; }
     bool IPC(labstor::queue_pair *qp, ipc_test_request *rq);
 };
 

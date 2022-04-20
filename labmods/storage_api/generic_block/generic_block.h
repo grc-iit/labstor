@@ -10,7 +10,7 @@
 namespace labstor::GenericBlock {
 
 enum class Ops {
-    kRegister,
+    kInit,
     kRead,
     kWrite
 };

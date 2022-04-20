@@ -24,7 +24,7 @@ public:
     Client() : labstor::Module(MQ_DRIVER_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(int ns_id) {}
     void Register(const std::string &dev_path, int dev_id);
     int GetNamespaceID();
     void IO(Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx);

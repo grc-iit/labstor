@@ -18,6 +18,6 @@ int main(int argc, char **argv) {
     ipc_manager_ = LABSTOR_IPC_MANAGER;
     ipc_manager_->Connect();
     client_.Register(ns_key, next_module);
-    printf("NoOp: Mounted %s (next=%s, ns_id=%s)\n", ns_key, next_module, client_.GetNamespaceID());
+    printf("NoOp: Mounted %s (next=%s, ns_id=%d)\n", ns_key, next_module, client_.GetNamespaceID());
     LABSTOR_ERROR_HANDLE_END()
 }

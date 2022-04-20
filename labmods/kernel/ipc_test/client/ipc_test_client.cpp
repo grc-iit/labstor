@@ -10,8 +10,7 @@
 #include "ipc_test_client.h"
 
 void labstor::IPCTest::Client::Register() {
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
 }
 
 int labstor::IPCTest::Client::Link() {

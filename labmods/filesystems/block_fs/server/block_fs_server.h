@@ -6,8 +6,8 @@
 #define LABSTOR_BLOCK_FS_SERVER_H
 
 #include <labmods/filesystems/generic_posix/generic_posix.h>
-#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/server.h>
+#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/module_manager.h>
 #include <labstor/userspace/server/ipc_manager.h>
@@ -25,8 +25,8 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    inline void Initialize(labstor::ipc::request *rq) override;
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
+    inline bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
     inline bool Open(labstor::queue_pair *qp, labstor::GenericPosix::open_request *client_rq, labstor::credentials *creds);
     inline bool Close(labstor::queue_pair *qp, labstor::GenericPosix::close_request *client_rq, labstor::credentials *creds);
     inline bool IO(labstor::queue_pair *qp, labstor::GenericPosix::io_request *client_rq, labstor::credentials *creds);

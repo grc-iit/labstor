@@ -20,8 +20,8 @@ public:
     Server() : labstor::Module(LABSTOR_DUMMY_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(labstor::ipc::request *rq) {}
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {return true;}
 };
 
 }

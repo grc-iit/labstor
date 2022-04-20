@@ -10,6 +10,9 @@
 
 bool labstor::BlockFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch(static_cast<labstor::GenericPosix::Ops>(request->GetOp())) {
+        case labstor::GenericPosix::Ops::kInit: {
+            return Initialize(qp, request, creds);
+        }
         case labstor::GenericPosix::Ops::kOpen: {
             return Open(qp, reinterpret_cast<labstor::GenericPosix::open_request*>(request), creds);
         }
@@ -23,13 +26,14 @@ bool labstor::BlockFS::Server::ProcessRequest(labstor::queue_pair *qp, labstor::
     }
     return true;
 }
-inline void labstor::BlockFS::Server::Initialize(labstor::ipc::request *rq) {
+inline bool labstor::BlockFS::Server::Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     labstor::queue_pair *priv_qp;
     labstor::GenericBlock::io_request *block_rq;
     labstor::ipc::qtok_t qtok;
 
-    register_request *reg_rq = reinterpret_cast<register_request*>(rq);
+    register_request *reg_rq = reinterpret_cast<register_request*>(request);
     next_module_ = namespace_->Get(reg_rq->next_);
+    return true;
 }
 inline bool labstor::BlockFS::Server::Open(labstor::queue_pair *qp, labstor::GenericPosix::open_request *client_rq, labstor::credentials *creds) {
     return true;

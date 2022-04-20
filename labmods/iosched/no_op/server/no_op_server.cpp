@@ -12,6 +12,9 @@
 bool labstor::iosched::NoOp::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE(request->op_, request->req_id_)
     switch (static_cast<labstor::GenericBlock::Ops>(request->op_)) {
+        case labstor::GenericBlock::Ops::kInit: {
+            return Initialize(qp, request, creds);
+        }
         case labstor::GenericBlock::Ops::kWrite:
         case labstor::GenericBlock::Ops::kRead: {
             return IO(qp, reinterpret_cast<labstor::GenericBlock::io_request*>(request), creds);
@@ -19,10 +22,10 @@ bool labstor::iosched::NoOp::Server::ProcessRequest(labstor::queue_pair *qp, lab
     }
 }
 
-void labstor::iosched::NoOp::Server::Initialize(labstor::ipc::request *rq) {
+bool labstor::iosched::NoOp::Server::Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE("")
     //Need to get next module
-    register_request *reg_rq = reinterpret_cast<register_request*>(rq);
+    register_request *reg_rq = reinterpret_cast<register_request*>(request);
     next_module_ = namespace_->Get(reg_rq->next_);
 
     //Need to get number of HW queues (submit req to next module)

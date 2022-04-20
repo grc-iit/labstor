@@ -7,19 +7,8 @@
 
 bool labstor::Registrar::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     switch (static_cast<Ops>(request->op_)) {
-        case Ops::kRegister : {
-            register_request *rq = reinterpret_cast<register_request *>(request);
-            labstor::Module *module = module_manager_->GetModuleConstructor(rq->module_id_)();
-            if(module == nullptr) {
-                printf("could not find module\n");
-                exit(1);
-            }
-            module->Initialize(request);
-            TRACEPOINT("Adding key to namespace", rq->key_.key_, strlen(rq->key_.key_));
-            rq->ConstructModuleEnd(namespace_->AddKey(rq->key_, module));
-            printf("Registered module %s: %d\n", rq->key_.key_, rq->GetNamespaceID());
-            qp->Complete<register_request>(rq);
-            return true;
+        case Ops::kInit : {
+            return Initialize(qp, request, creds);
         }
         case Ops::kGetNamespaceId : {
             namespace_id_request *rq = reinterpret_cast<namespace_id_request *>(request);
@@ -58,4 +47,21 @@ bool labstor::Registrar::Server::ProcessRequest(labstor::queue_pair *qp, labstor
     }
     return true;
 }
+
+bool labstor::Registrar::Server::Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    register_request *rq = reinterpret_cast<register_request *>(request);
+    labstor::Module *module = module_manager_->GetModuleConstructor(rq->module_id_)();
+    if(module == nullptr) {
+        printf("could not find module\n");
+        exit(1);
+    }
+    int ns_id = namespace_->AddKey(rq->key_, module);
+    TRACEPOINT("Adding key to namespace", rq->key_.key_, strlen(rq->key_.key_));
+    rq->ConstructModuleEnd(ns_id);
+    printf("Registered module %s: %d\n", rq->key_.key_, rq->GetNamespaceID());
+    qp->Complete<register_request>(rq);
+    return true;
+}
+
+
 LABSTOR_MODULE_CONSTRUCT(labstor::Registrar::Server, LABSTOR_REGISTRAR_MODULE_ID)

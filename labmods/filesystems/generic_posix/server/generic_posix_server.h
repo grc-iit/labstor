@@ -6,8 +6,8 @@
 #define LABSTOR_GENERIC_POSIX_SERVER_H
 
 #include <generic_posix.h>
-#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/server.h>
+#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/module_manager.h>
 #include <labstor/userspace/server/ipc_manager.h>
@@ -27,7 +27,7 @@ public:
         namespace_ = LABSTOR_NAMESPACE;
     }
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
-    void Initialize(labstor::ipc::request *rq) {}
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) { return true; }
 };
 }
 #endif //LABSTOR_GENERIC_POSIX_SERVER_H

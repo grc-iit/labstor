@@ -7,8 +7,8 @@
 #include <labmods/filesystems/labstor_fs/client/labstor_fs_client.h>
 
 void labstor::LabFS::Client::Register(char *ns_key, char *next_module) {
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<register_request>(LABFS_MODULE_ID, ns_key, next_module);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(LABFS_MODULE_ID, ns_key);
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, next_module);
 }
 
 int labstor::LabFS::Client::Open(int fd, const char *path, int pathlen, int oflag) {

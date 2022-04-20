@@ -10,8 +10,7 @@
 
 void labstor::test::Dummy::Client::Register() {
     AUTO_TRACE("")
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<labstor::Registrar::register_request>(LABSTOR_DUMMY_MODULE_ID, LABSTOR_DUMMY_MODULE_ID);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(LABSTOR_DUMMY_MODULE_ID, LABSTOR_DUMMY_MODULE_ID);
     TRACEPOINT(ns_id_)
 }
 

@@ -11,10 +11,9 @@
 
 void labstor::MQDriver::Client::Register(const std::string &dev_path, int dev_id) {
     AUTO_TRACE("")
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<register_request>(MQ_DRIVER_MODULE_ID, dev_path, dev_id);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(MQ_DRIVER_MODULE_ID, dev_path);
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, dev_id);
     dev_id_ = dev_id;
-    TRACEPOINT(ns_id_)
 }
 
 int labstor::MQDriver::Client::GetNamespaceID() {

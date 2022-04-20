@@ -14,14 +14,9 @@
 #include "labstor/types/data_structures/c/shmem_queue_pair.h"
 #include <labstor/userspace/util/errors.h>
 
-#define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME, MODULE_ID) \
-    extern "C" {                              \
-        labstor::Module* create_module() { return new MODULE_NAME(); } \
-        labstor::id get_module_id(void) { return labstor::id(MODULE_ID); } \
-    }
-
 namespace labstor {
 
+#if defined(LABSTOR_CLIENT)
 class Module {
 protected:
     labstor::id module_id_;
@@ -32,24 +27,47 @@ public:
     void SetNamespaceID(uint32_t ns_id) { ns_id_ = ns_id; }
     uint32_t GetNamespaceID() { return ns_id_; }
 
-    virtual void Initialize(labstor::ipc::request *rq) = 0;
-    virtual void Initialize(int ns_id) {}
+    virtual void Initialize(int ns_id) = 0;
+    virtual void StateUpdate(Module *prior) {}
+    virtual void StateRepair() {}
+};
+#elif defined(LABSTOR_SERVER)
+class Module {
+protected:
+    labstor::id module_id_;
+    uint32_t ns_id_;
+public:
+    Module(labstor::id module_id) : module_id_(module_id), ns_id_(0) {}
+    inline labstor::id GetModuleID() { return module_id_; }
+    void SetNamespaceID(uint32_t ns_id) { ns_id_ = ns_id; }
+    uint32_t GetNamespaceID() { return ns_id_; }
+    virtual bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) = 0;
+
     virtual void ReinforceCpuTime(
             labstor::ipc::request *request, size_t time_measure_ns) {};
-    virtual void ReinforceIOTime(
+    virtual void ReinforceTotalTime(
             labstor::ipc::request *request, size_t time_measure_ns) {};
-    virtual size_t EstRequestCpuTime(
-            labstor::ipc::request *request){ return 1; };
-    virtual size_t EstRequestIOTime(
-            labstor::ipc::request *request){ return 0; };
+    virtual size_t EstCpuTime(
+            labstor::ipc::request *request) { return 1; };
+    virtual size_t EstTotalTime(
+            labstor::ipc::request *request) { return 0; };
     virtual bool ProcessRequest(
             labstor::queue_pair *qp,
             labstor::ipc::request *request,
             labstor::credentials *creds) { return true; };
-    virtual void StateUpdate(labstor::Module *prior) {}
+    virtual void StateUpdate(Module *prior) {}
 };
+#elif defined(LABSTOR_CLIENT) && defined(LABSTOR_SERVER)
+#error "Cannot be a module for both client and server."
+#endif
+
 typedef labstor::Module* (*create_module_fn)(void);
 typedef labstor::id (*get_module_id_fn)(void);
+#define LABSTOR_MODULE_CONSTRUCT(MODULE_NAME, MODULE_ID) \
+    extern "C" {                              \
+        labstor::Module* create_module() { return new MODULE_NAME(); } \
+        labstor::id get_module_id(void) { return labstor::id(MODULE_ID); } \
+    }
 
 struct ModulePath {
     std::string client;

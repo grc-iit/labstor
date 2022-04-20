@@ -8,6 +8,7 @@
 #include <labstor/types/basics.h>
 #include <labstor/types/data_structures/shmem_request.h>
 #include "labstor/types/data_structures/c/shmem_queue_pair.h"
+#include <labmods/storage_api/generic_queue/generic_queue.h>
 
 #define MQ_DRIVER_MODULE_ID "MQ_DRIVER"
 
@@ -34,7 +35,7 @@ enum {
 #define LABSTOR_MQ_IO_IS_COMPLETE (1 << LABSTOR_MQ_IO_IS_COMPLETE_BIT)
 
 enum {
-    LABSTOR_MQ_DRIVER_REGISTER,
+    LABSTOR_MQ_DRIVER_INIT,
     LABSTOR_MQ_NUM_HW_QUEUES,
     LABSTOR_MQ_POLL_COMPLETION,
     LABSTOR_MQ_DRIVER_WRITE,
@@ -45,7 +46,7 @@ enum {
 typedef unsigned int blk_qc_t;
 namespace labstor::MQDriver {
 enum class Ops {
-    kRegister,
+    kInit,
     kGetNumHWQueues,
     kPollCompletion,
     kWrite,
@@ -54,8 +55,9 @@ enum class Ops {
 
 struct register_request : labstor::Registrar::register_request {
     int dev_id_;
-    void ConstructModuleStart(const std::string &module_id, const std::string &key, int dev_id) {
-        labstor::Registrar::register_request::ConstructModuleStart(module_id, key);
+    void ConstructModuleStart(uint32_t ns_id, int dev_id) {
+        ns_id_ = ns_id;
+        code_ = static_cast<int>(Ops::kInit);
         dev_id_ = dev_id;
     }
 };

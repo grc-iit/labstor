@@ -8,8 +8,8 @@
 #include <generic_posix.h>
 #include <labstor/constants/macros.h>
 #include <labstor/constants/constants.h>
-#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/client.h>
+#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/client/macros.h>
 #include <labstor/userspace/client/ipc_manager.h>
 #include <labstor/userspace/client/namespace.h>
@@ -75,14 +75,15 @@ public:
             fds_.emplace_back(LABSTOR_FD_MIN + i*LABSTOR_MAX_FDS_PER_THREAD, region, fd_alloc_size, LABSTOR_MAX_FDS_PER_THREAD);
         }
         LABSTOR_ERROR_HANDLE_START()
-        Initialize();
+            Link();
         LABSTOR_ERROR_HANDLE_END()
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(int ns_id) {}
     inline bool IsInitialized() {
         return is_initialized_;
     }
-    void Initialize();
+    int Register();
+    void Link();
     int Open(const char *path, int oflag);
     int Close(int fd);
     int AllocateFD() {

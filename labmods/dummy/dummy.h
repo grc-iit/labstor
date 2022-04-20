@@ -12,6 +12,7 @@
 namespace labstor::test::Dummy {
 
 enum class Ops {
+    kInit,
     kGetValue=4
 };
 

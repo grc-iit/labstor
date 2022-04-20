@@ -7,10 +7,10 @@
 
 #include <labstor/userspace/server/server.h>
 #include <labmods/storage_api/generic_block/generic_block.h>
+#include <labstor/userspace/types/module.h>
 #include <labmods/iosched/no_op/no_op.h>
 #include <labstor/userspace/server/macros.h>
 #include <labstor/userspace/server/ipc_manager.h>
-#include <labstor/userspace/types/module.h>
 #include <labstor/userspace/server/namespace.h>
 
 
@@ -27,7 +27,7 @@ public:
         namespace_ = LABSTOR_NAMESPACE;
     }
     bool ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds);
-    void Initialize(labstor::ipc::request *rq);
+    bool Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) override;
     bool IO(labstor::queue_pair *qp, labstor::GenericBlock::io_request *client_rq, labstor::credentials *creds);
 };
 

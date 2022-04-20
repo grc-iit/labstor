@@ -8,6 +8,7 @@
 #include <labstor/userspace/server/namespace.h>
 #include <labstor/userspace/server/module_manager.h>
 #include <labstor/userspace/server/work_orchestrator.h>
+#include <labmods/registrar/server/registrar_server.h>
 
 namespace labstor {
     uint32_t thread_local_counter_ = 0;
@@ -20,3 +21,4 @@ DEFINE_SINGLETON(IPC_MANAGER)
 DEFINE_SINGLETON(MODULE_MANAGER)
 DEFINE_SINGLETON(WORK_ORCHESTRATOR)
 DEFINE_SINGLETON(NAMESPACE)
+DEFINE_SINGLETON(REGISTRAR)

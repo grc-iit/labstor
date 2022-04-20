@@ -11,6 +11,9 @@
 bool labstor::MQDriver::Server::ProcessRequest(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
     AUTO_TRACE(request->op_, request->req_id_)
     switch (static_cast<Ops>(request->op_)) {
+        case Ops::kInit: {
+            return Initialize(qp, request, creds);
+        }
         case Ops::kWrite:
         case Ops::kRead: {
             return IO(qp, reinterpret_cast<io_request*>(request), creds);
@@ -22,9 +25,10 @@ bool labstor::MQDriver::Server::ProcessRequest(labstor::queue_pair *qp, labstor:
     return true;
 }
 
-void labstor::MQDriver::Server::Initialize(labstor::ipc::request *rq) {
-    register_request *reg_rq = reinterpret_cast<register_request*>(rq);
+bool labstor::MQDriver::Server::Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {
+    register_request *reg_rq = reinterpret_cast<register_request*>(request);
     dev_id_ = reg_rq->dev_id_;
+    return true;
 }
 
 bool labstor::MQDriver::Server::IO(labstor::queue_pair *qp, io_request *client_rq, labstor::credentials *creds) {

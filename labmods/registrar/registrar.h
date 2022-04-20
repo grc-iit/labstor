@@ -17,7 +17,7 @@
 namespace labstor::Registrar {
 
 enum class Ops {
-    kRegister,
+    kInit,
     kGetModulePath,
     kGetNamespaceId,
     kPushUpgrade,
@@ -29,7 +29,7 @@ struct register_request : labstor::ipc::request {
     labstor::id key_;
     void ConstructModuleStart(const std::string &module_id, const std::string &key) {
         ns_id_ = LABSTOR_REGISTRAR_ID;
-        op_ = static_cast<int>(Ops::kRegister);
+        op_ = static_cast<int>(Ops::kInit);
         module_id_.copy(module_id);
         key_.copy(key);
     }

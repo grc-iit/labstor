@@ -3,191 +3,99 @@
 
 LabStor is a holistic platform for developing and managing I/O stacks in userspace.
 
-## 1. Dependencies
+## 1. Installing Dependencies
 
-Linux 5.4.0-77-generic  
-linux-headers-5.4+  
-cmake 3.10 or higher  
-C++17 compiler  
-C11 compiler  
-yaml-cpp
+Our script assumes the following:
+* Ubuntu 20.04 (server)
+* Linux kernel 5.4.0 (default with ubuntu 20.04)
+* gcc/g++ 9.3.0+
+* python 3.6+
 
-## 2. Installation
-
-We provide an installation script for those running a red-hat-based or ubuntu-based distro.
-We assume the kernel version is as provided.
-
-### Linux Headers
+Otherwise, the installation script will install all dependencies.
 ```
-#Ubuntu/Debian
-sudo apt install linux-headers-`uname -r`
-#Red Hat
-sudo yum install linux-headers-`uname -r`
-```
-
-### Jarvis-CD
-```
-git clone https://github.com/lukemartinlogan/jarvis-cd.git
-cd jarvis-cd
 bash install.sh
 source ~/.bashrc
 ```
 
-### SCSPKG
-```
-git clone https://github.com/lukemartinlogan/scspkg.git
-cd scspkg
-bash install.sh
-source ~/.bashrc
-```
+### 1.1. Emulating PMEM
 
-### MPICH
+If PMEM is not provided on the machine, Linux's PMEM emulator can be configured in GRUB as follows:
 ```
-scspkg create mpich
-cd `scspkg pkg-src mpich`
-wget http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz --no-check-certificate
-tar -xzf mpich-3.2.tar.gz
-cd mpich-3.2
-./configure --prefix=`scspkg pkg-root mpich` --enable-fast=O3 --enable-romio --enable-shared 
-make -j8
-make install
+sudo nano /etc/default/grub
+GRUB_CMDLINE_LINUX="memmap=60G!10G" #60G PMEM, starting at offset 10GB in RAM
+sudo update-grub2
+sudo reboot
 ```
+This is the configuration of PMEM we used in our experiments.
 
-### YAML-CPP
-```
-scspkg create yaml-cpp
-cd `scspkg pkg-src yaml-cpp` 
-git clone https://github.com/jbeder/yaml-cpp.git
-cd yaml-cpp
-git checkout db6deedcd301754723065e0bbb1b75927c5b49c7
-mkdir build
-cd build
-cmake ../  -DYAML_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root yaml-cpp`
-make -j8
-make install
-```
-
-### LIBURING
-```
-scspkg create liburing
-cd `scspkg pkg-src liburing`
-git clone https://github.com/axboe/liburing.git
-cd liburing
-./configure --prefix=`scspkg pkg-root liburing`
-make -j8
-make install
-```
-
-### LIBAIO
-```
-sudo apt install libaio-dev
-```
-
-### FIO
-```
-scspkg create fio
-cd `scspkg pkg-src fio`
-git clone https://github.com/axboe/fio
-cd fio
-./configure --prefix=`scspkg pkg-root fio`
-make -j8
-make install
-```
-
-### SPDK
+## 2. Building LabStor
 
 ```
-scspkg create spdk
-cd `scspkg pkg-src spdk`
-git clone https://github.com/spdk/spdk
-cd spdk
-git checkout v21.10
-git submodule update --init
-sudo scripts/pkgdep.sh --all
-./configure --prefix=`scspkg pkg-root spdk` --with-fio=`scspkg pkg-src fio`
-make -j8
-make install
-export SPDK_ROOT=`scspkg pkg-src spdk`/spdk
-```
-
-```
-cd `scspkg pkg-src spdk`/spdk
-#Allocate huge pages & unbind NVMes
-sudo HUGEMEM=8192 scripts/setup.sh
-sudo HUGEMEM=512 scripts/setup.sh
-#Rebind NVMes
-sudo scripts/setup.sh reset
-```
-
-### FxMark
-```bash
-https://www.usenix.org/system/files/conference/atc16/atc16_paper-min.pdf
-git clone https://github.com/sslab-gatech/fxmark.git
-cd fxmark
-make
-sudo bin/fxmark --type=MWCL --ncore=1 --duration=20 --root=/home/cc/hi
-```
-
-### Filebench
-```
-git clone https://github.com/filebench/filebench.git
-libtoolize
-aclocal
-autoheader
-automake --add-missing
-autoconf
-```
-
-## 2. Building
-
-```
-cd /path/to/labstor
+cd labstor
 mkdir build  
 cd build
 cmake ../
 make -j4  
 ```
 
-## 3. Running
-```
-module load mpich yaml-cpp liburing spdk
-make start_kernel_server
-make start_trusted_server
-make stop_trusted_server
-make stop_kernel_server
+## 3. Running Experiments
 
-LD_PRELOAD=`scspkg pkg-src spdk`/spdk/build/fio/spdk_nvme fio ../benchmark/src/fio/microbench.fio --name spdk
+The benchmark directory contains all experiments.
 
-https://community.intel.com/t5/Blogs/Products-and-Solutions/Memory-Storage/Tuning-the-performance-of-Intel-Optane-SSDs-on-Linux-Operating/post/1334953
-https://serverfault.com/questions/1052448/how-can-i-override-irq-affinity-for-nvme-devices
+### 3.1. Configuration
 
-sudo su
-modprobe -r nvme && modprobe nvme poll_queues=32 
-echo 0 > /sys/block/nvme0n1/queue/iostats
-echo 0 > /sys/block/nvme0n1/queue/read_ahead_kb
-echo 0 > /sys/block/nvme0n1/queue/rotational
-echo 2 > /sys/block/nvme0n1/queue/nomerges
+Before running any experiments, users must define a few configuration parameters.
+An example of such a configuration is "benchmark/conf.ini", which contains the default
+configuration for the tests we ran in Chameleon Cloud. The main parameters of the file are
+the paths to devices and mount points to use for experiments. Device paths should be the entire
+device (e.g., /dev/sda), not a partion (e.g., /dev/sda1).
 
-cat /sys/block/nvme0n1/queue/io_poll
-cat /sys/block/nvme0n1/queue/iostats
-cat /sys/block/nvme0n1/queue/read_ahead_kb
-cat /sys/block/nvme0n1/queue/rotational
-cat /sys/block/nvme0n1/queue/nomerges
+```bash
+#benchmark/conf.ini
+HDD=/dev/sda
 ```
 
-### Random Notes
+If your machine doesn't support all device types (HDD,NVMe,SSD,etc.), you can set the
+value to "None" in the conf file. For example,
 
-```
-IP=192.168.56.1
-ssh llogan@$IP -p 4632
+```bash
+#bencmark/conf.ini
+HDD=None
 ```
 
-```
-Increase debugging level:
-echo "7" > /proc/sys/kernel/printk
+### 3.2. Experiment Command
 
-Decrease debugging level:
-echo "4" > /proc/sys/kernel/printk
-
-ssh cc@129.114.108.227
+The command to run a test case is structured as follows:
 ```
+sudo python3 benchmark/test.py --conf benchmark/config.ini --test [test_case]
+```
+
+### 3.3. Running LabStor Tests
+To run all experiments (except the I/O scheduling experiment), use the following command:
+```
+sudo python3 benchmark/test.py --conf benchmark/config.ini --test labstor
+```
+
+### 3.4. Repeating Blk-Switch Tests
+
+To complete the I/O scheduler experiment, you must switch to the custom kernel compiled
+for blk-switch and then install.
+```
+#Enable kernel 5.4.4
+sudo reboot
+sudo python3 benchmark/test.py --conf benchmark/config.ini --test iosched:blkswitch
+```
+
+### Individual Tests
+
+If running all tests at once is not required, tests can be executed individually.
+To run individual tests, replace [test_case] with the following:
+1. io_anatomy
+2. live_upgrade
+3. work_orch:cpu
+4. work_orch:req
+5. storage_api
+6. iosched:labstor
+7. labios
+8. filebench
+9. iosched:blkswitch

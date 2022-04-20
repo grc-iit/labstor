@@ -7,8 +7,8 @@
 #include <labmods/filesystems/block_fs/client/block_fs_client.h>
 
 void labstor::BlockFS::Client::Register(char *ns_key, char *next_module) {
-    auto registrar = labstor::Registrar::Client();
-    ns_id_ = registrar.RegisterInstance<register_request>(BLOCKFS_MODULE_ID, ns_key, next_module);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(BLOCKFS_MODULE_ID, ns_key);
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, next_module);
 }
 
 int labstor::BlockFS::Client::Open(int fd, const char *path, int pathlen, int oflag) {

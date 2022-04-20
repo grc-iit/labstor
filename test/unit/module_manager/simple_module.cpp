@@ -2,6 +2,7 @@
 // Created by lukemartinlogan on 11/2/21.
 //
 
+#include <labstor/userspace/server/server.h>
 #include <labstor/userspace/types/module.h>
 #include "simple_module.h"
 

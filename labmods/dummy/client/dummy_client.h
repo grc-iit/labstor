@@ -26,7 +26,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void Initialize(labstor::ipc::request *rq) {}
+    void Initialize(int ns_id) {}
     void Register();
     int Link();
     void GetValue();

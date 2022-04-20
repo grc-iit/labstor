@@ -9,7 +9,7 @@ class DropCaches:
             fp.write("3")
 
 class LabStorKernelServer:
-    def Start(self):
+    def Start(self, labstor_root):
         self.node = ExecNode("start_kern_server", self.GetStartCommand(), collect_output=False)
         self.node.Run()
 
@@ -41,6 +41,11 @@ class LabStorTrustedServer:
 
     def GetKillCommand(self):
         return f'{os.environ["LABSTOR_BUILD_DIR"]}/labmods/registrar/terminate'
+
+class LabStack:
+    def __init__(self, labmods, build_dir="build"):
+        for labmod in labmods:
+            os.path.join("")
 
 class PartitionCores:
     def __init__(self, pid, affinity):
