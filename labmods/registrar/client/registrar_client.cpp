@@ -22,7 +22,27 @@ uint32_t labstor::Registrar::Client::GetNamespaceID(std::string key) {
     return ns_id;
 }
 
-void labstor::Registrar::Client::PushUpgrade(std::string key) {
+int labstor::Registrar::Client::MountLabStack(std::string key, std::string yaml_path) {
+    return 0;
+}
+
+int labstor::Registrar::Client::UnmountLabStack(std::string key, std::string yaml_path) {
+    return 0;
+}
+
+int labstor::Registrar::Client::PushUpgrade(std::string yaml_path) {
+    labstor::queue_pair *qp;
+    labstor::ipc::qtok_t qtok;
+    labstor::Registrar::upgrade_request *rq;
+
+    ipc_manager_->GetQueuePair(qp, 0);
+    rq = ipc_manager_->AllocRequest<upgrade_request>(qp);
+    rq->PushUpgradeStart(yaml_path);
+    qp->Enqueue(rq, qtok);
+    rq = ipc_manager_->Wait<upgrade_request>(qtok);
+    int rc = rq->GetCode();
+    ipc_manager_->FreeRequest(qtok, rq);
+    return rc;
 }
 
 std::string labstor::Registrar::Client::GetModulePath(int ns_id) {

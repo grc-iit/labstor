@@ -25,6 +25,7 @@ public:
     Client() : labstor::Module(SPDK_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
+    void Register(YAML::Node config) override;
     void Initialize(int ns_id) {}
     void Init(const std::string &traddr, int nvme_ns_id);
     void* Alloc(size_t size);

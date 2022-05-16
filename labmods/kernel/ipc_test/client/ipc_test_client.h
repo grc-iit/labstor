@@ -24,8 +24,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
     void Initialize(int ns_id) {}
-    void Register();
-    int Link();
+    void Register(YAML::Node config) override;
     int Start(int batch_size);
 };
 

@@ -5,7 +5,10 @@
 #include <labstor/constants/debug.h>
 #include "spdk_client.h"
 
-void labstor::SPDK::Client::Init(const std::string &traddr, int nvme_ns_id) {
+void labstor::SPDK::Client::Register(YAML::Node config) {
+    std::string traddr = config["traddr"].as<std::string>();
+    int nvme_ns_id = config["nvme_ns_id"].as<int>();
+
     context_.Init();
     context_.Probe();
     context_.SelectDevice(traddr, nvme_ns_id);
@@ -68,7 +71,5 @@ labstor::ipc::qtok_t labstor::SPDK::Client::AIO(Ops op, void *user_buf, size_t b
 
     return qtok;
 }
-
-
 
 LABSTOR_MODULE_CONSTRUCT(labstor::SPDK::Client, SPDK_MODULE_ID);

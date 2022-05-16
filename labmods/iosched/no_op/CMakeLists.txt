@@ -13,8 +13,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/kernel)
             cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make
             CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
             CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
-    add_dependencies(build_${MODULE_NAME} build_labstor_kernel_server build_blkdev_table)
+    add_dependencies(build_${MODULE_NAME} build_labstor_kernel_server)
     add_custom_target(clean_${MODULE_NAME} COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make clean)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}.ko DESTINATION ${CMAKE_INSTALL_PREFIX}/kernel)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}_kernel.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/kernel)
 endif()
 
 #BUILD NETLINK CLIENT
@@ -25,6 +27,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/netlink_client)
             labstor_kernel_client)
     target_link_libraries(${MODULE_NAME}_client_netlink
             labstor_kernel_client)
+    install(TARGETS ${MODULE_NAME}_client_netlink DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/netlink_client/${MODULE_NAME}_client_netlink.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/netlink_client)
 endif()
 
 #BUILD USERSPACE CLIENT
@@ -32,6 +36,8 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/client)
     add_library(${MODULE_NAME}_client client/${MODULE_NAME}_client.cpp)
     add_dependencies(${MODULE_NAME}_client labstor_client_library)
     target_link_libraries(${MODULE_NAME}_client labstor_client_library)
+    install(TARGETS ${MODULE_NAME}_client DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/client/${MODULE_NAME}_client.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/client)
 endif()
 
 #BUILD USERSPACE SERVER
@@ -39,8 +45,6 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
     add_library(${MODULE_NAME}_server server/${MODULE_NAME}_server.cpp)
     add_dependencies(${MODULE_NAME}_server labstor_server_library)
     target_link_libraries(${MODULE_NAME}_server labstor_server_library)
+    install(TARGETS ${MODULE_NAME}_server DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/server/${MODULE_NAME}_server.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/server)
 endif()
-
-add_executable(mount.${MODULE_NAME} util/mount.${MODULE_NAME}.cpp)
-add_dependencies(mount.${MODULE_NAME} labstor_client_library ${MODULE_NAME}_client)
-target_link_libraries(mount.${MODULE_NAME} labstor_client_library ${MODULE_NAME}_client)

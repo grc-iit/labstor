@@ -19,7 +19,7 @@ namespace labstor::BlockFS {
 
 struct register_request : labstor::ipc::request {
     labstor::id next_;
-    void ConstructModuleStart(uint32_t ns_id, char *next_module) {
+    void ConstructModuleStart(uint32_t ns_id, std::string next_module) {
         ns_id_ = ns_id;
         code_ = static_cast<int>(GenericPosix::Ops::kInit);
         next_.copy(next_module);

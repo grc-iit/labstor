@@ -24,10 +24,9 @@ public:
     Client() : labstor::GenericBlock::Client(NO_OP_IOSCHED_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(int ns_id) {}
+    void Register(YAML::Node config) override;
+    void Initialize(int ns_id) override {}
     labstor::ipc::qtok_t AIO(void *buf, size_t size, size_t off, labstor::GenericBlock::Ops op) override;
-    void Register(const std::string &ns_key, const std::string &next_module);
-    void Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {}
 };
 
 }

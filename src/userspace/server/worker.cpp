@@ -19,7 +19,7 @@ void labstor::Server::Worker::DoWork() {
             qp_depth = qp->GetDepth();
             for (uint32_t j = 0; j < qp_depth; ++j) {
                 if (!qp->Peek(rq, 0)) { break; }
-                module = namespace_->Get(rq->GetNamespaceID());
+                module = namespace_->GetModule(rq->GetNamespaceID());
                 if (!module) {
                     rq->SetCode(-1);
                     qp->Complete(rq);

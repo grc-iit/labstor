@@ -5,10 +5,22 @@
 #include <labmods/filesystems/generic_posix/generic_posix.h>
 #include <labmods/filesystems/labstor_fs/labstor_fs.h>
 #include <labmods/filesystems/labstor_fs/client/labstor_fs_client.h>
+#include <labmods/storage_api/generic_block/generic_block.h>
+#include <labmods/storage_api/generic_block/client/generic_block_client.h>
+#include <labmods/filesystems/labstor_fs/lib/labstor_fs_log.h>
+#include <labmods/filesystems/labstor_fs/client/labstor_fs_client.h>
 
-void labstor::LabFS::Client::Register(char *ns_key, char *next_module) {
-    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(LABFS_MODULE_ID, ns_key);
-    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, next_module);
+void labstor::LabFS::Client::Register(YAML::Node config) {
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(LABFS_MODULE_ID, config["labmod_uuid"].as<std::string>());
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, config["next"].as<std::string>());
+    if(config["do_format"].as<bool>()) {
+        labstor::GenericBlock::Client *block_dev = namespace_->LoadClientModule<labstor::GenericBlock::Client>(config["device"]);
+        if(block_dev == nullptr) {
+            throw NOT_YET_IMPLEMENTED.format();
+        }
+        void *buf = calloc(SMALL_BLOCK_SIZE, 0);
+        block_dev->Write(buf, SMALL_BLOCK_SIZE, 0);
+    }
 }
 
 int labstor::LabFS::Client::Open(int fd, const char *path, int pathlen, int oflag) {

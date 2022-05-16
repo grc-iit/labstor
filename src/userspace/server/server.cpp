@@ -22,11 +22,12 @@
 #include <labstor/constants/debug.h>
 #include <labstor/userspace/types/userspace_daemon.h>
 #include <labstor/userspace/server/macros.h>
-#include <labstor/userspace/server/admin_thread.h>
 #include <labstor/userspace/server/module_manager.h>
 #include <labstor/userspace/server/ipc_manager.h>
 #include <labstor/userspace/server/work_orchestrator.h>
 #include <labstor/kernel/client/kernel_client.h>
+#include "labstor/userspace/server/wreaper_thread.h"
+#include "labstor/userspace/server/upgrade_thread.h"
 
 #define TRUSTED_SERVER_PATH "/tmp/labstor_trusted_server"
 
@@ -161,17 +162,25 @@ int main(int argc, char **argv) {
     accept_daemon->Start();
     accept_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
 
-    //Create the thread for processing administrative requests
-    std::shared_ptr<labstor::UserspaceDaemon> admin_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
-    std::shared_ptr<labstor::Server::AdminWorker> admin_worker = std::shared_ptr<labstor::Server::AdminWorker>(new labstor::Server::AdminWorker());
-    admin_daemon->SetWorker(admin_worker);
-    admin_daemon->Start();
-    admin_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
+    //Create the thread for checking heartbeats
+    std::shared_ptr<labstor::UserspaceDaemon> wreaper_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
+    std::shared_ptr<labstor::Server::WreaperWorker> wreaper_worker = std::shared_ptr<labstor::Server::WreaperWorker>(new labstor::Server::WreaperWorker());
+    wreaper_daemon->SetWorker(wreaper_worker);
+    wreaper_daemon->Start();
+    wreaper_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
+
+    //Create the thread for processing upgrades
+    std::shared_ptr<labstor::UserspaceDaemon> upgrade_daemon = std::shared_ptr<labstor::UserspaceDaemon>(new labstor::UserspaceDaemon());
+    std::shared_ptr<labstor::Server::UpgradeWorker> upgrade_worker = std::shared_ptr<labstor::Server::UpgradeWorker>(new labstor::Server::UpgradeWorker());
+    upgrade_daemon->SetWorker(upgrade_worker);
+    upgrade_daemon->Start();
+    upgrade_daemon->SetAffinity(labstor_config_->config_["admin_thread"].as<int>());
 
     //Wait for the daemons to die
     printf("LabStor server has started\n");
     accept_daemon->Wait();
-    admin_daemon->Wait();
+    wreaper_daemon->Wait();
+    upgrade_daemon->Wait();
 
     LABSTOR_ERROR_HANDLE_END()
 }

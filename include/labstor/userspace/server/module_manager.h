@@ -20,7 +20,8 @@ public:
         labstor_config_ = LABSTOR_CONFIGURATION_MANAGER;
     }
     void LoadDefaultModules();
-    void UpdateModule(std::string path);
+    void CentralizedUpdateModule(YAML::Node config);
+    void DecentralizedUpdateModule(YAML::Node config);
     void AddModulePaths(labstor::id module_id, labstor::ModulePath paths);
     std::string GetModulePath(labstor::id module_id, ModulePathType type);
 };

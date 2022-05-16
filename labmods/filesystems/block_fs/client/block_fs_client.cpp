@@ -6,9 +6,9 @@
 #include <labmods/filesystems/block_fs/block_fs.h>
 #include <labmods/filesystems/block_fs/client/block_fs_client.h>
 
-void labstor::BlockFS::Client::Register(char *ns_key, char *next_module) {
-    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(BLOCKFS_MODULE_ID, ns_key);
-    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, next_module);
+void labstor::BlockFS::Client::Register(YAML::Node config) {
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(BLOCKFS_MODULE_ID, config["labmod_uuid"].as<std::string>());
+    LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, config["next"].as<std::string>());
 }
 
 int labstor::BlockFS::Client::Open(int fd, const char *path, int pathlen, int oflag) {

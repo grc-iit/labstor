@@ -8,21 +8,20 @@
 #include "mq_driver.h"
 #include "mq_driver_client.h"
 #include "generic_queue/generic_queue.h"
+#include "labmods/kernel/blkdev_table/client/blkdev_table_client.h"
 
-void labstor::MQDriver::Client::Register(const std::string &dev_path, int dev_id) {
+void labstor::MQDriver::Client::Register(YAML::Node config) {
     AUTO_TRACE("")
-    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(MQ_DRIVER_MODULE_ID, dev_path);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(MQ_DRIVER_MODULE_ID, config["labmod_uuid"].as<std::string>());
+    labstor::BlkdevTable::Client *blkdev_table = LABSTOR_NAMESPACE->LoadClientModule<labstor::BlkdevTable::Client>(BLKDEV_TABLE_MODULE_ID);
+    if(!blkdev_table) {
+        throw NOT_YET_IMPLEMENTED.format();
+    }
+    int dev_id = blkdev_table->RegisterBlkdev(config["dev_path"].as<std::string>());
     LABSTOR_REGISTRAR->InitializeInstance<register_request>(ns_id_, dev_id);
     dev_id_ = dev_id;
 }
 
-int labstor::MQDriver::Client::GetNamespaceID() {
-    auto registrar = labstor::Registrar::Client();
-    if(ns_id_ == 0) {
-        ns_id_ = registrar.GetNamespaceID(MQ_DRIVER_MODULE_ID);
-    }
-    return ns_id_;
-}
 labstor::ipc::qtok_t labstor::MQDriver::Client::AIO(Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx) {
     AUTO_TRACE(buf_size);
     io_request *client_rq;

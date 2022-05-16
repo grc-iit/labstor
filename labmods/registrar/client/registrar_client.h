@@ -21,6 +21,7 @@ public:
     Client() : labstor::Module(LABSTOR_REGISTRAR_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
+    void Register(YAML::Node config) override {}
     void Initialize(int ns_id) override {}
     template<typename register_request_t, typename ...Args>
     uint32_t InitializeInstance(Args ...args) {
@@ -42,7 +43,9 @@ public:
     }
     uint32_t GetNamespaceID(std::string str);
     std::string GetModulePath(int ns_id);
-    void PushUpgrade(std::string key);
+    int MountLabStack(std::string key, std::string yaml_path);
+    int UnmountLabStack(std::string key, std::string yaml_path);
+    int PushUpgrade(std::string yaml_path);
     void TerminateServer();
 };
 

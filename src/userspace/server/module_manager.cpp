@@ -32,13 +32,15 @@ void labstor::Server::ModuleManager::LoadDefaultModules() {
                 }
             }
             AddModulePaths(module_id, paths);
-            UpdateModule(paths.server);
+            labstor::ModuleHandle module_info = OpenModule(paths.server, module_id);
+            SetModuleConstructor(module_id, module_info);
         }
     }
 }
 
-void labstor::Server::ModuleManager::UpdateModule(std::string path) {
-    AUTO_TRACE("", path)
+void labstor::Server::ModuleManager::CentralizedUpdateModule(YAML::Node config) {
+    AUTO_TRACE("")
+    std::string path = config["code_upgrade"]["centralized"].as<std::string>();
     labstor::id module_id;
     labstor::ModuleHandle module_info;
     labstor::Module *old_instance, *new_instance;
@@ -70,6 +72,9 @@ void labstor::Server::ModuleManager::UpdateModule(std::string path) {
 
     //Resume all queues
     ipc_manager_->ResumeQueues();
+}
+
+void labstor::Server::ModuleManager::DecentralizedUpdateModule(YAML::Node config) {
 }
 
 void labstor::Server::ModuleManager::AddModulePaths(labstor::id module_id, labstor::ModulePath paths) {

@@ -51,17 +51,30 @@ struct Namespace : public labstor::Namespace {
     template<typename T>
     T* LoadClientModule(uint32_t ns_id) {
         AUTO_TRACE(ns_id)
-        labstor::Registrar::Client client;
-        std::string path = client.GetModulePath(ns_id);
+        std::string path = LABSTOR_REGISTRAR->GetModulePath(ns_id);
         TRACEPOINT("PATH", path)
         labstor::id module_id = module_manager_->UpdateModule(path);
         TRACEPOINT("MODULE ID", module_id.key_)
         labstor::Module *module = module_manager_->GetModuleConstructor(module_id)();
+        module->SetNamespaceID(ns_id);
         module->Initialize(ns_id);
         RegisterPrivateState(ns_id, module);
         return reinterpret_cast<T*>(module);
     }
+
+    template<typename T>
+    T* LoadClientModule(std::string key) {
+        uint32_t ns_id = LABSTOR_REGISTRAR->GetNamespaceID(key);
+        if(ns_id == -1) {
+            return nullptr;
+        }
+        return LoadClientModule<T>(ns_id);
+    }
+
+    void DeleteModule(std::string key) {
+    }
 };
+
 
 }
 

@@ -80,7 +80,8 @@ target_link_libraries(labstor_client_library
         pthread rt dl
         labstor_kernel_client
         secure_shmem_client_netlink
-        registrar_client)
+        registrar_client
+        yaml-cpp)
 
 ######UTIL
 add_custom_target(start_kernel_server COMMAND LABSTOR_ROOT=${CMAKE_SOURCE_DIR} LABSTOR_BIN=${CMAKE_BINARY_DIR} bash ${CMAKE_SOURCE_DIR}/util/start_kernel_server.sh)
@@ -93,11 +94,32 @@ add_custom_target(terminate_server COMMAND ${CMAKE_BUILD_DIR}/labmods/registrar/
 
 add_executable(partitioner util/partitioner.cpp)
 
-#add_executable(mount util/labstor_mount.cpp)
-#add_dependencies(mount labstor_client_library)
-#target_link_libraries(mount labstor_client_library)
+add_executable(terminate_server_exec src/util/terminate.cpp)
+add_dependencies(terminate_server_exec labstor_client_library registrar_client)
+target_link_libraries(terminate_server_exec labstor_client_library registrar_client)
+
+add_executable(modify.labstack src/util/modify.labstack.cpp)
+add_dependencies(modify.labstack labstor_client_library registrar_client)
+target_link_libraries(modify.labstack labstor_client_library registrar_client yaml-cpp)
+
+add_executable(mount.labstack src/util/mount.labstack.cpp)
+add_dependencies(mount.labstack labstor_client_library registrar_client)
+target_link_libraries(mount.labstack labstor_client_library registrar_client yaml-cpp)
+
+add_executable(unmount.labstack src/util/unmount.labstack.cpp)
+add_dependencies(unmount.labstack labstor_client_library registrar_client)
+target_link_libraries(unmount.labstack labstor_client_library registrar_client yaml-cpp)
+
+########INSTALLATION
+install(
+        TARGETS labstor_kernel_client labstor_server_library labstor_client_library
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(
+        TARGETS labstor_trusted_server modify.labstack mount.labstack unmount.labstack partitioner
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ######MODULES & TESTS
 add_subdirectory(labmods)
-add_subdirectory(test)
-add_subdirectory(benchmark)
+#add_subdirectory(test)
+#add_subdirectory(benchmark)

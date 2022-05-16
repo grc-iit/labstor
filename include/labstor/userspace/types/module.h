@@ -12,7 +12,10 @@
 #include <mutex>
 #include <labstor/types/basics.h>
 #include "labstor/types/data_structures/c/shmem_queue_pair.h"
+#include "registrar.h"
 #include <labstor/userspace/util/errors.h>
+#include <list>
+#include <yaml-cpp/yaml.h>
 
 namespace labstor {
 
@@ -27,9 +30,11 @@ public:
     void SetNamespaceID(uint32_t ns_id) { ns_id_ = ns_id; }
     uint32_t GetNamespaceID() { return ns_id_; }
 
+    virtual void Register(YAML::Node config) = 0;
     virtual void Initialize(int ns_id) = 0;
-    virtual void StateUpdate(Module *prior) {}
     virtual void StateRepair() {}
+    virtual void StateUpdate(Module *prior) {}
+    virtual void StateUpdate(YAML::Node config) {}
 };
 #elif defined(LABSTOR_SERVER)
 class Module {
@@ -56,6 +61,7 @@ public:
             labstor::ipc::request *request,
             labstor::credentials *creds) { return true; };
     virtual void StateUpdate(Module *prior) {}
+    virtual void StateUpdate(YAML::Node config) {}
 };
 #elif defined(LABSTOR_CLIENT) && defined(LABSTOR_SERVER)
 #error "Cannot be a module for both client and server."
@@ -88,9 +94,16 @@ class ModuleTable {
 private:
     std::mutex mutex_;
     std::unordered_map<labstor::id, ModuleHandle> pkg_pool_;
+    std::list<labstor::Registrar::upgrade_request*> upgrades_;
 public:
     ModuleTable() = default;
 
+    void PushUpgrade(labstor::Registrar::upgrade_request *req) {
+        upgrades_.emplace_back(req);
+    }
+    std::list<labstor::Registrar::upgrade_request*>& GetUpgrades() {
+        return upgrades_;
+    }
     ModuleHandle OpenModule(std::string path, labstor::id &module_id) {
         AUTO_TRACE("")
         ModuleHandle module_info;

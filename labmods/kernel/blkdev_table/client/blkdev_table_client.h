@@ -23,8 +23,8 @@ public:
     Client() : labstor::Module(BLKDEV_TABLE_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(int ns_id) {}
-    void Register();
+    void Initialize(int ns_id) override {}
+    void Register(YAML::Node config) override;
     int RegisterBlkdev(std::string path);
 };
 

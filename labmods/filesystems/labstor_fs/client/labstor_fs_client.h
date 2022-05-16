@@ -26,8 +26,7 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void Initialize(labstor::queue_pair *qp, labstor::ipc::request *request, labstor::credentials *creds) {}
-    void Register(char *ns_key, char *next_module);
+    void Register(YAML::Node config) override;
     int Open(int fd, const char *path, int pathlen, int oflag);
     int Close(int fd);
     labstor::ipc::qtok_t AIO(labstor::GenericPosix::Ops op, int fd, void *buf, size_t size);

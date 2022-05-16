@@ -24,9 +24,8 @@ public:
     Client() : labstor::Module(MQ_DRIVER_MODULE_ID) {
         ipc_manager_ = LABSTOR_IPC_MANAGER;
     }
-    void Initialize(int ns_id) {}
-    void Register(const std::string &dev_path, int dev_id);
-    int GetNamespaceID();
+    void Initialize(int ns_id) override {}
+    void Register(YAML::Node config) override;
     void IO(Ops op, void *user_buf, size_t buf_size, size_t sector, int hctx);
     inline void Read(void *user_buf, size_t buf_size, size_t sector, int hctx) {
         IO(Ops::kRead, user_buf, buf_size, sector, hctx);

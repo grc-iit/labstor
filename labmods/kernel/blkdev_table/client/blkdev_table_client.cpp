@@ -7,7 +7,7 @@
 #include "blkdev_table.h"
 #include "blkdev_table_client.h"
 
-void labstor::BlkdevTable::Client::Register() {
+void labstor::BlkdevTable::Client::Register(YAML::Node config) {
     AUTO_TRACE("")
     ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(BLKDEV_TABLE_MODULE_ID, BLKDEV_TABLE_MODULE_ID);
     TRACEPOINT(ns_id_)

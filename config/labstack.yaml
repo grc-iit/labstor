@@ -1,0 +1,17 @@
+execution_method: async
+mount_point: "fs::/home/luke"
+dag:
+  v1:
+      labmod_uuid: "fs::/home/luke"
+      labmod: "LabFS"
+      next: "iosched::NoOp"
+      do_format: true
+      device: "/dev/sda1"
+  v2:
+      labmod_uuid: "iosched::NoOp"
+      labmod: "NoOp"
+      next: "driver::MQDriver"
+  v3:
+      labmod_uuid: "driver::MQDriver"
+      labmod: "MQDriver"
+      device: "/dev/sda1"

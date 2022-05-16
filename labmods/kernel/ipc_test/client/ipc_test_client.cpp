@@ -9,17 +9,8 @@
 #include "ipc_test.h"
 #include "ipc_test_client.h"
 
-void labstor::IPCTest::Client::Register() {
+void labstor::IPCTest::Client::Register(YAML::Node config) {
     ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(IPC_TEST_MODULE_ID, IPC_TEST_MODULE_ID);
-}
-
-int labstor::IPCTest::Client::Link() {
-    auto registrar = labstor::Registrar::Client();
-    if(ns_id_ == 0) {
-        ns_id_ = registrar.GetNamespaceID(IPC_TEST_MODULE_ID);
-        printf("NS ID: %d\n", ns_id_);
-    }
-    return ns_id_;
 }
 
 int labstor::IPCTest::Client::Start(int batch_size) {

@@ -26,9 +26,8 @@ public:
         ipc_manager_ = LABSTOR_IPC_MANAGER;
         namespace_ = LABSTOR_NAMESPACE;
     }
-    void Initialize(int ns_id) {}
-    void Register();
-    int Link();
+    void Initialize(int ns_id) override {}
+    void Register(YAML::Node config) override;
     void GetValue();
 };
 

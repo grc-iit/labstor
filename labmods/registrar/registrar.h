@@ -11,9 +11,6 @@
 
 #define LABSTOR_REGISTRAR_MODULE_ID "Registrar"
 
-#define UPGRADE_CENTRALIZED 1
-#define UPGRADE_DECENTRALIZED 2
-
 namespace labstor::Registrar {
 
 enum class Ops {
@@ -69,11 +66,11 @@ struct module_path_request : labstor::ipc::request {
 };
 
 struct upgrade_request : labstor::ipc::request {
-    labstor::id key_;
-    void PushUpgradeStart(const std::string &key, int flags) {
+    char yaml_path_[];
+    void PushUpgradeStart(const std::string &yaml_path) {
         ns_id_ = LABSTOR_REGISTRAR_ID;
         op_ = static_cast<int>(Ops::kPushUpgrade);
-        key_.copy(key);
+        memcpy(yaml_path_, yaml_path.c_str(), yaml_path.size());
     }
     void PushUpgradeEnd() {
         SetCode(LABSTOR_REQUEST_SUCCESS);

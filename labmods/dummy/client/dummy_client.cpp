@@ -8,18 +8,9 @@
 #include "dummy.h"
 #include "dummy_client.h"
 
-void labstor::test::Dummy::Client::Register() {
+void labstor::test::Dummy::Client::Register(YAML::Node config) {
     AUTO_TRACE("")
     ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(LABSTOR_DUMMY_MODULE_ID, LABSTOR_DUMMY_MODULE_ID);
-    TRACEPOINT(ns_id_)
-}
-
-int labstor::test::Dummy::Client::Link() {
-    auto registrar = labstor::Registrar::Client();
-    if(ns_id_ == 0) {
-        ns_id_ = registrar.GetNamespaceID(LABSTOR_DUMMY_MODULE_ID);
-    }
-    return ns_id_;
 }
 
 void labstor::test::Dummy::Client::GetValue() {

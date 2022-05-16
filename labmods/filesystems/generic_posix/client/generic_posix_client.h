@@ -74,16 +74,12 @@ public:
             region += fd_alloc_size;
             fds_.emplace_back(LABSTOR_FD_MIN + i*LABSTOR_MAX_FDS_PER_THREAD, region, fd_alloc_size, LABSTOR_MAX_FDS_PER_THREAD);
         }
-        LABSTOR_ERROR_HANDLE_START()
-            Link();
-        LABSTOR_ERROR_HANDLE_END()
     }
-    void Initialize(int ns_id) {}
+    void Register(YAML::Node config) override;
+    void Initialize(int ns_id) override;
     inline bool IsInitialized() {
         return is_initialized_;
     }
-    int Register();
-    void Link();
     int Open(const char *path, int oflag);
     int Close(int fd);
     int AllocateFD() {

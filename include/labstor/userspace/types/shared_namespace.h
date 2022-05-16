@@ -78,24 +78,10 @@ public:
         if(module == nullptr) { return; }
         AddKey(new_key, module);
     }
-    inline bool GetIfExists(labstor::ipc::string key, uint32_t &ns_id) {
+
+    inline bool GetNamespaceID(labstor::ipc::string key, uint32_t &ns_id) {
         TRACEPOINT(key.ToString(), key.Hash())
         return key_to_ns_id_.Find(key, ns_id);
-    }
-    inline uint32_t Get(labstor::ipc::string key) {
-        uint32_t ns_id;
-        TRACEPOINT(key.ToString(), key.Hash())
-        if(key_to_ns_id_.Find(key, ns_id)) {
-            return ns_id;
-        }
-        return -1;
-    }
-    template<typename T=labstor::Module>
-    inline T* Get(uint32_t ns_id) {
-        if(0 <= ns_id && ns_id < private_state_.size()) {
-            return reinterpret_cast<T*>(private_state_[ns_id]);
-        }
-        return nullptr;
     }
     uint32_t GetNamespaceID(std::string key) {
         uint32_t ns_id;
@@ -103,6 +89,21 @@ public:
             return LABSTOR_INVALID_NAMESPACE_KEY;
         }
         return ns_id;
+    }
+    inline uint32_t GetNamespaceID(labstor::ipc::string key) {
+        uint32_t ns_id;
+        TRACEPOINT(key.ToString(), key.Hash())
+        if(key_to_ns_id_.Find(key, ns_id)) {
+            return ns_id;
+        }
+        return LABSTOR_INVALID_NAMESPACE_KEY;
+    }
+    template<typename T=labstor::Module>
+    inline T* GetModule(uint32_t ns_id) {
+        if(0 <= ns_id && ns_id < private_state_.size()) {
+            return reinterpret_cast<T*>(private_state_[ns_id]);
+        }
+        return nullptr;
     }
 
     inline std::queue<labstor::Module*>& AllModuleInstances(labstor::id module_id) {

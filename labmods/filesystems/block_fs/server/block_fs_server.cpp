@@ -32,7 +32,7 @@ inline bool labstor::BlockFS::Server::Initialize(labstor::queue_pair *qp, labsto
     labstor::ipc::qtok_t qtok;
 
     register_request *reg_rq = reinterpret_cast<register_request*>(request);
-    next_module_ = namespace_->Get(reg_rq->next_);
+    next_module_ = namespace_->GetNamespaceID(reg_rq->next_);
     return true;
 }
 inline bool labstor::BlockFS::Server::Open(labstor::queue_pair *qp, labstor::GenericPosix::open_request *client_rq, labstor::credentials *creds) {

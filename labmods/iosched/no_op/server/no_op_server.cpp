@@ -26,7 +26,7 @@ bool labstor::iosched::NoOp::Server::Initialize(labstor::queue_pair *qp, labstor
     AUTO_TRACE("")
     //Need to get next module
     register_request *reg_rq = reinterpret_cast<register_request*>(request);
-    next_module_ = namespace_->Get(reg_rq->next_);
+    next_module_ = namespace_->GetNamespaceID(reg_rq->next_);
 
     //Need to get number of HW queues (submit req to next module)
     labstor::ipc::qtok_t qtok;

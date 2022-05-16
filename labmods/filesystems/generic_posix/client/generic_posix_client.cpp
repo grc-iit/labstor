@@ -8,19 +8,18 @@
 #include "lib/posix_client.h"
 #include <mutex>
 
-int labstor::GenericPosix::Client::Register() {
+void labstor::GenericPosix::Client::Register(YAML::Node config) {
     AUTO_TRACE("")
-    return LABSTOR_REGISTRAR->RegisterInstance(GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID);
+    ns_id_ = LABSTOR_REGISTRAR->RegisterInstance(GENERIC_POSIX_MODULE_ID, GENERIC_POSIX_MODULE_ID);
 }
 
-void labstor::GenericPosix::Client::Link() {
+void labstor::GenericPosix::Client::Initialize(int ns_id) {
     AUTO_TRACE("")
     //Retreive the namespace ID from the server
     if(lock_.try_lock()) {
         if(!is_initialized_) {
             ipc_manager_->Connect();
-            labstor::Registrar::Client registrar;
-            ns_id_ = registrar.GetNamespaceID(GENERIC_POSIX_MODULE_ID);
+            ns_id_ = LABSTOR_REGISTRAR->GetNamespaceID(GENERIC_POSIX_MODULE_ID);
             TRACEPOINT("Found generic posix namespace ID", ns_id_)
             is_initialized_ = true;
             fd_min_ = LABSTOR_FD_MIN; //TODO: Should be queried from the server
@@ -45,9 +44,9 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
     while(len > 0) {
         labstor::ipc::string path_str(std::string(path, len));
         TRACEPOINT(std::string(path, len))
-        if(namespace_->GetIfExists(path_str, ns_id)) {
+        if(namespace_->GetNamespaceID(path_str, ns_id)) {
             TRACEPOINT("FOUND IT!")
-            module = namespace_->Get<labstor::Posix::Client>(ns_id);
+            module = namespace_->GetModule<labstor::Posix::Client>(ns_id);
             if(module == nullptr) {
                 module = namespace_->LoadClientModule<labstor::Posix::Client>(ns_id);
             }
@@ -72,7 +71,7 @@ int labstor::GenericPosix::Client::Open(const char *path, int oflag) {
 int labstor::GenericPosix::Client::Close(int fd) {
     if(fd < fd_min_) { return LABSTOR_INVALID_FD; }
     int ns_id = fd_to_ns_id_[fd];
-    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    labstor::Posix::Client *client = namespace_->GetModule<labstor::Posix::Client>(ns_id);
     client->Close(fd);
     fd_to_ns_id_.erase(fd);
     FreeFD(fd);
@@ -83,7 +82,7 @@ labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::O
     AUTO_TRACE("")
     if(fd < fd_min_) { return labstor::ipc::qtok_t(); }
     uint32_t ns_id = fd_to_ns_id_[fd];
-    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    labstor::Posix::Client *client = namespace_->GetModule<labstor::Posix::Client>(ns_id);
     return client->AIO(op, fd, buf, off, size);
 }
 
@@ -91,7 +90,7 @@ labstor::ipc::qtok_t labstor::GenericPosix::Client::AIO(labstor::GenericPosix::O
     AUTO_TRACE("")
     if(fd < fd_min_) { return labstor::ipc::qtok_t(); }
     uint32_t ns_id = fd_to_ns_id_[fd];
-    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    labstor::Posix::Client *client = namespace_->GetModule<labstor::Posix::Client>(ns_id);
     return client->AIO(op, fd, buf, size);
 }
 
@@ -99,7 +98,7 @@ ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd,
     AUTO_TRACE("")
     if(fd < fd_min_) { return -1; }
     uint32_t ns_id = fd_to_ns_id_[fd];
-    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    labstor::Posix::Client *client = namespace_->GetModule<labstor::Posix::Client>(ns_id);
     return client->IO(op, fd, buf, off, size);
 }
 
@@ -107,7 +106,7 @@ ssize_t labstor::GenericPosix::Client::IO(labstor::GenericPosix::Ops op, int fd,
     AUTO_TRACE("")
     if(fd < fd_min_) { return -1; }
     uint32_t ns_id = fd_to_ns_id_[fd];
-    labstor::Posix::Client *client = namespace_->Get<labstor::Posix::Client>(ns_id);
+    labstor::Posix::Client *client = namespace_->GetModule<labstor::Posix::Client>(ns_id);
     return client->IO(op, fd, buf, size);
 }
 
