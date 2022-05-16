@@ -149,6 +149,16 @@ public:
         mutex_.unlock();
         return module_info.constructor_;
     }
+
+    bool HasModule(labstor::id module_id) {
+        bool state = true;
+        mutex_.lock();
+        if(pkg_pool_.find(module_id) == pkg_pool_.end()) {
+            state = false;
+        }
+        mutex_.unlock();
+        return state;
+    }
 };
 
 }

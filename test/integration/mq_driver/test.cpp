@@ -4,8 +4,8 @@
 
 
 #include <labstor/userspace/client/client.h>
-#include <labmods/kernel/blkdev_table/client/blkdev_table_client.h>
-#include <labmods/storage_api/mq_driver/client/mq_driver_client.h>
+#include <labmods/blkdev_table/client/blkdev_table_client.h>
+#include <labmods/mq_driver/client/mq_driver_client.h>
 #include <unistd.h>
 
 bool verify_buf(int value, char *buffer, size_t buf_size, const char *path) {

@@ -2,7 +2,7 @@
 // Created by lukemartinlogan on 2/27/22.
 //
 
-#include <labmods/storage_api/spdk/client/spdk_client.h>
+#include <labmods/spdk/client/spdk_client.h>
 
 void help() {
     printf("USAGE: ./test [opt (1/2)] [trid (case 2)] [ns_id (case 2)] [num_qps (case 2)]\n");

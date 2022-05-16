@@ -18,7 +18,7 @@
 #include <labstor/types/data_structures/unordered_map/shmem_string_map.h>
 #include <labstor/userspace/types/module.h>
 #include <labmods/registrar/client/registrar_client.h>
-#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 namespace labstor::Client {
 

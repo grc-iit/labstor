@@ -13,29 +13,42 @@
 #include <labstor/userspace/server/namespace.h>
 #include <labstor/userspace/server/ipc_manager.h>
 
-void labstor::Server::ModuleManager::LoadDefaultModules() {
+bool labstor::Server::ModuleManager::LoadRepos() {
     AUTO_TRACE("")
-    if(labstor_config_->config_["modules"]) {
-        for (const auto &module : labstor_config_->config_["modules"]) {
-            labstor::id module_id(module.first.as<std::string>());
+    if(labstor_config_->config_["repos"]) {
+        for(auto repo : labstor_config_->config_["repos"]) {
+            std::string repo_path = scs::path_parser(repo.as<std::string>());
+            printf("Processing repo: %s\n", repo_path.c_str());
+            std::string labmod_uuid_path = repo_path + "/include/labmods";
             labstor::ModulePath paths;
-            if (module.second["client"]) {
-                paths.client = scs::path_parser(module.second["client"].as<std::string>());
-                if(!std::filesystem::exists(paths.client)) {
-                    throw MODULE_DOES_NOT_EXIST.format(paths.client);
-                }
+            if(!std::filesystem::exists(labmod_uuid_path)) {
+                printf("%s doesn't exist in repo yaml\n", labmod_uuid_path.c_str());
+                return false;
             }
-            if (module.second["server"]) {
-                paths.server = scs::path_parser(module.second["server"].as<std::string>());
-                if(!std::filesystem::exists(paths.client)) {
-                    throw MODULE_DOES_NOT_EXIST.format(paths.server);
+            for(auto &dir_entry : std::filesystem::directory_iterator(labmod_uuid_path)) {
+                std::string labmod_uuid_str = dir_entry.path().filename();
+                labstor::id labmod_uuid(labmod_uuid_str);
+                if(HasModule(labmod_uuid)) {
+                    continue;
                 }
+                std::string client_lib = repo_path + "/lib/" + "lib" + labmod_uuid_str + "_client.so";
+                std::string server_lib = repo_path + "/lib/" + "lib" + labmod_uuid_str + "_server.so";
+                if(std::filesystem::exists(client_lib)) {
+                    paths.client = client_lib;
+                }
+                if(std::filesystem::exists(server_lib)) {
+                    paths.server = server_lib;
+                    labstor::ModuleHandle module_info = OpenModule(paths.server, labmod_uuid);
+                    SetModuleConstructor(labmod_uuid, module_info);
+                }
+                AddModulePaths(labmod_uuid, paths);
+                printf("Added module %s\n", labmod_uuid_str.c_str());
+                printf("  Client path: %s\n", paths.client.c_str());
+                printf("  Server path: %s\n", paths.server.c_str());
             }
-            AddModulePaths(module_id, paths);
-            labstor::ModuleHandle module_info = OpenModule(paths.server, module_id);
-            SetModuleConstructor(module_id, module_info);
         }
     }
+    return true;
 }
 
 void labstor::Server::ModuleManager::CentralizedUpdateModule(YAML::Node config) {

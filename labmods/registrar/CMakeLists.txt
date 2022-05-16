@@ -15,8 +15,10 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/kernel)
             CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR})
     add_dependencies(build_${MODULE_NAME} build_labstor_kernel_server)
     add_custom_target(clean_${MODULE_NAME} COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/kernel && make clean)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}.ko DESTINATION ${CMAKE_INSTALL_PREFIX}/kernel)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}_kernel.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/kernel)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}.ko
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/kernel)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/kernel/${MODULE_NAME}_kernel.h
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/include/labmods/${MODULE_NAME})
 endif()
 
 #BUILD NETLINK CLIENT
@@ -28,20 +30,25 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/netlink_client)
     target_link_libraries(${MODULE_NAME}_client_netlink
             labstor_kernel_client)
     install(TARGETS ${MODULE_NAME}_client_netlink DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/netlink_client/${MODULE_NAME}_client_netlink.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/netlink_client)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/netlink_client/${MODULE_NAME}_client_netlink.h
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/include/labmods/${MODULE_NAME}/netlink_client)
 endif()
 
 #BUILD USERSPACE CLIENT
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/client)
     add_library(${MODULE_NAME}_client client/${MODULE_NAME}_client.cpp)
     install(TARGETS ${MODULE_NAME}_client DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/client/${MODULE_NAME}_client.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/client)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/client/${MODULE_NAME}_client.h
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/include/labmods/${MODULE_NAME}/client)
 endif()
 
 #BUILD USERSPACE SERVER
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/server)
     add_library(${MODULE_NAME}_server server/${MODULE_NAME}_server.cpp)
     install(TARGETS ${MODULE_NAME}_server DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/server/${MODULE_NAME}_server.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/server)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/server/${MODULE_NAME}_server.h
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/include/labmods/${MODULE_NAME}/server)
 endif()
 
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${MODULE_NAME}.h
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/labmods/${MODULE_NAME})

@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 
     //Load modules
     auto module_manager_ = LABSTOR_MODULE_MANAGER;
-    module_manager_->LoadDefaultModules();
+    module_manager_->LoadRepos();
 
     //Initialize namespace
     auto namespace_ = LABSTOR_NAMESPACE;

@@ -5,7 +5,7 @@
 #include <labstor/types/allocator/shmem_allocator.h>
 #include <labstor/types/data_structures/mpmc/shmem_request_queue.h>
 #include <labstor/util/singleton.h>
-#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include "request_queue_test.h"
 
 int main(int argc, char **argv) {

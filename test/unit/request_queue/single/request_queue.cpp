@@ -3,7 +3,7 @@
 //
 
 #include "labstor/types/data_structures/c/shmem_request_queue.h"
-#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 
 int main(int argc, char **argv) {
     uint32_t num_requests = 171;

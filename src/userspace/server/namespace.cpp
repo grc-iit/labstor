@@ -5,7 +5,7 @@
 #include <labstor/userspace/server/server.h>
 #include <labstor/constants/debug.h>
 #include <labstor/userspace/server/namespace.h>
-#include <labmods/kernel/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
+#include <labmods/secure_shmem/netlink_client/secure_shmem_client_netlink.h>
 #include <labmods/registrar/server/registrar_server.h>
 
 labstor::Server::Namespace::Namespace() {

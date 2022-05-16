@@ -3,14 +3,14 @@ modules:
     client: ${LABSTOR_BUILD_DIR}/labmods/dummy/libdummy_client.so
     server: ${LABSTOR_BUILD_DIR}/labmods/dummy/libdummy_server.so
   IPCTest:
-    client: ${LABSTOR_BUILD_DIR}/labmods/kernel/ipc_test/libipc_test_client.so
-    server: ${LABSTOR_BUILD_DIR}/labmods/kernel/ipc_test/libipc_test_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/ipc_test/libipc_test_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/ipc_test/libipc_test_server.so
   BlkdevTable:
-    client: ${LABSTOR_BUILD_DIR}/labmods/kernel/blkdev_table/libblkdev_table_client.so
-    server: ${LABSTOR_BUILD_DIR}/labmods/kernel/blkdev_table/libblkdev_table_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/blkdev_table/libblkdev_table_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/blkdev_table/libblkdev_table_server.so
   MQDriver:
-    client: ${LABSTOR_BUILD_DIR}/labmods/kernel/mq_driver/libmq_driver_client.so
-    server: ${LABSTOR_BUILD_DIR}/labmods/kernel/mq_driver/libmq_driver_server.so
+    client: ${LABSTOR_BUILD_DIR}/labmods/mq_driver/libmq_driver_client.so
+    server: ${LABSTOR_BUILD_DIR}/labmods/mq_driver/libmq_driver_server.so
 work_orchestrator:
   time_slice_us: 1000
   work_queue_depth: 128
