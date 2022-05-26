@@ -1,13 +1,6 @@
 from jarvis_cd.exec_node import ExecNode
 import os
 
-class DropCaches:
-    def Run(self):
-        self.node = ExecNode("drop_caches", 'sync', collect_output=False)
-        self.node.Run()
-        with open("/proc/sys/vm/drop_caches", "w") as fp:
-            fp.write("3")
-
 class LabStorKernelServer:
     def Start(self, labstor_root):
         self.node = ExecNode("start_kern_server", self.GetStartCommand(), collect_output=False)

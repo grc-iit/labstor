@@ -21,7 +21,7 @@ fi
 #Kernel headers
 if $IS_DEBIAN
 then
-  sudo apt install -y linux-headers-`uname -r` libaio-dev
+  sudo apt install -y linux-headers-`uname -r` libaio-dev maven
 elif $IS_RED_HAT
 then
   sudo yum -y install linux-headers-`uname -r`
@@ -30,19 +30,27 @@ fi
 ########FROM SOURCE
 
 #Install SCSPKG
-git clone https://github.com/lukemartinlogan/scspkg.git
+git clone https://github.com/scs-lab/scspkg.git
 cd scspkg
 bash install.sh
 source ~/.bashrc
 
 #Install Jarvis-CD
-git clone https://github.com/lukemartinlogan/jarvis-cd.git
+git clone https://github.com/scs-lab/jarvis-cd.git
 cd jarvis-cd
 bash install.sh
 source ~/.bashrc
 
-#Install CMAKE
+#Install Spack
+cd ${HOME}
+git clone https://github.com/spack/spack.git
+cd spack
+echo ". `pwd`/share/spack/setup-env.sh" >> ~/.bashrc
+source ~/.bashrc
 
+#Install CMAKE
+spack install cmake@3.22.1
+spack load cmake
 
 #Install MPICH
 scspkg create mpich
@@ -119,3 +127,17 @@ autoconf
 ./configure --prefix=`scspkg pkg-root filebench`
 make -j8
 make install
+
+##Python 2.7
+spack install python@2.7.12
+spack load python@2.7.12
+
+##YCSB
+scspkg create YCSB
+cd `scspkg pkg-src YCSB`
+git clone https://github.com/brianfrankcooper/YCSB.git
+git checkout ce3eb9c
+cd YCSB
+mvn -pl site.ycsb:rocksdb-binding -am clean package
+#./bin/ycsb load rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount
+#./bin/ycsb run rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount

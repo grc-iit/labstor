@@ -25,7 +25,8 @@ enum class Ops {
     kClose,
     kRead,
     kWrite,
-    kIOComplete
+    kFsync,
+    kFdatasync
 };
 
 struct FILE {

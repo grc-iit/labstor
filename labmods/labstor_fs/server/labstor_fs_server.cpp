@@ -31,8 +31,8 @@ inline bool labstor::LabFS::Server::Initialize(labstor::queue_pair *qp, labstor:
     labstor::GenericBlock::io_request *block_rq;
     labstor::ipc::qtok_t qtok;
 
-    register_request *reg_rq = reinterpret_cast<register_request*>(rq);
-    next_module_ = namespace_->Get(reg_rq->next_);
+    register_request *reg_rq = reinterpret_cast<register_request*>(request);
+    next_module_ = namespace_->GetNamespaceID(reg_rq->next_);
 
     //Read log starting at first block
     LogCommit *commit;
