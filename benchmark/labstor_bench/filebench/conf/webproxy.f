@@ -19,27 +19,27 @@
 # CDDL HEADER END
 #
 #
-# Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+# Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
 # Use is subject to license terms.
 #
 
-set $dir=/tmp
-set $nfiles=1000
-set $meandirwidth=20
+set $dir={mount}
+set $nfiles=10000
+set $meandirwidth=1000000
 set $meanfilesize=16k
-set $nthreads=100
+set $nthreads={nthreads} #100
+set $meaniosize=16k
 set $iosize=1m
-set $meanappendsize=16k
 
-define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=100
-define fileset name=logfiles,path=$dir,size=$meanfilesize,entries=1,dirwidth=$meandirwidth,prealloc
+define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
 
-define process name=filereader,instances=1
+define process name=proxycache,instances=1
 {
-  thread name=filereaderthread,memsize=10m,instances=$nthreads
+  thread name=proxycache,memsize=10m,instances=$nthreads
   {
-    flowop openfile name=openfile1,filesetname=bigfileset,fd=1
-    flowop readwholefile name=readfile1,fd=1,iosize=$iosize
+    flowop deletefile name=deletefile1,filesetname=bigfileset
+    flowop createfile name=createfile1,filesetname=bigfileset,fd=1
+    flowop appendfilerand name=appendfilerand1,iosize=$meaniosize,fd=1
     flowop closefile name=closefile1,fd=1
     flowop openfile name=openfile2,filesetname=bigfileset,fd=1
     flowop readwholefile name=readfile2,fd=1,iosize=$iosize
@@ -56,27 +56,18 @@ define process name=filereader,instances=1
     flowop openfile name=openfile6,filesetname=bigfileset,fd=1
     flowop readwholefile name=readfile6,fd=1,iosize=$iosize
     flowop closefile name=closefile6,fd=1
-    flowop openfile name=openfile7,filesetname=bigfileset,fd=1
-    flowop readwholefile name=readfile7,fd=1,iosize=$iosize
-    flowop closefile name=closefile7,fd=1
-    flowop openfile name=openfile8,filesetname=bigfileset,fd=1
-    flowop readwholefile name=readfile8,fd=1,iosize=$iosize
-    flowop closefile name=closefile8,fd=1
-    flowop openfile name=openfile9,filesetname=bigfileset,fd=1
-    flowop readwholefile name=readfile9,fd=1,iosize=$iosize
-    flowop closefile name=closefile9,fd=1
-    flowop openfile name=openfile10,filesetname=bigfileset,fd=1
-    flowop readwholefile name=readfile10,fd=1,iosize=$iosize
-    flowop closefile name=closefile10,fd=1
-    flowop appendfilerand name=appendlog,filesetname=logfiles,iosize=$meanappendsize,fd=2
+    flowop opslimit name=limit
   }
 }
 
-echo  "Web-server Version 3.0 personality successfully loaded"
+run 20
+
+echo  "Web proxy-server Version 3.0 personality successfully loaded"
 usage "Usage: set \$dir=<dir>"
-usage "       set \$meanfilesize=<size>   defaults to $meanfilesize"
-usage "       set \$nfiles=<value>    defaults to $nfiles"
-usage "       set \$meandirwidth=<value>  defaults to $meandirwidth"
-usage "       set \$nthreads=<value>  defaults to $nthreads"
-usage "       set \$iosize=<size>     defaults to $iosize"
+usage "       set \$meanfilesize=<size>    defaults to $meanfilesize"
+usage "       set \$nfiles=<value>     defaults to $nfiles"
+usage "       set \$nthreads=<value>   defaults to $nthreads"
+usage "       set \$meaniosize=<value> defaults to $meaniosize"
+usage "       set \$iosize=<size>  defaults to $iosize"
+usage "       set \$meandirwidth=<size> defaults to $meandirwidth"
 usage "       run runtime (e.g. run 60)"

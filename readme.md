@@ -37,7 +37,7 @@ This is the configuration of PMEM we used in our experiments.
 cd labstor  
 mkdir build    
 cd build  
-module load labstor #Created by install.sh  
+module load labstor
 cmake ../ -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root labstor`  
 make -j4  
 make install  
@@ -94,10 +94,10 @@ If running all tests at once is not required, tests can be executed individually
 To run individual tests, replace [test_case] with the following:
 1. io_anatomy
 2. live_upgrade
-3. work_orch:cpu
-4. work_orch:req
+3. work_orch_cpu
+4. work_orch_req
 5. storage_api
-6. iosched:labstor
+6. iosched_labstor
 7. labios
 8. filebench
-9. iosched:blkswitch
+9. iosched_blkswitch

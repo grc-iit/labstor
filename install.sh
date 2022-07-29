@@ -33,6 +33,7 @@ LABSTOR_ROOT=`pwd`
 scspkg create labstor
 
 #Install Jarvis-CD
+echo "INSTALLING JARVIS"
 cd external
 git clone https://github.com/lukemartinlogan/jarvis-cd.git -b vLabstor
 cd jarvis-cd
@@ -43,21 +44,30 @@ jarvis deps scaffold labstor
 jarvis deps local-install all
 source ~/.bashrc
 cd ${LABSTOR_ROOT}
+echo
+echo
 
 #Install SCSPKG
+echo INSTALLING SCSPKG
 cd external
 git clone https://github.com/scs-lab/scspkg.git
 cd scspkg
 bash install.sh
 source ~/.bashrc
 cd ${LABSTOR_ROOT}
+echo
+echo
 
 #Install CMAKE
+echo INSTALLING CMAKE
 spack install cmake@3.22.1
 spack load cmake
 scspkg from-spack cmake@3.22.1 cmake-labstor
+echo
+echo
 
 #Install Yaml-CPP
+echo INSTALLING YAML-CPP
 scspkg create yaml-cpp
 cd `scspkg pkg-src yaml-cpp`
 git clone https://github.com/jbeder/yaml-cpp.git
@@ -68,8 +78,11 @@ cd build
 cmake ../  -DYAML_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root yaml-cpp`
 make -j8
 make install
+echo
+echo
 
 #FIO
+echo INSTALLING FIO
 scspkg create fio
 cd `scspkg pkg-src fio`
 wget https://github.com/axboe/fio/archive/refs/tags/fio-3.28.tar.gz
@@ -78,8 +91,11 @@ cd fio-fio-3.28
 ./configure --prefix=`scspkg pkg-root fio`
 make -j8
 make install
+echo
+echo
 
 #SPDK
+echo INSTALLING SPDK
 scspkg create spdk
 cd `scspkg pkg-src spdk`
 git clone https://github.com/spdk/spdk
@@ -91,8 +107,11 @@ sudo scripts/pkgdep.sh --all
 make -j8
 make install
 export SPDK_ROOT=`scspkg pkg-src spdk`/spdk
+echo
+echo
 
 #LIBURING
+echo INSTALLING LIBURING
 scspkg create liburing
 cd `scspkg pkg-src liburing`
 git clone https://github.com/axboe/liburing.git
@@ -100,8 +119,11 @@ cd liburing
 ./configure --prefix=`scspkg pkg-root liburing`
 make -j8
 make install
+echo
+echo
 
 #FxMark
+echo INSTALLING FXMARK
 #https://www.usenix.org/system/files/conference/atc16/atc16_paper-min.pdf
 scspkg create fxmark
 cd `scspkg pkg-src fxmark`
@@ -109,7 +131,8 @@ git clone https://github.com/sslab-gatech/fxmark.git
 cd fxmark
 make
 cp -r bin `scspkg pkg-root fxmark`/bin
-#sudo bin/fxmark --type=MWCL --ncore=1 --duration=20 --root=/home/cc/hi
+echo
+echo
 
 #Filebench
 scspkg create filebench
