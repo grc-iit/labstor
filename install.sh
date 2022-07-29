@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#Create the LabStor lib directory
-mkidr deps
-cd deps
+mkdir external
 
 ########DETECT DISTRO
 if command -v apt &> /dev/null
@@ -29,38 +27,35 @@ fi
 
 ########FROM SOURCE
 
+LABSTOR_ROOT=`pwd`
+
+#LABSTOR
+scspkg create labstor
+
+#Install Jarvis-CD
+cd external
+git clone https://github.com/lukemartinlogan/jarvis-cd.git -b vLabstor
+cd jarvis-cd
+bash dependencies.sh
+source ~/.bashrc
+python3 -m pip install -e . --user -r requirements.txt
+jarvis deps scaffold labstor
+jarvis deps local-install all
+source ~/.bashrc
+cd ${LABSTOR_ROOT}
+
 #Install SCSPKG
+cd external
 git clone https://github.com/scs-lab/scspkg.git
 cd scspkg
 bash install.sh
 source ~/.bashrc
-
-#Install Jarvis-CD
-git clone https://github.com/scs-lab/jarvis-cd.git
-cd jarvis-cd
-bash install.sh
-source ~/.bashrc
-
-#Install Spack
-cd ${HOME}
-git clone https://github.com/spack/spack.git
-cd spack
-echo ". `pwd`/share/spack/setup-env.sh" >> ~/.bashrc
-source ~/.bashrc
+cd ${LABSTOR_ROOT}
 
 #Install CMAKE
 spack install cmake@3.22.1
 spack load cmake
-
-#Install MPICH
-scspkg create mpich
-cd `scspkg pkg-src mpich`
-wget http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz --no-check-certificate
-tar -xzf mpich-3.2.tar.gz
-cd mpich-3.2
-./configure --prefix=`scspkg pkg-root mpich` --enable-fast=O3 --enable-romio --enable-shared
-make -j8
-make install
+scspkg from-spack cmake@3.22.1 cmake-labstor
 
 #Install Yaml-CPP
 scspkg create yaml-cpp
@@ -79,7 +74,7 @@ scspkg create fio
 cd `scspkg pkg-src fio`
 wget https://github.com/axboe/fio/archive/refs/tags/fio-3.28.tar.gz
 tar -xzf fio-3.28.tar.gz
-cd fio
+cd fio-fio-3.28
 ./configure --prefix=`scspkg pkg-root fio`
 make -j8
 make install
@@ -108,9 +103,12 @@ make install
 
 #FxMark
 #https://www.usenix.org/system/files/conference/atc16/atc16_paper-min.pdf
+scspkg create fxmark
+cd `scspkg pkg-src fxmark`
 git clone https://github.com/sslab-gatech/fxmark.git
 cd fxmark
 make
+cp bin `scspkg pkg-root fxmark`/bin
 #sudo bin/fxmark --type=MWCL --ncore=1 --duration=20 --root=/home/cc/hi
 
 #Filebench
@@ -128,16 +126,30 @@ autoconf
 make -j8
 make install
 
+#Install MPICH
+scspkg create mpich
+cd `scspkg pkg-src mpich`
+wget http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz --no-check-certificate
+tar -xzf mpich-3.2.tar.gz
+cd mpich-3.2
+./configure --prefix=`scspkg pkg-root mpich` --enable-fast=O3 --enable-romio --enable-shared
+make -j8
+make install
+
+#Add LabStor package dependencies
+scspkg add-deps labstor filebench fxmark liburing spdk fio yaml-cpp cmake-labstor mpich
+
 ##Python 2.7
-spack install python@2.7.12
-spack load python@2.7.12
+#spack install python@2.7.12
+#spack load python@2.7.12
 
 ##YCSB
-scspkg create YCSB
-cd `scspkg pkg-src YCSB`
-git clone https://github.com/brianfrankcooper/YCSB.git
-git checkout ce3eb9c
-cd YCSB
-mvn -pl site.ycsb:rocksdb-binding -am clean package
+#scspkg create YCSB
+#cd `scspkg pkg-src YCSB`
+#git clone https://github.com/brianfrankcooper/YCSB.git
+#git checkout ce3eb9c
+#cd YCSB
+#mvn -pl site.ycsb:rocksdb-binding -am clean package
+
 #./bin/ycsb load rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount
 #./bin/ycsb run rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount

@@ -17,6 +17,9 @@ bash install.sh
 source ~/.bashrc
 ```
 
+These scripts will modify your .bashrc  
+When uninstalling, make sure to remove SCSPKG and Jarvis from your bashrc.
+
 ### 1.1. Emulating PMEM
 
 If PMEM is not provided on the machine, Linux's PMEM emulator can be configured in GRUB as follows:

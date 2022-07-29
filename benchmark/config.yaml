@@ -1,0 +1,6 @@
+HDD_PATH: /dev/sda1
+SSD_PATH: /dev/sdc1
+NVME_PATH: /dev/nvme0n1
+PMEM_PATH: /dev/pmem0
+LOG_DIR: ${HOME}/labstor_tests
+MOUNT_POINT: ${HOME}/mount
