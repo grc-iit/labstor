@@ -138,18 +138,3 @@ make install
 
 #Add LabStor package dependencies
 scspkg add-deps labstor filebench fxmark liburing spdk fio yaml-cpp cmake-labstor mpich
-
-##Python 2.7
-#spack install python@2.7.12
-#spack load python@2.7.12
-
-##YCSB
-#scspkg create YCSB
-#cd `scspkg pkg-src YCSB`
-#git clone https://github.com/brianfrankcooper/YCSB.git
-#git checkout ce3eb9c
-#cd YCSB
-#mvn -pl site.ycsb:rocksdb-binding -am clean package
-
-#./bin/ycsb load rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount
-#./bin/ycsb run rocksdb -s -P workloads/workloada -p rocksdb.dir=${HOME}/fs_mount
