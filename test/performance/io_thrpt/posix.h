@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <vector>
 
-#include <labstor/types/thread_local.h>
+#include "labstor/types/thread_local.h"
 
 namespace labstor {
 

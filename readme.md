@@ -34,11 +34,13 @@ This is the configuration of PMEM we used in our experiments.
 ## 2. Building LabStor
 
 ```
-cd labstor
-mkdir build  
-cd build
-cmake ../
+cd labstor  
+mkdir build    
+cd build  
+module load labstor #Created by install.sh  
+cmake ../ -DCMAKE_INSTALL_PREFIX=`scspkg pkg-root labstor`  
 make -j4  
+make install  
 ```
 
 ## 3. Running Experiments
@@ -48,36 +50,33 @@ The benchmark directory contains all experiments.
 ### 3.1. Configuration
 
 Before running any experiments, users must define a few configuration parameters.
-An example of such a configuration is "benchmark/conf.ini", which contains the default
+An example of such a configuration is "benchmark/conf.yaml", which contains the default
 configuration for the tests we ran in Chameleon Cloud. The main parameters of the file are
 the paths to devices and mount points to use for experiments. Device paths should be the entire
 device (e.g., /dev/sda), not a partion (e.g., /dev/sda1).
 
-```bash
-#benchmark/conf.ini
-HDD=/dev/sda
+```yaml
+#benchmark/config.yaml
+HDD: /dev/sda
 ```
 
 If your machine doesn't support all device types (HDD,NVMe,SSD,etc.), you can set the
-value to "None" in the conf file. For example,
+value to "null" in the conf file. For example,
 
-```bash
-#bencmark/conf.ini
-HDD=None
+```yaml
+#bencmark/config.yaml
+HDD: null
 ```
 
 ### 3.2. Experiment Command
 
 The command to run a test case is structured as follows:
 ```
-sudo python3 benchmark/test.py --conf benchmark/config.ini --test [test_case]
+export LABSTOR_ROOT=`scspkg pkg-root labstor`
+python3 benchmark/test.py [test_case]
 ```
 
-### 3.3. Running LabStor Tests
-To run all experiments (except the I/O scheduling experiment), use the following command:
-```
-sudo python3 benchmark/test.py --conf benchmark/config.ini --test labstor
-```
+It will automatically load parameters from config.yaml.
 
 ### 3.4. Repeating Blk-Switch Tests
 
@@ -86,7 +85,7 @@ for blk-switch and then install.
 ```
 #Enable kernel 5.4.4
 sudo reboot
-sudo python3 benchmark/test.py --conf benchmark/config.ini --test iosched:blkswitch
+sudo python3 benchmark/test.py iosched:blkswitch
 ```
 
 ### Individual Tests

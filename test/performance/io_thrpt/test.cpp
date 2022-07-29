@@ -3,14 +3,14 @@
 //
 
 #include <omp.h>
-#include "generator/sequential.h"
+#include "test/performance/io_thrpt/generator/sequential.h"
 #include "posix.h"
 #include "posix_aio.h"
 //#include "labstor_mq.h"
 #include "io_uring.h"
 #include "libaio.h"
 //#include "spdk.h"
-#include <labstor/userspace/util/partitioner.h>
+#include "labstor/userspace/util/partitioner.h"
 
 
 void io_test(labstor::IOTest *test, const std::string &readwrite);

@@ -5,12 +5,12 @@
 #ifndef LABSTOR_IO_TEST_H
 #define LABSTOR_IO_TEST_H
 
-#include "generator/generator.h"
+#include "test/performance/io_thrpt/generator/generator.h"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include "io_logger.h"
-#include <labstor/userspace/util/timer.h>
+#include "labstor/userspace/util/timer.h"
 
 namespace labstor {
 class IOTest {

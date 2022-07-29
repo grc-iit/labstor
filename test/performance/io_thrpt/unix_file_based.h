@@ -17,7 +17,7 @@
 #include <string.h>
 #include <cstdio>
 #include <errno.h>
-#include <labstor/types/thread_local.h>
+#include "labstor/types/thread_local.h"
 
 namespace labstor {
 struct UnixFileBasedIOThread {

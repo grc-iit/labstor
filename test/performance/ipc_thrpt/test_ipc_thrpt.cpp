@@ -3,9 +3,9 @@
 //
 
 #include <omp.h>
-#include <labstor/userspace/client/client.h>
-#include <labstor/userspace/util/timer.h>
-#include <labmods/ipc_test/client/ipc_test_client.h>
+#include "labstor/userspace/client/client.h"
+#include "labstor/userspace/util/timer.h"
+#include "labmods/ipc_test/client/ipc_test_client.h"
 
 #include <unistd.h>
 

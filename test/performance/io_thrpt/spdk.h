@@ -8,7 +8,7 @@
 //https://github.com/spdk/spdk/blob/master/examples/nvme/hello_world/hello_world.c
 
 #include "io_test.h"
-#include <labstor/types/thread_local.h>
+#include "labstor/types/thread_local.h"
 
 #include <spdk/stdinc.h>
 #include <spdk/nvme.h>

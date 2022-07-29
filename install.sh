@@ -108,7 +108,7 @@ cd `scspkg pkg-src fxmark`
 git clone https://github.com/sslab-gatech/fxmark.git
 cd fxmark
 make
-cp bin `scspkg pkg-root fxmark`/bin
+cp -r bin `scspkg pkg-root fxmark`/bin
 #sudo bin/fxmark --type=MWCL --ncore=1 --duration=20 --root=/home/cc/hi
 
 #Filebench
@@ -116,7 +116,7 @@ scspkg create filebench
 cd `scspkg pkg-src filebench`
 wget https://github.com/filebench/filebench/archive/refs/tags/1.4.9.1.tar.gz
 tar -xzf 1.4.9.1.tar.gz
-cd filebench
+cd filebench-1.4.9.1
 libtoolize
 aclocal
 autoheader
