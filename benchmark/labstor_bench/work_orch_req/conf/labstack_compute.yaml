@@ -1,0 +1,23 @@
+execution_method: async
+mount_point: "fs::/home/compute"
+dag:
+  v1:
+    labmod_uuid: "comp::zlib"
+    labmod: "ZlibFS"
+    next: "iosched::NoOp"
+    do_format: true
+    device: "/dev/sda1"
+  v2:
+    labmod_uuid: "fs::/home/compute"
+    labmod: "LabFS"
+    next: "iosched::NoOp"
+    do_format: true
+    device: "/dev/sda1"
+  v3:
+      labmod_uuid: "iosched::NoOp"
+      labmod: "NoOp"
+      next: "driver::MQDriver"
+  v4:
+      labmod_uuid: "driver::MQDriver"
+      labmod: "MQDriver"
+      device: "/dev/sda1"

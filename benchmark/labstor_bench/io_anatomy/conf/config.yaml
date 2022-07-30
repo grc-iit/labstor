@@ -1,0 +1,41 @@
+repos:
+  - ${HOME}/scspkg/packages/labstor
+admin_thread: 0
+system_monitor: 1
+work_orchestrator:
+  time_slice_us: 1000
+  work_queue_depth: 128
+  policy: round-robin
+  kernel_workers:
+    - {worker_id: 0, cpu_id: 0}
+    - {worker_id: 1, cpu_id: 1}
+  server_workers:
+    - {worker_id: 0, cpu_id: 2}
+    - {worker_id: 1, cpu_id: 3}
+ipc_manager:
+  client:
+    max_region_size_kb: 1024
+    num_queues: 16
+    queue_depth: 512
+    request_unit_bytes: 256
+    min_request_region_kb: 512
+
+  kernel:
+    max_region_size_kb: 1024
+    num_queues: 16
+    queue_depth: 1024
+    request_unit_bytes: 64
+    min_request_region_kb: 512
+
+  private:
+    max_region_size_kb: 1024
+    num_queues: 16
+    queue_depth: 1024
+    request_unit_bytes: 64
+    min_request_region_kb: 500
+
+namespace:
+  max_entries: 1024
+  max_collisions: 16
+  shmem_request_unit: 128
+  shmem_kb: 1024

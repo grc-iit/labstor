@@ -1,27 +1,28 @@
 
 from labstor_bench.util.test import Test
-from jarvis_cd.serialize.ini_file import IniFile
-from jarvis_cd.fs.fs import FIO
+from labstor_bench.util.labstor import LabStorKernelServerStart,LabStorKernelServerStop,LabStorRuntimeStart,LabStorRuntimeStop, MountLabStack
+from jarvis_cd.serialize.text_file import TextFile
+from jarvis_cd.workloads.fio import FIO
 import os
 
-class IoschedLabstor(Test):
+class IoschedBlkswTest(Test):
+    def _Replace(self, name, dev):
+        old_conf = os.path.join(self.root, 'conf', name)
+        new_conf = os.path.join(self.root, name)
+        conf_text = TextFile(old_conf).Load()
+        conf_text = conf_text.replace('{filename}', dev)
+        TextFile(new_conf).Save(conf_text)
+        return new_conf
+
     def Run(self):
+        LabStorKernelServerStart().Run()
+        LabStorRuntimeStart(os.path.join(self.root, 'conf', 'config.yaml')).Run()
         dev = self.config['DEVICES']['NVME_PATH']
-
-        l = os.path.join(self.root, 'latency.fio')
-        t = os.path.join(self.root, 'thrpt.fio')
-        L = IniFile(l)
-        T = IniFile(l)
-
-        conf = L.Load()
-        conf['filename'] = dev
-        L.Save(conf)
-
-        conf = T.Load()
-        conf['filename'] = dev
-        T.Save(conf)
-
-        LNode = FIO(l, exec_async=True).Run()
-        TNode = FIO(t, exec_async=True).Run()
+        l = self._Replace('latency.fio', dev)
+        t = self._Replace('thrpt.fio', dev)
+        LNode = FIO(l, exec_async=True, sudo=True).Run()
+        TNode = FIO(t, exec_async=True, sudo=True).Run()
         LNode.Wait()
         TNode.Wait()
+        LabStorRuntimeStop().Run()
+        LabStorKernelServerStop().Run()

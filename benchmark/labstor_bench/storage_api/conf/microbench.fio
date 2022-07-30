@@ -2,8 +2,8 @@
 rw=write
 bs=128k
 direct=1
-ioengine=sync
+ioengine={engine}
 iodepth=1
-filename=/home/cc/test/hi.txt
+filename={filename}
 size=4g
 numjobs=1

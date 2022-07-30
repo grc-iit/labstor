@@ -43,11 +43,28 @@ make -j4
 make install  
 ```
 
-## 3. Running Experiments
+### 3. Deploying LabStor
 
-The benchmark directory contains all experiments.
+LabStor can be launched as follows:
+```
+cd labstor
+cd build
+make start_kernel_server
+make start_labstor_server
+make stop_kernel_server
+make stop_labstor_server
+```
 
-### 3.1. Configuration
+To mount a LabStack:
+```
+mount.labstack [labstack.yaml]
+```
+
+## 4. Experiments
+
+The benchmark directory contains some experiments.
+
+### 4.1. Configuration
 
 Before running any experiments, users must define a few configuration parameters.
 An example of such a configuration is "benchmark/conf.yaml", which contains the default
@@ -68,7 +85,7 @@ value to "null" in the conf file. For example,
 HDD: null
 ```
 
-### 3.2. Experiment Command
+### 4.2. Experiment Command
 
 The command to run a test case is structured as follows:
 ```
@@ -76,9 +93,19 @@ export LABSTOR_ROOT=`scspkg pkg-root labstor`
 python3 benchmark/test.py [test_case]
 ```
 
+Test cases:
+1. io_anatomy
+2. live_upgrade
+3. work_orch_cpu
+4. work_orch_req
+5. storage_api
+6. iosched_labstor
+7. filebench
+8. iosched_blkswitch
+
 It will automatically load parameters from config.yaml.
 
-### 3.4. Repeating Blk-Switch Tests
+### 4.3. Blk-Switch Tests
 
 To complete the I/O scheduler experiment, you must switch to the custom kernel compiled
 for blk-switch and then install.
@@ -87,17 +114,3 @@ for blk-switch and then install.
 sudo reboot
 sudo python3 benchmark/test.py iosched:blkswitch
 ```
-
-### Individual Tests
-
-If running all tests at once is not required, tests can be executed individually.
-To run individual tests, replace [test_case] with the following:
-1. io_anatomy
-2. live_upgrade
-3. work_orch_cpu
-4. work_orch_req
-5. storage_api
-6. iosched_labstor
-7. labios
-8. filebench
-9. iosched_blkswitch

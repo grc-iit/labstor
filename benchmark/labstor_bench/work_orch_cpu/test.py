@@ -1,19 +1,26 @@
 
 from labstor_bench.util.test import Test
-from jarvis_cd.serialize.ini_file import IniFile
-from jarvis_cd.fs.fs import EXT4Format, XFSFormat, F2FSFormat, UnmountFS, MountFS, ChownFS, FxMark, FxMarkOp
+from labstor_bench.util.labstor import LabStorKernelServerStart,LabStorKernelServerStop,LabStorRuntimeStart,LabStorRuntimeStop, MountLabStack
 import os
 
-class MdThrpt(Test):
+class WorkOrchCpuTest(Test):
+    def _Replace(self, ncpu_kern, ncpu_runtime):
+        conf = YAMLFile(os.path.join(self.root, 'conf', 'config.yaml')).Load()
+        conf['kernel_workers'] = []
+        conf['server_workers'] = []
+        for cpu in ncpu_kern:
+            conf['kernel_workers'].append({'worker_id': cpu, 'cpu_id': cpu})
+        for cpu in ncpu_runtime:
+            conf['server_workers'].append({'worker_id': cpu, 'cpu_id': cpu})
+        YAMLFile(os.path.join(self.root, 'config.yaml')).Save()
+        return os.path.join(self.root, 'config.yaml')
+
     def Run(self):
-        ncore = [1,2,3,4,5,6]
-        formats = [EXT4Format, XFSFormat, F2FSFormat]
-        mount = self.config['MOUNT_POINT']
-        dev_path = self.config['DEVICES']['NVME_PATH']
-        for cores in ncore:
-            for fs_format in formats:
-                UnmountFS(mount).Run()
-                fs_format().Run()
-                MountFS(dev_path, mount).Run()
-                ChownFS(mount).Run()
-                FxMark(FxMarkOp.MWCL, cores, 20, mount).Run()
+        ncpu = [1,2,4,8]
+        for cpu in ncpu:
+            conf = self._Replace(ncpu,ncpu)
+            LabStorKernelServerStart().Run()
+            LabStorRuntimeStart(conf).Run()
+            MountLabStack(os.path.join(self.root, 'conf', 'labstack.yaml')).Run()
+            LabStorRuntimeStop().Run()
+            LabStorKernelServerStop().Run()

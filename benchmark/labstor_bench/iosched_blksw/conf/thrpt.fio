@@ -4,8 +4,8 @@ bs=64k
 direct=1
 ioengine=sync
 iodepth=32
-filename=/dev/nvme0n1
+filename={filename}
 numjobs=8
-cpus_allowed=8-16
+cpus_allowed=2-3
 runtime=20
 time_based

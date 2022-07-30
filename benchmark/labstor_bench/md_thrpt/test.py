@@ -1,7 +1,8 @@
 
 from labstor_bench.util.test import Test
 from jarvis_cd.serialize.ini_file import IniFile
-from jarvis_cd.fs.fs import EXT4Format, XFSFormat, F2FSFormat, UnmountFS, MountFS, ChownFS, FxMark, FxMarkOp
+from jarvis_cd.fs.fs import EXT4Format, XFSFormat, F2FSFormat, UnmountFS, MountFS, ChownFS
+from jarvis_cd.workloads.fxmark import FxMark, FxMarkOp
 import os
 
 class MdThrpt(Test):
