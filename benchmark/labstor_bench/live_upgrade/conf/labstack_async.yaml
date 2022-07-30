@@ -1,0 +1,7 @@
+execution_method: async
+mount_point: "lab::dummy"
+dag:
+  v1:
+      labmod_uuid: "lab::dummy"
+      labmod: "dummy"
+      upgrade: true

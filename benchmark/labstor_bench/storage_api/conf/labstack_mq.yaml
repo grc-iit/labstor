@@ -1,0 +1,7 @@
+execution_method: async
+mount_point: "driver::MQDriver"
+dag:
+  v1:
+    labmod_uuid: "driver::MQDriver"
+      labmod: "MQDriver"
+      device: "/dev/nvme0n1"

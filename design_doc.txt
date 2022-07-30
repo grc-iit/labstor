@@ -1,0 +1,36 @@
+LabStor Client Init:
+1. LabStor Client connects to LabStor Server
+2. LabStor Server sends registers client
+3. LabStor Server sends client the following:
+    - Userspace SHMEM
+        - 1MB for QPs
+        - 16MB for latency-sensitive I/O
+        - Can request up to 512MB of memory
+    - Runtime memory (for sharing namespace)
+4. LabStor Client responds with the SHMEM
+
+Memory Allocation
+    1. There are three types of memory: shared and DMA
+    2. Shared memory is used only for communicating with LabRuntime.
+    3. DMA is used for I/O. Can be communicated with LabRuntime.
+        - DMA may be the same as SHMEM
+    4. Kernel is used for communication with the kernel.
+
+ipc_manager_->Malloc(LABSTOR_SHMEM, pid)
+ipc_manager_->Malloc(LABSTOR_DMA, pid)
+ipc_manager_->Malloc(LABSTOR_KERNEL, pid)
+
+ipc_manager_->GetQueuePair(this, rq, LABSTOR_QP_ORDERED, pid)
+ipc_manager_->GetQueuePair(this, rq, LABSTOR_QP_UNORDERED, pid)
+
+
+Userspace processes always communicate with root LabStor Runtime
+
+LabMods may be assigned to different runtimes.
+
+PROCESS A:
+    QP: Shared between PA and PB
+    QP.Enqueue(rq, modA)
+
+PROCESS B:
+    QP: Shared between PB

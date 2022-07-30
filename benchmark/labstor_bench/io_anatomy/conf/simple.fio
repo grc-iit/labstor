@@ -1,0 +1,10 @@
+[posix]
+rw=write
+bs=4k
+direct=1
+ioengine=sync
+iodepth=1
+filename={filename}
+numjobs=1
+runtime=20
+time_based

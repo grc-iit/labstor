@@ -1,9 +1,0 @@
-[posix]
-rw=write
-bs=128k
-direct=1
-ioengine=sync
-iodepth=1
-filename=/home/cc/test/hi.txt
-size=4g
-numjobs=1

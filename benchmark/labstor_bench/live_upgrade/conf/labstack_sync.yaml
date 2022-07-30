@@ -1,0 +1,7 @@
+execution_method: sync
+mount_point: "fs::/home/async"
+dag:
+  v1:
+    labmod_uuid: "lab::dummy"
+      labmod: "dummy"
+      upgrade: true
