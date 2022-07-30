@@ -107,4 +107,4 @@ sudo reboot
 sudo python3 benchmark/test.py iosched:blkswitch
 ```
 
-![img.png](img.png)
+[![DOI](https://zenodo.org/badge/499672000.svg)](https://zenodo.org/badge/latestdoi/499672000)
