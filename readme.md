@@ -106,3 +106,5 @@ for blk-switch and then install.
 sudo reboot
 sudo python3 benchmark/test.py iosched:blkswitch
 ```
+
+![img.png](img.png)
