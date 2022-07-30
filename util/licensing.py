@@ -47,20 +47,23 @@ def ErasePreamble(text):
     lines = text.splitlines()
     for id,line in enumerate(lines):
         if 'Created by lukemartinlogan on' in line:
-           del lines[id-1]
-           del lines[id-1]
-           del lines[id-1]
+            del lines[id-1]
+            del lines[id-1]
+            del lines[id-1]
     return "\n".join(lines).strip()
 
 def Paths(root):
-    filenames = os.listdir(os.getcwd())
+    filenames = os.listdir(root)
     for filename in filenames:
-        if os.isfile(os.path.join(root,filename)):
-            if '.cpp' in filename or '.h' in filename or '.c' in filename:
-                text = TextFile(os.path.join(root,filename)).Load()
-                ErasePreamble(text)
+        if os.path.isfile(os.path.join(root,filename)):
+            if filename.endswith('.cpp') or filename.endswith('.h') or filename.endswith('.c'):
+                print(os.path.join(root, filename))
+                node = TextFile(os.path.join(root,filename))
+                text = node.Load()
+                text = ErasePreamble(text)
                 text = license + text
+                node.Save(text)
+        else:
+            Paths(os.path.join(root,filename))
 
-print(ErasePreamble(preamble_test))
-
-#Paths(os.getcwd())
+Paths(os.getcwd())
