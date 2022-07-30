@@ -77,14 +77,6 @@ device (e.g., /dev/sda), not a partion (e.g., /dev/sda1).
 HDD: /dev/sda
 ```
 
-If your machine doesn't support all device types (HDD,NVMe,SSD,etc.), you can set the
-value to "null" in the conf file. For example,
-
-```yaml
-#bencmark/config.yaml
-HDD: null
-```
-
 ### 4.2. Experiment Command
 
 The command to run a test case is structured as follows:
