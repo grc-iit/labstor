@@ -52,6 +52,7 @@ echo INSTALLING SCSPKG
 cd external
 git clone https://github.com/scs-lab/scspkg.git
 cd scspkg
+git switch v0.1.0
 bash install.sh
 source ~/.bashrc
 cd ${LABSTOR_ROOT}
