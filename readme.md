@@ -3,6 +3,13 @@
 
 LabStor is a holistic platform for developing and managing I/O stacks in userspace.
 
+Update 11/28. We are currently re-organizing the LabStor library to use
+in other projects. We are also making the test cases work outside
+of our testbed and adding github actions. We are also adding a wiki.
+Expected completion: 2 weeks.
+
+[![DOI](https://zenodo.org/badge/499672000.svg)](https://zenodo.org/badge/latestdoi/499672000)
+
 ## 1. Installing Dependencies
 
 Our script assumes the following:
@@ -64,6 +71,9 @@ mount.labstack [labstack.yaml]
 
 The benchmark directory contains some experiments.
 
+NOTE: This currently is only supported for our testbed. We are fixing
+this now since LabStor is required in other projects (11/28).
+
 ### 4.1. Configuration
 
 Before running any experiments, users must define a few configuration parameters.
@@ -106,5 +116,3 @@ for blk-switch and then install.
 sudo reboot
 sudo python3 benchmark/test.py iosched:blkswitch
 ```
-
-[![DOI](https://zenodo.org/badge/499672000.svg)](https://zenodo.org/badge/latestdoi/499672000)
