@@ -70,8 +70,8 @@ mount.labstack [labstack.yaml]
 
 The benchmark directory contains some experiments.
 
-NOTE: This currently is only supported for our testbed. We are adding
-github actions to fix this problem now (11/28).
+NOTE: This currently is only supported for our testbed. We are fixing
+this now since LabStor is required in other projects (11/28).
 
 ### 4.1. Configuration
 
