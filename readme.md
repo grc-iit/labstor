@@ -5,7 +5,8 @@ LabStor is a holistic platform for developing and managing I/O stacks in userspa
 
 Update 11/28. We are currently re-organizing the LabStor library to use
 in other projects. We are also making the test cases work outside
-of our testbed and adding github actions. Expected completion: 2 weeks.
+of our testbed and adding github actions. We are also adding a wiki.
+Expected completion: 2 weeks.
 
 [![DOI](https://zenodo.org/badge/499672000.svg)](https://zenodo.org/badge/latestdoi/499672000)
 
